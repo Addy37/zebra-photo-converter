@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Zebra Converter">
+<title>Zebra Photo Converter | iPhone & Android</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#eaf0fa;background:#0b1220;line-height:1.45;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;padding:20px 14px calc(40px + env(safe-area-inset-bottom))}
+main{max-width:800px;margin:auto}
+h1{font-size:clamp(1.5rem,5vw,2rem);letter-spacing:-.035em;margin:9px 0 7px;line-height:1.15}
+h2{font-size:1.02rem;margin:0}
+p{color:#a7b6c9;margin:8px 0 14px}
+.pill{display:inline-block;background:#193255;color:#96c9ff;padding:6px 11px;border-radius:50px;font-weight:700;font-size:.78rem}
+.panel{background:#121e30;border:1px solid #2b3e54;border-radius:16px;padding:16px;margin:14px 0}
+#pickArea{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:150px;padding:18px;border:2px dashed #5e83a9;background:#11243a;border-radius:13px;overflow:hidden}
+#pickArea.drag{border-color:#9bd8ff;background:#1a3858}
+#pickArea strong{font-size:1.07rem}
+#pickArea small{margin-top:6px;color:#b4cbe2}
+#picker{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+#picker:focus-visible{outline:3px solid #ffcb67;outline-offset:-4px}
+label{font-size:.89rem;font-weight:650;color:#d9e8f7}
+.controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end;margin-top:14px}
+.control{display:flex;flex-direction:column;gap:7px}
+select{width:100%;min-height:46px;padding:7px 10px;color:#eaf0fa;background:#213248;border:1px solid #4d6680;border-radius:9px;font:inherit}
+button,.action{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-height:48px;padding:11px 15px;border:0;border-radius:10px;font:inherit;font-weight:700;text-decoration:none;cursor:pointer;background:#2786e2;color:white;-webkit-tap-highlight-color:transparent}
+button.secondary,.action.secondary{background:#253b54;color:#dce9fa}
+button:disabled,.action.disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #ffcb67;outline-offset:3px}
+.section-header{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.muted{font-size:.81rem;color:#a9bdd1}
+#previewWrap{background:#0b1018;border-radius:12px;padding:12px;display:flex;align-items:center;justify-content:center;min-height:190px}
+canvas{display:block;width:100%;height:auto;max-width:812px;object-fit:contain;background:#fff;border-radius:2px;box-shadow:0 8px 22px #0006}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
+.actions .primary{grid-column:1/-1}
+#status{margin:12px 0 0;min-height:20px;color:#a5ceff;font-size:.9rem;overflow-wrap:anywhere}
+.info{border-left:3px solid #75a5d9;padding:3px 0 3px 12px;color:#b3c4d7;font-size:.87rem;margin:18px 0}
+.info strong{color:#e6eef6}
+.help{color:#bfd0e1;font-size:.85rem;margin:10px 0 0}
+.warning{background:#4b3019;color:#ffe6bd;border:1px solid #aa6c31;padding:14px;border-radius:12px;margin:14px 0}
+.warning strong{color:#fff1da}
+#iosNote{display:none}
+footer{color:#94a8bf;font-size:.8rem;text-align:center;margin:22px 0}
+@media(max-width:440px){body{padding:12px 10px calc(35px + env(safe-area-inset-bottom))}.panel{padding:12px}.actions{grid-template-columns:1fr}.actions .primary{grid-column:auto}.controls{grid-template-columns:1fr}.section-header{align-items:start}}
+</style>
+</head>
+<body>
+<main>
+<span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
+<h1>Photo to Zebra label</h1>
+<p>Turn a photo into a printer-ready black-and-white PNG. Keeps the entire photo without cropping.</p>
+<div class="warning" id="needsBrowser"><strong>iPhone setup:</strong> Apple's Files preview does not run this converter. Open it as a webpage in Safari, or in an HTML viewer that supports JavaScript. The buttons will work only in a full browser.</div>
+<div class="panel">
+  <div id="pickArea">
+    <svg width="37" height="37" viewBox="0 0 24 24" fill="none" stroke="#91c6f9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+    <strong>Tap to choose a photo</strong>
+    <small>Photo Library, camera or Files • JPG, PNG, HEIC*</small>
+    <input id="picker" type="file" accept="image/*,.heic,.heif" aria-label="Choose a photo from your device">
+  </div>
+  <div class="controls">
+    <div class="control">
+      <label for="quality">Photo shading</label>
+      <select id="quality"><option value="normal">Normal (recommended)</option><option value="light">Lighter</option><option value="dark">Darker</option><option value="bold">Bold, fewer gray dots</option></select>
+    </div>
+    <button id="rotate" type="button" class="secondary" disabled>Rotate 90°</button>
+  </div>
+  <div class="help" id="iosNote">On iPhone, tap <strong>Share / Save to iPhone</strong>, then choose <strong>Save Image</strong> or <strong>Save to Files</strong>.</div>
+</div>
+<div class="panel">
+  <div class="section-header"><h2>Print preview</h2><span class="muted">812 × 609 pixels • no crop</span></div>
+  <div id="previewWrap"><canvas id="preview" width="812" height="609" aria-label="Converted black and white label preview"></canvas></div>
+  <div class="actions">
+    <button id="share" type="button" class="primary" disabled>Share / Save to iPhone</button>
+    <a id="download" class="action secondary disabled" href="#" download="Zebra_4x3.png" aria-disabled="true">Download PNG</a>
+    <a id="view" class="action secondary disabled" href="#" target="_blank" rel="noopener" aria-disabled="true">Open PNG</a>
+  </div>
+  <div id="status" role="status" aria-live="polite">Choose a photo to start.</div>
+</div>
+<div class="info"><strong>Print:</strong> In your Zebra printing app, select a 4 × 3-inch label, actual size / 100%, no crop or fill. This PNG is sized for 203-DPI printers.<p class="help">* HEIC is supported only when the browser can open the photo. If not, choose JPG or PNG.</p></div>
+<footer>All conversion happens on your device. No photo is uploaded.</footer>
+</main>
+<script>
+(function(){
+'use strict';
+var W=812,H=609,MX=26,MY=20;
+var input=document.getElementById('picker');
+var area=document.getElementById('pickArea');
+var canvas=document.getElementById('preview');
+var ctx=canvas.getContext('2d');
+var quality=document.getElementById('quality');
+var share=document.getElementById('share');
+var rotate=document.getElementById('rotate');
+var download=document.getElementById('download');
+var view=document.getElementById('view');
+var status=document.getElementById('status');
+var source=null,sourceUrl='',outputUrl='',outputFile=null,fileName='photo',degrees=0,revision=0;
+var isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+document.getElementById('needsBrowser').hidden=true;
+if(isIOS){document.getElementById('iosNote').style.display='block';}else{share.textContent='Share PNG';}
+ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+function setStatus(msg){status.textContent=msg;}
+function safeName(name){return (name||'photo').replace(/\.[^.]*$/,'').replace(/[^a-z0-9_ -]/gi,'').trim()||'photo';}
+function disableOutput(){
+  share.disabled=true;
+  [download,view].forEach(function(a){a.classList.add('disabled');a.setAttribute('aria-disabled','true');a.removeAttribute('href');});
+  outputFile=null;
+  if(outputUrl){URL.revokeObjectURL(outputUrl);outputUrl='';}
+}
+function activateOutput(file,blob){
+  outputFile=file;
+  outputUrl=URL.createObjectURL(blob);
+  download.href=outputUrl;download.download=file.name;
+  view.href=outputUrl;
+  [download,view].forEach(function(a){a.classList.remove('disabled');a.removeAttribute('aria-disabled');});
+  share.disabled=false;
+  setStatus('Ready! Choose Share / Save, Download, or Open PNG.');
+}
+function chooseFile(file){
+  if(!file)return;
+  if(!(file.type.indexOf('image/')===0||/\.(jpe?g|png|webp|heic|heif|gif|bmp)$/i.test(file.name||''))){setStatus('Choose a photo, JPG or PNG.');return;}
+  var requested=++revision;
+  disableOutput();rotate.disabled=true;
+  if(sourceUrl){URL.revokeObjectURL(sourceUrl);sourceUrl='';}
+  source=null;
+  sourceUrl=URL.createObjectURL(file);
+  var image=new Image();
+  setStatus('Opening photo…');
+  image.onload=function(){
+    if(requested!==revision)return;
+    source=image;fileName=safeName(file.name);degrees=0;rotate.disabled=false;
+    convert();
+  };
+  image.onerror=function(){if(requested===revision)setStatus('This photo could not open. Try a JPG or PNG instead.');};
+  image.src=sourceUrl;
+}
+input.addEventListener('change',function(){chooseFile(input.files&&input.files[0]);});
+['dragenter','dragover'].forEach(function(evt){area.addEventListener(evt,function(e){e.preventDefault();area.classList.add('drag');});});
+['dragleave','drop'].forEach(function(evt){area.addEventListener(evt,function(e){e.preventDefault();area.classList.remove('drag');});});
+area.addEventListener('drop',function(e){if(e.dataTransfer&&e.dataTransfer.files)chooseFile(e.dataTransfer.files[0]);});
+quality.addEventListener('change',convert);
+rotate.addEventListener('click',function(){if(!source)return;degrees=(degrees+90)%360;convert();});
+function paint(){
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  var sw=source.naturalWidth||source.width,sh=source.naturalHeight||source.height;
+  if(!sw||!sh)throw new Error('Invalid photo dimensions');
+  var rotated=degrees%180!==0,boxW=rotated?sh:sw,boxH=rotated?sw:sh;
+  var scale=Math.min((W-2*MX)/boxW,(H-2*MY)/boxH);
+  var x=Math.floor((W-boxW*scale)/2),y=Math.floor((H-boxH*scale)/2);
+  var x1=Math.min(W,Math.ceil((W+boxW*scale)/2)),y1=Math.min(H,Math.ceil((H+boxH*scale)/2));
+  ctx.save();ctx.translate(W/2,H/2);ctx.rotate(degrees*Math.PI/180);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,-sw*scale/2,-sh*scale/2,sw*scale,sh*scale);ctx.restore();
+  var pixels=ctx.getImageData(0,0,W,H),p=pixels.data,levels=new Float32Array(W*H),mode=quality.value;
+  var light=mode==='light'?19:mode==='dark'?-17:mode==='bold'?-4:0;
+  var contrast=mode==='bold'?1.43:1.14;
+  var yy,xx,i,at,gray,old,bw,err;
+  for(yy=Math.max(0,y);yy<y1;yy++)for(xx=Math.max(0,x);xx<x1;xx++){
+    at=(yy*W+xx)*4;
+    gray=0.299*p[at]+0.587*p[at+1]+0.114*p[at+2];
+    levels[yy*W+xx]=Math.max(0,Math.min(255,(gray-127.5)*contrast+127.5+light));
+  }
+  // Floyd-Steinberg dithering for the Zebra's black-and-white printhead.
+  for(yy=Math.max(0,y);yy<y1;yy++)for(xx=Math.max(0,x);xx<x1;xx++){
+    i=yy*W+xx;old=levels[i];bw=old<128?0:255;err=old-bw;at=i*4;
+    p[at]=p[at+1]=p[at+2]=bw;p[at+3]=255;
+    if(xx+1<x1)levels[i+1]+=err*7/16;
+    if(yy+1<y1){
+      if(xx>Math.max(0,x))levels[i+W-1]+=err*3/16;
+      levels[i+W]+=err*5/16;
+      if(xx+1<x1)levels[i+W+1]+=err/16;
+    }
+  }
+  ctx.putImageData(pixels,0,0);
+}
+var crcTable=(function(){var t=[],n,c,k;for(n=0;n<256;n++){c=n;for(k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
+function crc32(b){var c=0xffffffff;for(var j=0;j<b.length;j++)c=crcTable[(c^b[j])&255]^(c>>>8);return(c^0xffffffff)>>>0;}
+function pngChunk(type,data){
+  var b=new Uint8Array(data.length+12),dv=new DataView(b.buffer),i;
+  dv.setUint32(0,data.length,false);
+  for(i=0;i<4;i++)b[4+i]=type.charCodeAt(i);
+  b.set(data,8);dv.setUint32(data.length+8,crc32(b.subarray(4,8+data.length)),false);
+  return b;
+}
+function readArrayBuffer(blob){
+  if(blob.arrayBuffer)return blob.arrayBuffer();
+  return new Promise(function(resolve,reject){var r=new FileReader();r.onload=function(){resolve(r.result);};r.onerror=reject;r.readAsArrayBuffer(blob);});
+}
+async function withPrintDpi(blob){
+  var buf=new Uint8Array(await readArrayBuffer(blob)),parts=[buf.subarray(0,8)];
+  var signature=[137,80,78,71,13,10,26,10];
+  for(var q=0;q<8;q++)if(buf[q]!==signature[q])throw new Error('Not a PNG');
+  var phy=new Uint8Array(9),meta=new DataView(phy.buffer);
+  meta.setUint32(0,7992,false);meta.setUint32(4,7992,false);phy[8]=1;
+  var pos=8,inserted=false;
+  while(pos+12<=buf.length){
+    var len=new DataView(buf.buffer,buf.byteOffset+pos,4).getUint32(0,false);
+    if(pos+12+len>buf.length)throw new Error('Incomplete PNG');
+    var type=String.fromCharCode(buf[pos+4],buf[pos+5],buf[pos+6],buf[pos+7]);
+    if(type==='IDAT'&&!inserted){parts.push(pngChunk('pHYs',phy));inserted=true;}
+    if(type!=='pHYs')parts.push(buf.subarray(pos,pos+12+len));
+    pos+=12+len;if(type==='IEND')break;
+  }
+  if(!inserted)throw new Error('Invalid PNG');
+  return new Blob(parts,{type:'image/png'});
+}
+function toPngBlob(){
+  return new Promise(function(resolve,reject){
+    if(canvas.toBlob){canvas.toBlob(function(b){if(b)resolve(b);else reject(new Error('PNG export failed'));},'image/png');}
+    else{
+      try{
+        var uri=canvas.toDataURL('image/png'),base64=atob(uri.split(',')[1]),bytes=new Uint8Array(base64.length);
+        for(var i=0;i<base64.length;i++)bytes[i]=base64.charCodeAt(i);
+        resolve(new Blob([bytes],{type:'image/png'}));
+      }catch(e){reject(e);}
+    }
+  });
+}
+async function convert(){
+  if(!source)return;
+  var mine=++revision;
+  disableOutput();setStatus('Converting photo…');
+  try{
+    paint();
+    var blob=await withPrintDpi(await toPngBlob());
+    if(mine!==revision)return;
+    var name=fileName+'_Zebra_4x3.png';
+    var file=new File([blob],name,{type:'image/png'});
+    activateOutput(file,blob);
+  }catch(e){if(mine===revision)setStatus('Could not convert this photo. Please try another image.');}
+}
+share.addEventListener('click',function(){
+  if(!outputFile)return;
+  // The file is built BEFORE the tap, allowing iOS to show its native share sheet.
+  if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[outputFile]}))){
+    try{
+      var result=navigator.share({files:[outputFile]});
+      Promise.resolve(result).then(function(){setStatus('Use Save Image or Save to Files in the share sheet.');}).catch(function(err){
+        if(err&&err.name==='AbortError')setStatus('Share canceled. Your PNG is still ready.');
+        else setStatus('Sharing is unavailable here. Try Open PNG instead.');
+      });
+      return;
+    }catch(e){}
+  }
+  setStatus('This viewer cannot show the iPhone share sheet. Tap Open PNG, then Share > Save Image.');
+});
+view.addEventListener('click',function(){setStatus('In the new image view, use Share > Save Image (or long-press the image).');});
+download.addEventListener('click',function(){setStatus('If Safari opens the image instead of downloading, use Share > Save Image or Save to Files.');});
+})();
+</script>
+</body>
+</html>
