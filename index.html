@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Zebra Converter">
-<title>Zebra Photo &amp; UPC Converter | iPhone &amp; Android</title>
+<title>Zebra Photo &amp; Barcode Converter | iPhone &amp; Android</title>
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#eaf0fa;background:#0b1220;line-height:1.45;color-scheme:dark}
 *{box-sizing:border-box}
@@ -47,7 +47,7 @@ canvas{display:block;width:100%;height:auto;max-width:812px;object-fit:contain;b
 #iosNote{display:none}
 footer{color:#94a8bf;font-size:.8rem;text-align:center;margin:22px 0}
 @media(max-width:440px){body{padding:12px 10px calc(35px + env(safe-area-inset-bottom))}.panel{padding:12px}.actions{grid-template-columns:1fr}.actions .primary{grid-column:auto}.controls{grid-template-columns:1fr}.section-header{align-items:start}}
-.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:#0b1018;border:1px solid #2b3e54;border-radius:13px;margin:14px 0}
+.mode-switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:5px;background:#0b1018;border:1px solid #2b3e54;border-radius:13px;margin:14px 0}
 .mode-switch button{background:transparent;color:#a7b6c9;min-height:44px;padding:8px}
 .mode-switch button[aria-pressed="true"]{background:#2786e2;color:white}
 #upcInput{width:100%;min-height:48px;padding:9px 12px;color:#eaf0fa;background:#213248;border:1px solid #4d6680;border-radius:9px;font:inherit;font-size:1.1rem;letter-spacing:.06em}
@@ -103,6 +103,12 @@ footer span{font-size:.75rem}
 @media(min-width:761px){body{background:linear-gradient(180deg,var(--bb-blue) 0,var(--bb-blue) 180px,#eef2f7 180px)}.hero{margin:0;padding:28px 26px 30px}}
 @media(max-width:440px){body{padding-top:0}.hero{margin:0 -10px;padding:22px 16px 24px}.brand-row{margin-bottom:19px}}
 @media(prefers-reduced-motion:reduce){button,.action{transition:none}}
+#lpnForm{display:grid;gap:10px}
+#lpnForm input{width:100%;min-height:48px;padding:9px 12px;color:var(--ink);background:#fff;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
+#lpnForm input:focus-visible{outline:3px solid var(--bb-blue);outline-offset:2px}
+#lpnForm input[aria-invalid="true"]{border-color:#c93632}
+#lpnForm button[type="submit"]{background:var(--bb-yellow);color:#152137}
+@media(max-width:360px){.mode-switch button{font-size:.83rem;padding:6px 3px}}
 </style>
 </head>
 <body>
@@ -113,13 +119,14 @@ footer span{font-size:.75rem}
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <h1>Zebra label converter</h1>
-  <p>Convert a photo or create a UPC barcode for your Zebra printer.</p>
+  <p>Convert a photo, create a UPC barcode or print an order / SKU / LPN label.</p>
   <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
 </header>
 <div class="warning" id="needsBrowser"><strong>iPhone setup:</strong> Apple's Files preview does not run this converter. Open it as a webpage in Safari, or in an HTML viewer that supports JavaScript. The buttons will work only in a full browser.</div>
 <div class="mode-switch" role="group" aria-label="Label type">
   <button id="photoMode" type="button" aria-pressed="true">Photo</button>
   <button id="barcodeMode" type="button" aria-pressed="false">UPC Barcode</button>
+  <button id="lpnMode" type="button" aria-pressed="false">LPN Barcode</button>
 </div>
 <div class="panel" id="photoPanel">
   <div id="pickArea">
@@ -145,6 +152,18 @@ footer span{font-size:.75rem}
     <button type="submit">Generate barcode</button>
   </form>
 </div>
+<div class="panel" id="lpnPanel" hidden>
+  <form id="lpnForm">
+    <label for="orderInput">Order number (optional)</label>
+    <input id="orderInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter order number">
+    <label for="skuInput">SKU (optional)</label>
+    <input id="skuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU">
+    <label for="lpnInput">LPN</label>
+    <input id="lpnInput" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter LPN" aria-describedby="lpnHelp">
+    <span class="help" id="lpnHelp">Only the LPN is a scannable Code 128 barcode. Leading zeros are preserved.</span>
+    <button type="submit">Generate LPN label</button>
+  </form>
+</div>
 <div class="panel">
   <div class="section-header"><h2>Print preview</h2><span class="muted" id="previewMeta">812 × 609 pixels • no crop</span></div>
   <div id="previewWrap"><canvas id="preview" width="812" height="609" aria-label="Converted black and white label preview"></canvas></div>
@@ -156,7 +175,7 @@ footer span{font-size:.75rem}
   <div id="status" role="status" aria-live="polite">Choose a photo to start.</div>
 </div>
 <div class="info"><strong>Print:</strong> In your Zebra printing app, select a 4 × 3-inch label, actual size / 100%, no crop or fill. This PNG is sized for 203-DPI printers.<p class="help">* HEIC is supported only when the browser can open the photo. If not, choose JPG or PNG.</p></div>
-<footer>All conversion happens on your device. No photos or UPCs are uploaded.<br><span>Unofficial warehouse utility • Not an official Best Buy application.</span></footer>
+<footer>All conversion happens on your device. No photos, UPCs or label numbers are uploaded.<br><span>Unofficial warehouse utility • Not an official Best Buy application.</span></footer>
 </main>
 <script>
 (function(){
@@ -175,6 +194,8 @@ var status=document.getElementById('status');
 var photoMode=document.getElementById('photoMode'),barcodeMode=document.getElementById('barcodeMode');
 var photoPanel=document.getElementById('photoPanel'),barcodePanel=document.getElementById('barcodePanel');
 var upcInput=document.getElementById('upcInput'),upcForm=document.getElementById('upcForm'),previewMeta=document.getElementById('previewMeta');
+var lpnMode=document.getElementById('lpnMode'),lpnPanel=document.getElementById('lpnPanel');
+var lpnForm=document.getElementById('lpnForm'),orderInput=document.getElementById('orderInput'),skuInput=document.getElementById('skuInput'),lpnInput=document.getElementById('lpnInput');
 var mode='photo';
 var source=null,sourceUrl='',outputUrl='',outputFile=null,fileName='photo',degrees=0,revision=0;
 var isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -263,17 +284,71 @@ function drawUPC(value){
   ctx.fillText(value.slice(6,11),x+71*module,y+height+28);
   ctx.fillText(value.charAt(11),x+95*module+20,y+height+28);
 }
+// Code 128 symbol widths, including start, checksum and stop patterns.
+var CODE128_PATTERNS=["212222","222122","222221","121223","121322","131222","122213","122312","132212","221213","221312","231212","112232","122132","122231","113222","123122","123221","223211","221132","221231","213212","223112","312131","311222","321122","321221","312212","322112","322211","212123","212321","232121","111323","131123","131321","112313","132113","132311","211313","231113","231311","112133","112331","132131","113123","113321","133121","313121","211331","231131","213113","213311","213131","311123","311321","331121","312113","312311","332111","314111","221411","431111","111224","111422","121124","121421","141122","141221","112214","112412","122114","122411","142112","142211","241211","221114","413111","241112","134111","111242","121142","121241","114212","124112","124211","411212","421112","421211","212141","214121","412121","111143","111341","131141","114113","114311","411113","411311","113141","114131","311141","411131","211412","211214","211232","2331112"];
+function code128(value){
+  if(!/^[\x20-\x7e]+$/.test(value))throw new Error('Enter an LPN using standard letters, numbers or punctuation.');
+  var words=[],i=0;
+  if(/^[0-9]+$/.test(value)&&value.length>=2){
+    words.push(105);
+    for(;i+1<value.length;i+=2)words.push(Number(value.slice(i,i+2)));
+    if(i<value.length)words.push(100,value.charCodeAt(i)-32);
+  }else{
+    words.push(104);
+    for(;i<value.length;i++)words.push(value.charCodeAt(i)-32);
+  }
+  var checksum=words[0];
+  for(i=1;i<words.length;i++)checksum+=i*words[i];
+  words.push(checksum%103,106);
+  return words;
+}
+function barcodeGeometry(words){
+  var pattern=words.map(function(w){return CODE128_PATTERNS[w];}).join('');
+  var modules=0;
+  for(var i=0;i<pattern.length;i++)modules+=Number(pattern.charAt(i));
+  var module=Math.min(5,Math.floor((W-2*MX)/(modules+20)));
+  if(module<2)throw new Error('LPN is too long to print with readable bars on this label.');
+  return {pattern:pattern,module:module,x:Math.floor((W-modules*module)/2),modules:modules};
+}
+function fittedText(value,y,maxSize){
+  ctx.font='bold '+maxSize+'px Arial, sans-serif';
+  var size=maxSize;
+  while(ctx.measureText(value).width>W-2*MX && size>12){
+    size--;ctx.font='bold '+size+'px Arial, sans-serif';
+  }
+  ctx.fillText(value,W/2,y,W-2*MX);
+}
+function drawLPN(order,sku,lpn,geometry){
+  clearPreview();
+  ctx.fillStyle='#000';ctx.textAlign='center';ctx.textBaseline='middle';
+  fittedText('ORDER NUMBER',35,27);
+  fittedText(order,91,55);
+  ctx.fillRect(MX,139,W-2*MX,3);
+  fittedText('SKU',176,27);
+  fittedText(sku,231,65);
+  ctx.fillRect(MX,281,W-2*MX,3);
+  fittedText('LPN',315,27);
+  var x=geometry.x;
+  for(var i=0;i<geometry.pattern.length;i++){
+    var width=Number(geometry.pattern.charAt(i))*geometry.module;
+    if(i%2===0)ctx.fillRect(x,349,width,172);
+    x+=width;
+  }
+  fittedText(lpn,563,43);
+}
 function switchMode(next){
   if(next===mode)return;
   mode=next;++revision;disableOutput();clearPreview();
-  var barcode=mode==='barcode';
-  photoMode.setAttribute('aria-pressed',String(!barcode));
+  var barcode=mode==='barcode',lpn=mode==='lpn',photo=mode==='photo';
+  photoMode.setAttribute('aria-pressed',String(photo));
   barcodeMode.setAttribute('aria-pressed',String(barcode));
-  photoPanel.hidden=barcode;barcodePanel.hidden=!barcode;
-  previewMeta.textContent=barcode?'812 × 609 pixels • UPC-A':'812 × 609 pixels • no crop';
-  canvas.setAttribute('aria-label',barcode?'UPC barcode label preview':'Converted black and white label preview');
-  upcInput.removeAttribute('aria-invalid');
+  lpnMode.setAttribute('aria-pressed',String(lpn));
+  photoPanel.hidden=!photo;barcodePanel.hidden=!barcode;lpnPanel.hidden=!lpn;
+  previewMeta.textContent=barcode?'812 × 609 pixels • UPC-A':lpn?'812 × 609 pixels • Code 128':'812 × 609 pixels • no crop';
+  canvas.setAttribute('aria-label',barcode?'UPC barcode label preview':lpn?'Order, SKU and LPN label preview':'Converted black and white label preview');
+  upcInput.removeAttribute('aria-invalid');lpnInput.removeAttribute('aria-invalid');
   if(barcode){setStatus('Enter a UPC to start.');}
+  else if(lpn){setStatus('Enter the order, SKU and LPN to start.');}
   else if(source){rotate.disabled=false;convert();}
   else{input.value='';setStatus('Choose a photo to start.');}
 }
@@ -299,6 +374,29 @@ upcForm.addEventListener('submit',async function(e){
     activateOutput(file,blob);
     setStatus('UPC '+value+' ready. Share, download or open the PNG.');
   }catch(err){if(mine===revision)setStatus('Could not export this barcode. Try again.');}
+});
+lpnMode.addEventListener('click',function(){switchMode('lpn');});
+[orderInput,skuInput,lpnInput].forEach(function(field){
+  field.addEventListener('input',function(){
+    if(mode!=='lpn')return;
+    ++revision;disableOutput();clearPreview();lpnInput.removeAttribute('aria-invalid');
+    setStatus('Tap Generate LPN label when ready.');
+  });
+});
+lpnForm.addEventListener('submit',async function(e){
+  e.preventDefault();if(mode!=='lpn')return;
+  var mine=++revision,lpn=lpnInput.value.trim(),geometry;
+  disableOutput();clearPreview();lpnInput.removeAttribute('aria-invalid');
+  try{geometry=barcodeGeometry(code128(lpn));}
+  catch(err){lpnInput.setAttribute('aria-invalid','true');setStatus(err.message);return;}
+  try{
+    drawLPN(orderInput.value.trim(),skuInput.value.trim(),lpn,geometry);
+    setStatus('Generating LPN label…');
+    var blob=await withPrintDpi(await toPngBlob());
+    if(mine!==revision||mode!=='lpn')return;
+    var file=new File([blob],'LPN_'+lpn.replace(/[^a-z0-9_-]/gi,'_')+'_Zebra_4x3.png',{type:'image/png'});
+    activateOutput(file,blob);setStatus('LPN '+lpn+' ready. Share, download or open the PNG.');
+  }catch(err){if(mine===revision)setStatus('Could not export this label. Try again.');}
 });
 function paint(){
   ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
