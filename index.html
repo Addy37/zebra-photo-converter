@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Zebra Converter">
-<title>Zebra Photo Converter | iPhone & Android</title>
+<title>Zebra Photo &amp; UPC Converter | iPhone &amp; Android</title>
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#eaf0fa;background:#0b1220;line-height:1.45;color-scheme:dark}
 *{box-sizing:border-box}
@@ -47,15 +47,27 @@ canvas{display:block;width:100%;height:auto;max-width:812px;object-fit:contain;b
 #iosNote{display:none}
 footer{color:#94a8bf;font-size:.8rem;text-align:center;margin:22px 0}
 @media(max-width:440px){body{padding:12px 10px calc(35px + env(safe-area-inset-bottom))}.panel{padding:12px}.actions{grid-template-columns:1fr}.actions .primary{grid-column:auto}.controls{grid-template-columns:1fr}.section-header{align-items:start}}
+.mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:#0b1018;border:1px solid #2b3e54;border-radius:13px;margin:14px 0}
+.mode-switch button{background:transparent;color:#a7b6c9;min-height:44px;padding:8px}
+.mode-switch button[aria-pressed="true"]{background:#2786e2;color:white}
+#upcInput{width:100%;min-height:48px;padding:9px 12px;color:#eaf0fa;background:#213248;border:1px solid #4d6680;border-radius:9px;font:inherit;font-size:1.1rem;letter-spacing:.06em}
+#upcInput:focus-visible{outline:3px solid #ffcb67;outline-offset:2px}
+#upcInput[aria-invalid="true"]{border-color:#f5a08b}
+#upcForm{display:grid;gap:10px}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
 <main>
 <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
-<h1>Photo to Zebra label</h1>
-<p>Turn a photo into a printer-ready black-and-white PNG. Keeps the entire photo without cropping.</p>
+<h1>Zebra label converter</h1>
+<p>Convert a photo or create a UPC barcode for your Zebra printer.</p>
 <div class="warning" id="needsBrowser"><strong>iPhone setup:</strong> Apple's Files preview does not run this converter. Open it as a webpage in Safari, or in an HTML viewer that supports JavaScript. The buttons will work only in a full browser.</div>
-<div class="panel">
+<div class="mode-switch" role="group" aria-label="Label type">
+  <button id="photoMode" type="button" aria-pressed="true">Photo</button>
+  <button id="barcodeMode" type="button" aria-pressed="false">UPC Barcode</button>
+</div>
+<div class="panel" id="photoPanel">
   <div id="pickArea">
     <svg width="37" height="37" viewBox="0 0 24 24" fill="none" stroke="#91c6f9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
     <strong>Tap to choose a photo</strong>
@@ -71,8 +83,16 @@ footer{color:#94a8bf;font-size:.8rem;text-align:center;margin:22px 0}
   </div>
   <div class="help" id="iosNote">On iPhone, tap <strong>Share / Save to iPhone</strong>, then choose <strong>Save Image</strong> or <strong>Save to Files</strong>.</div>
 </div>
+<div class="panel" id="barcodePanel" hidden>
+  <form id="upcForm">
+    <label for="upcInput">UPC number</label>
+    <input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp">
+    <span class="help" id="upcHelp">Enter 12 digits, or 11 to calculate the final check digit. Keep any leading zeros.</span>
+    <button type="submit">Generate barcode</button>
+  </form>
+</div>
 <div class="panel">
-  <div class="section-header"><h2>Print preview</h2><span class="muted">812 × 609 pixels • no crop</span></div>
+  <div class="section-header"><h2>Print preview</h2><span class="muted" id="previewMeta">812 × 609 pixels • no crop</span></div>
   <div id="previewWrap"><canvas id="preview" width="812" height="609" aria-label="Converted black and white label preview"></canvas></div>
   <div class="actions">
     <button id="share" type="button" class="primary" disabled>Share / Save to iPhone</button>
@@ -82,7 +102,7 @@ footer{color:#94a8bf;font-size:.8rem;text-align:center;margin:22px 0}
   <div id="status" role="status" aria-live="polite">Choose a photo to start.</div>
 </div>
 <div class="info"><strong>Print:</strong> In your Zebra printing app, select a 4 × 3-inch label, actual size / 100%, no crop or fill. This PNG is sized for 203-DPI printers.<p class="help">* HEIC is supported only when the browser can open the photo. If not, choose JPG or PNG.</p></div>
-<footer>All conversion happens on your device. No photo is uploaded.</footer>
+<footer>All conversion happens on your device. No photos or UPCs are uploaded.</footer>
 </main>
 <script>
 (function(){
@@ -98,6 +118,10 @@ var rotate=document.getElementById('rotate');
 var download=document.getElementById('download');
 var view=document.getElementById('view');
 var status=document.getElementById('status');
+var photoMode=document.getElementById('photoMode'),barcodeMode=document.getElementById('barcodeMode');
+var photoPanel=document.getElementById('photoPanel'),barcodePanel=document.getElementById('barcodePanel');
+var upcInput=document.getElementById('upcInput'),upcForm=document.getElementById('upcForm'),previewMeta=document.getElementById('previewMeta');
+var mode='photo';
 var source=null,sourceUrl='',outputUrl='',outputFile=null,fileName='photo',degrees=0,revision=0;
 var isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 document.getElementById('needsBrowser').hidden=true;
@@ -121,7 +145,7 @@ function activateOutput(file,blob){
   setStatus('Ready! Choose Share / Save, Download, or Open PNG.');
 }
 function chooseFile(file){
-  if(!file)return;
+  if(!file||mode!=='photo')return;
   if(!(file.type.indexOf('image/')===0||/\.(jpe?g|png|webp|heic|heif|gif|bmp)$/i.test(file.name||''))){setStatus('Choose a photo, JPG or PNG.');return;}
   var requested=++revision;
   disableOutput();rotate.disabled=true;
@@ -144,6 +168,84 @@ input.addEventListener('change',function(){chooseFile(input.files&&input.files[0
 area.addEventListener('drop',function(e){if(e.dataTransfer&&e.dataTransfer.files)chooseFile(e.dataTransfer.files[0]);});
 quality.addEventListener('change',convert);
 rotate.addEventListener('click',function(){if(!source)return;degrees=(degrees+90)%360;convert();});
+function upcCheck(body){
+  var sum=0;
+  for(var i=0;i<11;i++)sum+=Number(body.charAt(i))*(i%2===0?3:1);
+  return String((10-sum%10)%10);
+}
+function normalizeUPC(raw){
+  var value=raw.trim();
+  if(!/^[0-9]{11,12}$/.test(value))throw new Error('Enter 11 or 12 UPC digits (including any leading zeros).');
+  var check=upcCheck(value.slice(0,11));
+  if(value.length===12&&value.charAt(11)!==check)throw new Error('Invalid UPC check digit. Check the number; the expected last digit is '+check+'.');
+  return value.slice(0,11)+check;
+}
+function upcBits(value){
+  var left=['0001101','0011001','0010011','0111101','0100011','0110001','0101111','0111011','0110111','0001011'];
+  var bits='101',i,j,p;
+  for(i=0;i<6;i++)bits+=left[Number(value.charAt(i))];
+  bits+='01010';
+  for(i=6;i<12;i++){
+    p=left[Number(value.charAt(i))];
+    for(j=0;j<7;j++)bits+=p.charAt(j)==='0'?'1':'0';
+  }
+  return bits+'101';
+}
+function clearPreview(){
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+}
+function drawUPC(value){
+  clearPreview();
+  var bits=upcBits(value),module=4,x=Math.floor((W-bits.length*module)/2),y=155,height=277;
+  ctx.fillStyle='#000';
+  for(var i=0;i<bits.length;i++){
+    if(bits.charAt(i)!=='1')continue;
+    var guard=i<3||(i>=45&&i<50)||i>=92;
+    ctx.fillRect(x+i*module,y,module,height+(guard?20:0));
+  }
+  ctx.font='29px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+  ctx.fillText(value.charAt(0),x-20,y+height+28);
+  ctx.fillText(value.slice(1,6),x+24*module,y+height+28);
+  ctx.fillText(value.slice(6,11),x+71*module,y+height+28);
+  ctx.fillText(value.charAt(11),x+95*module+20,y+height+28);
+}
+function switchMode(next){
+  if(next===mode)return;
+  mode=next;++revision;disableOutput();clearPreview();
+  var barcode=mode==='barcode';
+  photoMode.setAttribute('aria-pressed',String(!barcode));
+  barcodeMode.setAttribute('aria-pressed',String(barcode));
+  photoPanel.hidden=barcode;barcodePanel.hidden=!barcode;
+  previewMeta.textContent=barcode?'812 × 609 pixels • UPC-A':'812 × 609 pixels • no crop';
+  canvas.setAttribute('aria-label',barcode?'UPC barcode label preview':'Converted black and white label preview');
+  upcInput.removeAttribute('aria-invalid');
+  if(barcode){setStatus('Enter a UPC to start.');}
+  else if(source){rotate.disabled=false;convert();}
+  else{input.value='';setStatus('Choose a photo to start.');}
+}
+photoMode.addEventListener('click',function(){switchMode('photo');});
+barcodeMode.addEventListener('click',function(){switchMode('barcode');});
+upcInput.addEventListener('input',function(){
+  if(mode!=='barcode')return;
+  ++revision;disableOutput();clearPreview();upcInput.removeAttribute('aria-invalid');
+  setStatus('Tap Generate barcode when ready.');
+});
+upcForm.addEventListener('submit',async function(e){
+  e.preventDefault();if(mode!=='barcode')return;
+  var mine=++revision,value;
+  disableOutput();clearPreview();upcInput.removeAttribute('aria-invalid');
+  try{value=normalizeUPC(upcInput.value);}
+  catch(err){upcInput.setAttribute('aria-invalid','true');setStatus(err.message);return;}
+  upcInput.value=value;
+  try{
+    drawUPC(value);setStatus('Generating barcode…');
+    var blob=await withPrintDpi(await toPngBlob());
+    if(mine!==revision||mode!=='barcode')return;
+    var file=new File([blob],'UPC_'+value+'_Zebra_4x3.png',{type:'image/png'});
+    activateOutput(file,blob);
+    setStatus('UPC '+value+' ready. Share, download or open the PNG.');
+  }catch(err){if(mine===revision)setStatus('Could not export this barcode. Try again.');}
+});
 function paint(){
   ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
   var sw=source.naturalWidth||source.width,sh=source.naturalHeight||source.height;
@@ -219,7 +321,7 @@ function toPngBlob(){
   });
 }
 async function convert(){
-  if(!source)return;
+  if(!source||mode!=='photo')return;
   var mine=++revision;
   disableOutput();setStatus('Converting photo…');
   try{
