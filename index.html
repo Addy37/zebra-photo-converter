@@ -146,12 +146,12 @@ footer span{font-size:.75rem}
 </div>
 <div class="panel" id="barcodePanel" hidden>
   <form id="upcForm">
+    <label for="upcSkuInput">SKU (optional)</label>
+    <input id="upcSkuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU" aria-describedby="upcSkuHelp">
+    <span class="help" id="upcSkuHelp">Printed as readable text above the UPC barcode. Leave blank for a UPC-only label.</span>
     <label for="upcInput">UPC number</label>
     <input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp">
     <span class="help" id="upcHelp">Enter 12 digits, or 11 to calculate the final check digit. Keep any leading zeros.</span>
-    <label for="upcSkuInput">SKU (optional)</label>
-    <input id="upcSkuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU" aria-describedby="upcSkuHelp">
-    <span class="help" id="upcSkuHelp">Printed as readable text below the UPC barcode. Leave blank for a UPC-only label.</span>
     <button type="submit">Generate barcode</button>
   </form>
 </div>
