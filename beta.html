@@ -127,6 +127,47 @@ footer span{font-size:.75rem}
   #printSheet{display:block!important;width:4in;height:3in;margin:0;padding:0;overflow:hidden}
   #printSheet img{display:block;width:4in;height:3in;margin:0;object-fit:fill}
 }
+/* Beta 3: responsive workspace, independent of label and print rendering. */
+.view-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0 4px}
+.view-toolbar label{display:block;font-size:.82rem;margin-bottom:3px}
+.view-toolbar select{width:auto;min-width:160px;min-height:42px}
+.view-toolbar .muted{font-size:.82rem}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.workspace>.panel,.workspace>section.panel,.editor .panel{margin:0}
+.editor{min-width:0}
+.editor .mode-switch{margin:0 0 12px}
+#previewPanel,#printingPanel{min-width:0}
+#printPrimary{display:flex;margin:12px 0}
+#laptopPrint{width:100%;background:var(--bb-yellow);color:#17243a}
+#laptopPrint:disabled{opacity:.45}
+.print-extra{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:12px}
+.print-extra summary{cursor:pointer;font-weight:700;color:var(--bb-dark);font-size:.9rem}
+.print-extra[open] summary{margin-bottom:12px}
+.print-extra summary:focus-visible{outline:3px solid var(--bb-blue);outline-offset:3px}
+html[data-layout="desktop"] main{max-width:1320px}
+html[data-layout="desktop"] .hero{padding:18px 26px 20px}
+html[data-layout="desktop"] .brand-row{margin-bottom:12px}
+html[data-layout="desktop"] .hero p{margin:6px 0 10px}
+html[data-layout="desktop"] .hero h1{font-size:clamp(1.55rem,3vw,2.1rem)}
+html[data-layout="desktop"] .workspace{grid-template-columns:minmax(0, .88fr) minmax(0, 1.12fr);grid-template-areas:"editor preview" "printing preview";grid-template-rows:auto 1fr;gap:16px;align-items:start}
+html[data-layout="desktop"] .editor{grid-area:editor}
+html[data-layout="desktop"] #previewPanel{grid-area:preview}
+html[data-layout="desktop"] #printingPanel{grid-area:printing}
+html[data-layout="desktop"] #previewWrap{min-height:0;padding:18px}
+html[data-layout="desktop"] .actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+html[data-layout="desktop"] .actions .primary{grid-column:auto;background:#eaf1fc;color:var(--bb-dark);border:1px solid #c9d9f1}
+html[data-layout="desktop"] #previewPanel{position:sticky;top:14px}
+html[data-layout="mobile"] main{max-width:620px}
+html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);border:1px solid #c9d9f1}
+@media screen and (max-width:850px){
+ html[data-layout="desktop"] .workspace{grid-template-columns:minmax(0,1fr);grid-template-areas:"editor" "preview" "printing";grid-template-rows:auto auto auto}
+ html[data-layout="desktop"] #previewPanel{position:static}
+}
+@media screen and (max-width:500px){
+ .view-toolbar{gap:6px}
+ .view-toolbar select{min-width:135px}
+ html[data-layout="desktop"] .actions{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -136,12 +177,18 @@ footer span{font-size:.75rem}
     <div class="brand-wordmark" aria-label="Best Buy">BEST<br>BUY<span class="brand-tag" aria-hidden="true"></span></div>
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
-  <h1>Zebra label converter <span class="beta-tag">BETA 2</span></h1>
+  <h1>Zebra label converter <span class="beta-tag">BETA 3</span></h1>
   <a class="beta-link" href="index.html">Return to stable version</a>
   <p>Convert a photo, create a UPC barcode or print an order / SKU / LPN label.</p>
   <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
 </header>
 <div class="warning" id="needsBrowser"><strong>iPhone setup:</strong> Apple's Files preview does not run this converter. Open it as a webpage in Safari, or in an HTML viewer that supports JavaScript. The buttons will work only in a full browser.</div>
+<div class="view-toolbar">
+  <div><label for="layoutMode">Website layout</label><select id="layoutMode"><option value="auto">Auto (recommended)</option><option value="desktop">Desktop</option><option value="mobile">Mobile</option></select></div>
+  <span class="muted" id="layoutHint" aria-live="polite">Automatic layout</span>
+</div>
+<div class="workspace">
+<div class="editor">
 <div class="mode-switch" role="group" aria-label="Label type">
   <button id="photoMode" type="button" aria-pressed="true">Photo</button>
   <button id="barcodeMode" type="button" aria-pressed="false">UPC Barcode</button>
@@ -186,7 +233,8 @@ footer span{font-size:.75rem}
     <button type="submit">Generate LPN label</button>
   </form>
 </div>
-<div class="panel">
+</div>
+<div class="panel" id="previewPanel">
   <div class="section-header"><h2>Print preview</h2><span class="muted" id="previewMeta">812 × 609 pixels • no crop</span></div>
   <div id="previewWrap"><canvas id="preview" width="812" height="609" aria-label="Converted black and white label preview"></canvas></div>
   <div class="actions">
@@ -196,9 +244,12 @@ footer span{font-size:.75rem}
   </div>
   <div id="status" role="status" aria-live="polite">Choose a photo to start.</div>
 </div>
-<section class="panel" aria-labelledby="printHeading">
+<section class="panel" id="printingPanel" aria-labelledby="printHeading">
   <div class="section-header"><h2 id="printHeading">ZQ630 printing</h2><span class="muted">Experimental · 4 × 3 in · 203 DPI</span></div>
-  <p class="help">Generate a label above first. Printing is optional; your existing PNG actions still work.</p>
+  <p class="help" id="printIntro">Generate a label first. Your existing PNG actions still work.</p>
+  <div id="printPrimary"><button id="laptopPrint" type="button" disabled>Print from laptop</button></div>
+  <p class="help" id="systemPrintHelp">Windows: select your paired Zebra printer (e.g. Mobile Zebra), 4 × 3-inch stock, actual size, no margins or headers. Set copies in the print dialog.</p>
+  <details class="print-extra" id="experimentalPrint"><summary>Other printing options (experimental)</summary>
   <div class="control"><label for="printCopies">Copies (Bluetooth / ZPL)</label><input id="printCopies" type="number" inputmode="numeric" min="1" max="100" step="1" value="1"></div>
   <div class="print-grid">
     <button id="findPrinters" type="button" class="secondary">Find Zebra printers</button>
@@ -207,13 +258,14 @@ footer span{font-size:.75rem}
   <div class="control" style="margin-top:12px"><label for="printerSelect">Printer (Browser Print)</label><select id="printerSelect" disabled><option value="">No printer selected</option></select></div>
   <p class="help">Android: install and open <a href="https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html" target="_blank" rel="noopener">Zebra Browser Print</a> with Bluetooth discovery enabled. Pair your printer, then tap Find Zebra printers. Allow local printer access if prompted.</p>
   <div class="print-grid">
-    <button id="laptopPrint" type="button" class="secondary" disabled>Print from laptop</button>
     <button id="shareZpl" type="button" class="secondary" disabled>Share ZPL as text</button>
     <button id="saveZpl" type="button" class="secondary" disabled>Download ZPL file</button>
   </div>
-  <p class="help">Windows: select the installed Bluetooth ZQ630 printer, 4 × 3-inch stock, actual size, no margins or headers. Choose copies in the print dialog. Mobile: try Share ZPL as text. If Nucleus is not listed, download the original ZPL file, then use Nucleus Connector's file-sending option if available. Direct Safari Bluetooth is not supported.</p>
+  <p class="help">Mobile: try Share ZPL as text. If Nucleus is not listed, download the original ZPL file and use Nucleus Connector's file-sending option if available. Direct Safari Bluetooth is not supported.</p>
+  </details>
   <p id="printStatus" role="status" aria-live="polite">Generate a label to enable printing and ZPL export.</p>
 </section>
+</div>
 <div class="info"><strong>Print:</strong> In your Zebra printing app, select a 4 × 3-inch label, actual size / 100%, no crop or fill. This PNG is sized for 203-DPI printers.<p class="help">* HEIC is supported only when the browser can open the photo. If not, choose JPG or PNG.</p></div>
 <footer>All conversion happens on your device. No photos, UPCs or label numbers are uploaded.<br><span>Unofficial warehouse utility • Not an official Best Buy application.</span></footer>
 </main>
@@ -247,6 +299,24 @@ var isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='M
 document.getElementById('needsBrowser').hidden=true;
 if(isIOS){document.getElementById('iosNote').style.display='block';}else{share.textContent='Share PNG';}
 ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+var layoutMode=document.getElementById('layoutMode'),layoutHint=document.getElementById('layoutHint'),printIntro=document.getElementById('printIntro'),systemPrintHelp=document.getElementById('systemPrintHelp');
+var desktopQuery=window.matchMedia('(min-width: 1000px) and (pointer: fine)');
+var layoutPreference='auto';
+try{var savedLayout=localStorage.getItem('zebra-beta-layout');if(['auto','desktop','mobile'].indexOf(savedLayout)>=0)layoutPreference=savedLayout;}catch(e){}
+layoutMode.value=layoutPreference;
+function effectiveLayout(preference,wide){return preference==='auto'?(wide?'desktop':'mobile'):preference;}
+function applyLayout(){
+  var actual=effectiveLayout(layoutMode.value,desktopQuery.matches&&!isIOS&&!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+  document.documentElement.setAttribute('data-layout',actual);
+  layoutHint.textContent=(layoutMode.value==='auto'?'Auto · ':'')+(actual==='desktop'?'Desktop workspace':'Mobile layout');
+  laptopPrint.textContent=actual==='desktop'?'Print label':'System print';
+  printIntro.textContent=actual==='desktop'?'Generate a label and use Print label to open your Windows printer dialog.':'Save or share the PNG with your existing printing app. System print is available if your device supports it.';
+  systemPrintHelp.textContent=actual==='desktop'?'Select your paired Zebra printer (e.g. Mobile Zebra), 4 × 3-inch stock, actual size, no margins or headers. Set copies in the print dialog.':'System print requires a compatible installed printer service. If unavailable, use Share / Save PNG or your existing Zebra utility.';
+}
+layoutMode.addEventListener('change',function(){try{localStorage.setItem('zebra-beta-layout',layoutMode.value);}catch(e){}applyLayout();});
+if(desktopQuery.addEventListener)desktopQuery.addEventListener('change',applyLayout);
+else if(desktopQuery.addListener)desktopQuery.addListener(applyLayout);
+applyLayout();
 function setStatus(msg){status.textContent=msg;}
 function safeName(name){return (name||'photo').replace(/\.[^.]*$/,'').replace(/[^a-z0-9_ -]/gi,'').trim()||'photo';}
 function disableOutput(){
