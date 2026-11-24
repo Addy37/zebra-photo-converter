@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b1220">
+<meta name="theme-color" content="#0046be">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Zebra Converter">
 <title>Zebra Photo &amp; UPC Converter | iPhone &amp; Android</title>
 <style>
@@ -55,13 +55,67 @@ footer{color:#94a8bf;font-size:.8rem;text-align:center;margin:22px 0}
 #upcInput[aria-invalid="true"]{border-color:#f5a08b}
 #upcForm{display:grid;gap:10px}
 [hidden]{display:none!important}
+
+/* Best Buy-inspired utility theme. Printed canvas remains white and unchanged. */
+:root{
+  --bb-blue:#0046be;--bb-dark:#00358d;--bb-yellow:#ffe000;
+  --ink:#17243a;--muted:#526276;--line:#d4dce9;--surface:#fff;
+  color:var(--ink);background:#eef2f7;color-scheme:light;
+}
+body{padding-top:0;background:linear-gradient(180deg,var(--bb-blue) 0,var(--bb-blue) 160px,#eef2f7 160px);min-height:100vh}
+main{max-width:760px}
+.hero{background:var(--bb-blue);color:white;margin:0 -14px;padding:24px 20px 28px;border-bottom:5px solid var(--bb-yellow);border-radius:0 0 18px 18px}
+.brand-row{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+.brand-wordmark{position:relative;display:inline-block;font-size:26px;font-weight:950;line-height:.78;letter-spacing:-1.7px;padding-right:22px;color:white}
+.brand-tag{position:absolute;right:0;bottom:0;width:20px;height:13px;background:var(--bb-yellow);clip-path:polygon(0 0,70% 0,100% 50%,70% 100%,0 100%);transform:rotate(-12deg)}
+.brand-tag::after{content:"";position:absolute;right:4px;top:5px;width:3px;height:3px;background:var(--bb-blue);border-radius:50%}
+.brand-caption{font-size:.72rem;letter-spacing:.11em;font-weight:750;border-left:1px solid #ffffff65;padding:7px 0 7px 16px;color:#e2edff}
+.hero h1{font-size:clamp(1.65rem,5vw,2.2rem);margin:0 0 7px;letter-spacing:-.035em}
+.hero p{color:#e1ebff;margin:8px 0 16px}
+.pill{color:#182235;background:var(--bb-yellow);font-weight:800;padding:7px 11px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 3px 12px #14366c0a}
+p,.muted,.help{color:var(--muted)}
+label{color:var(--ink);font-weight:700}
+#pickArea{background:#f1f6ff;border-color:#8aaee8;color:var(--bb-blue)}
+#pickArea.drag{border-color:var(--bb-blue);background:#dceaff}
+#pickArea small{color:var(--muted)}
+select,#upcInput{background:white;color:var(--ink);border-color:#aebdd1;font-size:16px}
+#upcInput::placeholder{color:#718095}
+button,.action{background:var(--bb-blue);color:white;font-weight:750;transition:background .14s,transform .14s}
+button:not(:disabled):active,.action:not(.disabled):active{transform:scale(.985)}
+button.secondary,.action.secondary{background:#eaf1fc;color:var(--bb-dark);border:1px solid #c9d9f1}
+button.primary,#upcForm button[type="submit"]{background:var(--bb-yellow);color:#152137}
+button:focus-visible,a:focus-visible,select:focus-visible,#upcInput:focus-visible{outline:3px solid var(--bb-blue);outline-offset:3px}
+#picker:focus-visible{outline:3px solid var(--bb-blue);outline-offset:-5px}
+.mode-switch{background:white;border-color:var(--line);box-shadow:0 2px 8px #14366c0a;margin:16px 0}
+.mode-switch button{color:var(--bb-dark);background:transparent}
+.mode-switch button[aria-pressed="true"]{background:var(--bb-blue);color:white;box-shadow:0 2px 5px #0046be25}
+#previewWrap{background:#e7edf5;border:1px solid #d9e2ef}
+canvas{box-shadow:0 2px 12px #183d6720}
+#status{color:var(--bb-dark)}
+.info{background:#fff;border:1px solid var(--line);border-left:4px solid var(--bb-blue);border-radius:9px;padding:12px 14px;color:var(--muted)}
+.info strong{color:var(--ink)}
+.warning{background:#fff9db;color:#644b00;border-color:#e0bc32}
+.warning strong{color:#644b00}
+#upcInput[aria-invalid="true"]{border-color:#c93632}
+footer{color:#53647b;line-height:1.65}
+footer span{font-size:.75rem}
+@media(min-width:761px){body{background:linear-gradient(180deg,var(--bb-blue) 0,var(--bb-blue) 180px,#eef2f7 180px)}.hero{margin:0;padding:28px 26px 30px}}
+@media(max-width:440px){body{padding-top:0}.hero{margin:0 -10px;padding:22px 16px 24px}.brand-row{margin-bottom:19px}}
+@media(prefers-reduced-motion:reduce){button,.action{transition:none}}
 </style>
 </head>
 <body>
 <main>
-<span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
-<h1>Zebra label converter</h1>
-<p>Convert a photo or create a UPC barcode for your Zebra printer.</p>
+<header class="hero">
+  <div class="brand-row">
+    <div class="brand-wordmark" aria-label="Best Buy">BEST<br>BUY<span class="brand-tag" aria-hidden="true"></span></div>
+    <span class="brand-caption">WAREHOUSE TOOLS</span>
+  </div>
+  <h1>Zebra label converter</h1>
+  <p>Convert a photo or create a UPC barcode for your Zebra printer.</p>
+  <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
+</header>
 <div class="warning" id="needsBrowser"><strong>iPhone setup:</strong> Apple's Files preview does not run this converter. Open it as a webpage in Safari, or in an HTML viewer that supports JavaScript. The buttons will work only in a full browser.</div>
 <div class="mode-switch" role="group" aria-label="Label type">
   <button id="photoMode" type="button" aria-pressed="true">Photo</button>
@@ -69,7 +123,7 @@ footer{color:#94a8bf;font-size:.8rem;text-align:center;margin:22px 0}
 </div>
 <div class="panel" id="photoPanel">
   <div id="pickArea">
-    <svg width="37" height="37" viewBox="0 0 24 24" fill="none" stroke="#91c6f9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+    <svg width="37" height="37" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
     <strong>Tap to choose a photo</strong>
     <small>Photo Library, camera or Files • JPG, PNG, HEIC*</small>
     <input id="picker" type="file" accept="image/*,.heic,.heif" aria-label="Choose a photo from your device">
@@ -102,7 +156,7 @@ footer{color:#94a8bf;font-size:.8rem;text-align:center;margin:22px 0}
   <div id="status" role="status" aria-live="polite">Choose a photo to start.</div>
 </div>
 <div class="info"><strong>Print:</strong> In your Zebra printing app, select a 4 × 3-inch label, actual size / 100%, no crop or fill. This PNG is sized for 203-DPI printers.<p class="help">* HEIC is supported only when the browser can open the photo. If not, choose JPG or PNG.</p></div>
-<footer>All conversion happens on your device. No photos or UPCs are uploaded.</footer>
+<footer>All conversion happens on your device. No photos or UPCs are uploaded.<br><span>Unofficial warehouse utility • Not an official Best Buy application.</span></footer>
 </main>
 <script>
 (function(){
