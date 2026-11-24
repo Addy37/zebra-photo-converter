@@ -136,7 +136,7 @@ footer span{font-size:.75rem}
     <div class="brand-wordmark" aria-label="Best Buy">BEST<br>BUY<span class="brand-tag" aria-hidden="true"></span></div>
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
-  <h1>Zebra label converter <span class="beta-tag">BETA</span></h1>
+  <h1>Zebra label converter <span class="beta-tag">BETA 2</span></h1>
   <a class="beta-link" href="index.html">Return to stable version</a>
   <p>Convert a photo, create a UPC barcode or print an order / SKU / LPN label.</p>
   <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -208,10 +208,10 @@ footer span{font-size:.75rem}
   <p class="help">Android: install and open <a href="https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html" target="_blank" rel="noopener">Zebra Browser Print</a> with Bluetooth discovery enabled. Pair your printer, then tap Find Zebra printers. Allow local printer access if prompted.</p>
   <div class="print-grid">
     <button id="laptopPrint" type="button" class="secondary" disabled>Print from laptop</button>
-    <button id="shareZpl" type="button" class="secondary" disabled>Share ZPL file</button>
+    <button id="shareZpl" type="button" class="secondary" disabled>Share ZPL as text</button>
     <button id="saveZpl" type="button" class="secondary" disabled>Download ZPL file</button>
   </div>
-  <p class="help">Windows: select the installed Bluetooth ZQ630 printer, 4 × 3-inch stock, actual size, no margins or headers. Choose copies in the print dialog. iPhone: save the ZPL file, then use Nucleus Connector's file-sending option if available. Direct Safari Bluetooth is not supported.</p>
+  <p class="help">Windows: select the installed Bluetooth ZQ630 printer, 4 × 3-inch stock, actual size, no margins or headers. Choose copies in the print dialog. Mobile: try Share ZPL as text. If Nucleus is not listed, download the original ZPL file, then use Nucleus Connector's file-sending option if available. Direct Safari Bluetooth is not supported.</p>
   <p id="printStatus" role="status" aria-live="polite">Generate a label to enable printing and ZPL export.</p>
 </section>
 <div class="info"><strong>Print:</strong> In your Zebra printing app, select a 4 × 3-inch label, actual size / 100%, no crop or fill. This PNG is sized for 203-DPI printers.<p class="help">* HEIC is supported only when the browser can open the photo. If not, choose JPG or PNG.</p></div>
@@ -327,10 +327,11 @@ saveZpl.addEventListener('click',function(){
 });
 shareZpl.addEventListener('click',function(){
   try{
-    var file=zplFile();
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-      navigator.share({files:[file]}).then(function(){printMessage('Share sheet closed. Check your printer before sending again.');}).catch(function(e){printMessage(e.name==='AbortError'?'Share canceled.':'Sharing unavailable. Use Download ZPL file instead.');});
-    }else{downloadZpl(file);printMessage('File sharing unavailable. ZPL downloaded instead.');}
+    if(!outputFile||!printGraphic)throw new Error('Generate a label first.');
+    var file=new File([makeZpl(printGraphic,copiesValue())],outputFile.name.replace(/\.png$/i,'_ZPL.txt'),{type:'text/plain'});
+    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+      navigator.share({files:[file]}).then(function(){printMessage('Share sheet closed. Check your printer before sending again.');}).catch(function(e){printMessage(e.name==='AbortError'?'Share canceled.':'Share failed ('+e.name+'). Use Download ZPL file, then import it in Nucleus Connector.');});
+    }else{printMessage('This browser cannot share the text file. Use Download ZPL file, then import it in Nucleus Connector.');}
   }catch(e){printMessage(e.message);}
 });
 laptopPrint.addEventListener('click',function(){
