@@ -301,7 +301,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 12</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 13</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -930,20 +930,31 @@ function thermalText(value,x,y,maxWidth,size,align,clip){
   if(!value)return;
   value=String(value);
   ctx.save();
-  ctx.translate(x,y);ctx.scale(.78,1);
-  ctx.textAlign=align||'left';ctx.textBaseline='middle';
-  ctx.font='bold '+size+'px Arial, sans-serif';
-  if(clip){
-    while(value.length>1&&ctx.measureText(value).width*.78>maxWidth)value=value.slice(0,-1);
-  }else{
-    while(ctx.measureText(value).width*.78>maxWidth&&size>16){
-      size--;ctx.font='bold '+size+'px Arial, sans-serif';
-    }
+  // Condensed bold lettering with explicit character separation, like the reference.
+  var sx=.73, sy=1.035, tracking=(size<=29?.9:.6)/sx;
+  ctx.translate(x,y);ctx.scale(sx,sy);
+  ctx.textAlign='left';ctx.textBaseline='middle';
+  function setFont(){ctx.font='bold '+size+'px Arial, sans-serif';}
+  function width(text){
+    var chars=Array.from(text),w=0;
+    chars.forEach(function(ch,i){w+=ctx.measureText(ch).width+(i?tracking:0);});
+    return w;
   }
-  // Add weight to text only, never to barcode modules or quiet zones.
-  ctx.strokeStyle='#000';ctx.lineWidth=1.5;ctx.lineJoin='round';
-  ctx.strokeText(value,0,0,maxWidth/.78);
-  ctx.fillText(value,0,0,maxWidth/.78);ctx.restore();
+  setFont();
+  if(clip){
+    while(value.length>1&&width(value)*sx>maxWidth)value=value.slice(0,-1);
+  }else{
+    while(width(value)*sx>maxWidth&&size>16){size--;setFont();}
+  }
+  var total=width(value),pos=align==='right'?-total:align==='center'?-total/2:0;
+  // Avoid the heavy outline that closed the counters in small barcode captions.
+  ctx.strokeStyle='#000';ctx.lineWidth=.35;ctx.lineJoin='round';
+  Array.from(value).forEach(function(ch){
+    if(size>=32&&ch!==' ')ctx.strokeText(ch,pos,0);
+    ctx.fillText(ch,pos,0);
+    pos+=ctx.measureText(ch).width+tracking;
+  });
+  ctx.restore();
 }
 function drawDisposition(value,sku){
   var d={};Object.keys(disp).forEach(function(k){d[k]=k==='OrderBarcode'?disp[k].checked:disp[k].value.trim();});
@@ -990,7 +1001,7 @@ function drawDisposition(value,sku){
 function solidThermalPixels(pixels){
   for(var i=0;i<pixels.length;i+=4){
     var gray=(pixels[i]+pixels[i+1]+pixels[i+2])/3;
-    var bw=pixels[i+3]>127&&gray<176?0:255;
+    var bw=pixels[i+3]>127&&gray<150?0:255;
     pixels[i]=pixels[i+1]=pixels[i+2]=bw;pixels[i+3]=255;
   }
   return pixels;
