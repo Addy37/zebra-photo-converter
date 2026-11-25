@@ -950,10 +950,10 @@ function drawDisposition(value,sku){
   if(/^(?:N\/?A|NONE|-)$/i.test(order))order='';
   if(d.OrderBarcode&&!order)throw new Error('Enter an order number or turn off the order barcode.');
   if(value==='000000000000')throw new Error('An all-zero UPC is not a product barcode.');
-  var left=68, lpnLeft=350, lpnWidth=428;
+  var left=68, lpnLeft=320, lpnWidth=470;
   var lpnGeometry=disp128(d.Lpn,lpnWidth,'LPN');
   // The reference barcode is about half the label width. Keep integer printer dots and quiet zones.
-  var lpnStart=lpnLeft+Math.max(0,Math.floor((lpnWidth-(lpnGeometry.modules+20)*lpnGeometry.module)/2));
+  var lpnStart=lpnLeft;
   var lpnBarX=lpnStart+10*lpnGeometry.module;
   var orderGeometry=order&&d.OrderBarcode?disp128(order,690,'Order number'):null;
   clearPreview();ctx.fillStyle='#000';
