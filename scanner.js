@@ -105,45 +105,71 @@ async function photoBarcode(file){
 }
 function modelCandidates(text){
   var lines=String(text||'').toUpperCase().split(/\r?\n/),out=[];
-  function add(v){v=v.trim();if(v&&/[A-Z]/.test(v)&&/\d/.test(v)&&!out.includes(v))out.push(v);}
-  lines.forEach(function(line){
-    var m=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD\.)\s*[:#-]?\s*([A-Z0-9][A-Z0-9./_-]{3,63})/);
-    if(m)add(m[1]);
+  function add(v,explicit){
+    v=v.trim();var k=v.replace(/[^A-Z0-9]/g,'');
+    if(k.length>=4&&k.length<=64&&(/\d/.test(k)&&(/[A-Z]/.test(k)||explicit))&&!out.includes(v))out.push(v);
+  }
+  lines.forEach(function(line,i){
+    var m=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD\.)\s*[:#-]?\s*(.*)$/);
+    if(m){var tail=m[1].trim()||(lines[i+1]||'').trim();var parts=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
+      if(parts.length){add(parts[0],true);if(parts.length>1)add(parts.slice(0,2).join(''),true);}
+    }
   });
-  lines.forEach(function(line){(line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(add);});
+  lines.forEach(function(line){(line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(function(v){add(v,false);});});
   return out;
 }
 async function resizePhoto(file){
   var url=URL.createObjectURL(file),image=new Image();
   try{
     await new Promise(function(resolve,reject){image.onload=resolve;image.onerror=function(){reject(new Error('Could not open this photo. Try JPEG or PNG.'));};image.src=url;});
-    var scale=Math.min(1,1800/Math.max(image.naturalWidth,image.naturalHeight));
+    var scale=Math.min(1.5,2400/Math.max(image.naturalWidth,image.naturalHeight));
     var canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
     var ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);
     return canvas;
   }finally{URL.revokeObjectURL(url);}
 }
+function contrastPhoto(source){
+  var copy=document.createElement('canvas');copy.width=source.width;copy.height=source.height;
+  var ctx=copy.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0);
+  var img=ctx.getImageData(0,0,copy.width,copy.height),data=img.data,hist=new Uint32Array(256),n=data.length/4;
+  for(var i=0;i<data.length;i+=4){var v=Math.round(.299*data[i]+.587*data[i+1]+.114*data[i+2]);hist[v]++;data[i]=data[i+1]=data[i+2]=v;}
+  var low=0,high=255,sum=0;
+  while(low<254&&sum+hist[low]<n*.015){sum+=hist[low++];}
+  sum=0;while(high>1&&sum+hist[high]<n*.015){sum+=hist[high--];}
+  var span=Math.max(35,high-low);
+  for(var j=0;j<data.length;j+=4){var g=Math.max(0,Math.min(255,Math.round((data[j]-low)*255/span)));data[j]=data[j+1]=data[j+2]=g;}
+  ctx.putImageData(img,0,0);return copy;
+}
 var recognizedText='';
 async function photoModel(file){
   cancelWork();var ticket=session;confirm.hidden=true;setBusy(true);recognizedText='';say('Loading model reader…');
-  var localWorker=null,canvas=null;
+  var localWorker=null,canvas=null,enhanced=null,pass=1;
   try{
     var api=await tesseract();if(!isCurrent(ticket))return;
     canvas=await resizePhoto(file);if(!isCurrent(ticket))return;
-    localWorker=await api.createWorker('eng',1,{logger:function(m){if(isCurrent(ticket)&&m.status==='recognizing text')say('Reading model number… '+Math.round((m.progress||0)*100)+'%');}});
+    localWorker=await api.createWorker('eng',1,{logger:function(m){if(isCurrent(ticket)&&m.status==='recognizing text')say('Reading label ('+pass+'/2)… '+Math.round((m.progress||0)*100)+'%');}});
     if(!isCurrent(ticket)){await localWorker.terminate();localWorker=null;return;}
     worker=localWorker;
-    var result=await localWorker.recognize(canvas);
+    await localWorker.setParameters({tessedit_pageseg_mode:'11',preserve_interword_spaces:'1'});
+    var first=await localWorker.recognize(canvas);
     if(!isCurrent(ticket))return;
-    recognizedText=String(result.data.text||'');var candidates=modelCandidates(recognizedText);
-    if(!candidates.length){say('No model number read. Try a closer photo of the model sticker.');return;}
-    // Send the full recognized text to the local catalog. Exact model matches appear for user confirmation.
-    kind='ocr';readout.value=candidates[0];confirm.hidden=false;$('scanReadoutLabel').textContent='Possible model (editable)';
-    use.textContent='Find matching product';say('Check the model, then find matching products. The catalog will also check other text from the photo.');
+    recognizedText=String(first.data.text||'');
+    // A second pass uses a contrast-normalized copy and a different text layout mode.
+    pass=2;say('Checking a sharper copy…');enhanced=contrastPhoto(canvas);
+    try{
+      await localWorker.setParameters({tessedit_pageseg_mode:'6'});
+      var second=await localWorker.recognize(enhanced);
+      if(!isCurrent(ticket))return;
+      recognizedText+='\n'+String(second.data.text||'');
+    }catch(e){if(!isCurrent(ticket))return;}
+    var candidates=modelCandidates(recognizedText);
+    kind='ocr';readout.value=candidates[0]||'';confirm.hidden=false;$('scanReadoutLabel').textContent='Possible model (editable)';
+    use.textContent='Find matching product';
+    say(candidates.length?'Check the detected model or edit it. ADDY BUY will look for exact and close catalog matches.':'No clear model detected. Enter any visible part of the model or try another photo.');
   }catch(e){if(isCurrent(ticket))say(e.message||'Could not read model number. Try a clearer photo.');}
   finally{
     if(localWorker&&worker===localWorker){worker=null;try{await localWorker.terminate();}catch(e){}}
-    if(canvas){canvas.width=0;canvas.height=0;}
+    if(canvas){canvas.width=0;canvas.height=0;}if(enhanced){enhanced.width=0;enhanced.height=0;}
     if(isCurrent(ticket))setBusy(false);
   }
 }
@@ -152,11 +178,11 @@ modelPhoto.addEventListener('change',function(){var file=this.files&&this.files[
 use.addEventListener('click',function(){
   if(pending)return;
   var value=readout.value.trim(),dest=target,source=kind;
-  if(!value){say('Enter or scan a value.');return;}
+  if(!value&&!(dest==='product'&&source==='ocr'&&recognizedText.trim())){say('Enter or scan a value.');return;}
   if(dest==='product'){
     if(source==='barcode'&&!/^[A-Za-z0-9._/ -]{3,120}$/.test(value)){say('This is not a supported product identifier. Scan a UPC or SKU.');return;}
     var payload=source==='ocr'?'MODEL: '+value+'\n'+recognizedText:value;
-    closeScanner();document.dispatchEvent(new CustomEvent('addy-product-scan',{detail:{kind:source,value:payload}}));return;
+    closeScanner();document.dispatchEvent(new CustomEvent('addy-product-scan',{detail:{kind:source,value:payload,preferred:source==='ocr'?value:''}}));return;
   }
   var field=$(dest);if(!field)return;
   if(dest==='upcInput'&&/^0\d{12}$/.test(value))value=value.slice(1);
