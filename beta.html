@@ -304,6 +304,24 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 @media(max-width:380px){.disposition-grid{grid-template-columns:1fr}}
 #catalogModel,#dispType{box-sizing:border-box;width:100%;min-height:44px;min-width:0;padding:9px 12px;color:var(--ink);background:white;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
 /* Keep result rows at their natural height on every viewport. */
+.scan-field{display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:6px;align-items:stretch;min-width:0}
+.scan-field input{width:100%;min-width:0}
+.scan-field .scan-button{display:grid;place-items:center;min-width:0;width:46px;min-height:44px;padding:0;border-radius:9px;background:var(--bb-blue);color:white}
+.scan-button svg{width:23px;height:23px;pointer-events:none}
+#scanDialog{width:min(440px,calc(100% - 24px));max-height:90vh;max-height:90dvh;overflow:auto;margin:auto;padding:16px;border:1px solid var(--line);border-radius:14px;color:var(--ink);background:white;box-shadow:0 16px 48px #0005}
+#scanDialog::backdrop{background:#101c34aa}
+.scan-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+#scanDialog .scan-close{min-width:40px;min-height:40px;padding:4px 10px}
+#scanDialog .scan-options{display:grid;gap:8px;margin-top:10px}
+#scanDialog .scan-file{position:relative;overflow:hidden}
+#scanDialog .scan-file input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+#scanPreview{position:relative;background:#17243a;border-radius:9px;overflow:hidden;margin-top:8px;aspect-ratio:4/3}
+#scanVideo{display:block;width:100%;height:100%;object-fit:contain}
+#scanGuide{position:absolute;inset:25% 9%;border:2px solid #ffe000;border-radius:8px;pointer-events:none}
+#scanDialog #scanStatus{margin:8px 0 0;min-height:20px;font-size:.85rem}
+#scanDialog #scanReadout{display:block;width:100%;min-height:44px;padding:8px;font:inherit;box-sizing:border-box;border:1px solid #aebdd1;border-radius:8px}
+#scanDialog .scan-confirm{display:grid;gap:8px;margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -314,7 +332,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 18</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 19</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -352,7 +370,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
   <form id="upcForm">
     <div id="productSearchGroup">
       <label for="catalogModel">Find product</label>
-      <input id="catalogModel" type="search" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter SKU or model" aria-controls="catalogChoices">
+      <div class="scan-field"><input id="catalogModel" type="search" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="SKU, model or UPC" aria-controls="catalogChoices"><button type="button" class="scan-button" data-scan-target="product" aria-label="Scan product barcode or model" title="Scan product barcode or model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
       <div id="catalogMatch" class="catalog-match" hidden role="status" aria-live="polite"></div>
       <div id="catalogChoices" hidden aria-label="Matching products"></div>
       <section id="productSummary" hidden aria-label="Selected product">
@@ -363,13 +381,13 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     </div>
     <div id="standardManualSlot"><div id="manualFields">
       <label for="upcSkuInput">SKU (optional)</label><input id="upcSkuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU">
-      <label for="upcInput">UPC number</label><input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp">
+      <label for="upcInput">UPC number</label><div class="scan-field"><input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp"><button type="button" class="scan-button" data-scan-target="upcInput" aria-label="Scan UPC" title="Scan UPC"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
       <span class="help" id="upcHelp">Enter 12 digits, or 11 to calculate the check digit. Keep leading zeros.</span>
     </div></div>
     <div id="dispositionFields" hidden>
       <div class="control"><label for="dispType">Disposition</label><select id="dispType"><option value="" disabled selected hidden>Choose disposition</option><option>BULK</option><option>SERVICE</option><option>OPEN BOX</option><option>OBHD</option><option>JUNK OUT</option><option>RTV</option><option>LIQUIDATION</option></select></div>
-      <div class="control"><label for="dispLpn">LPN</label><input id="dispLpn" maxlength="64" autocomplete="off" placeholder="Scan or enter LPN"></div>
-      <div class="control"><label for="dispOrder">Order number (optional)</label><input id="dispOrder" maxlength="40" autocomplete="off" placeholder="Enter order number"></div>
+      <div class="control"><label for="dispLpn">LPN</label><div class="scan-field"><input id="dispLpn" maxlength="64" autocomplete="off" placeholder="Scan or enter LPN"><button type="button" class="scan-button" data-scan-target="dispLpn" aria-label="Scan LPN" title="Scan LPN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div></div>
+      <div class="control"><label for="dispOrder">Order number (optional)</label><div class="scan-field"><input id="dispOrder" maxlength="40" autocomplete="off" placeholder="Enter order number"><button type="button" class="scan-button" data-scan-target="dispOrder" aria-label="Scan order number" title="Scan order number"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div></div>
       <label class="disposition-check"><input id="dispOrderBarcode" type="checkbox"> Include order barcode</label>
       <details id="dispMore" class="print-extra"><summary>More options</summary>
         <div class="disposition-grid">
@@ -403,11 +421,11 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 <div class="panel" id="lpnPanel" hidden>
   <form id="lpnForm">
     <label for="orderInput">Order number (optional)</label>
-    <input id="orderInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter order number">
+    <div class="scan-field"><input id="orderInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter order number"><button type="button" class="scan-button" data-scan-target="orderInput" aria-label="Scan order number" title="Scan order number"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
     <label for="skuInput">SKU (optional)</label>
-    <input id="skuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU">
+    <div class="scan-field"><input id="skuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU"><button type="button" class="scan-button" data-scan-target="skuInput" aria-label="Scan SKU" title="Scan SKU"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
     <label for="lpnInput">LPN</label>
-    <input id="lpnInput" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter LPN" aria-describedby="lpnHelp">
+    <div class="scan-field"><input id="lpnInput" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter LPN" aria-describedby="lpnHelp"><button type="button" class="scan-button" data-scan-target="lpnInput" aria-label="Scan LPN" title="Scan LPN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
     <span class="help" id="lpnHelp">Only the LPN is a scannable Code 128 barcode. Leading zeros are preserved.</span>
     <div class="label-form-actions"><button type="submit">Generate LPN label</button><button id="clearLpnForm" type="button" class="secondary">Clear form</button></div>
   </form>
@@ -1456,19 +1474,37 @@ function selectProduct(row){
   selectingModel=true;sku.value=row.sku;sku.dispatchEvent(new Event('input',{bubbles:true}));
   selectingModel=false;modelInput.value=row.sku;hideChoices();applyRow(row,'');sync();
 }
+function catalogUPC(value){
+  var v=String(value||'').trim();
+  if(/^0\d{12}$/.test(v))v=v.slice(1);
+  return /^\d{12}$/.test(v)&&validUPC(v)?v:'';
+}
 function rankProduct(entry,raw,key,numeric){
   var sku=entry.row.sku,model=entry.model;
-  if(numeric&&sku===raw)return 0;
-  if(key&&model===key)return 1;
-  if(numeric&&sku.startsWith(raw))return 2;
-  if(key&&model.startsWith(key))return 3;
-  if(entry.product.includes(raw))return 4;
-  if((numeric&&sku.includes(raw))||(key&&model.includes(key)))return 5;
+  var upc=numeric?catalogUPC(raw):'';
+  if(upc&&entry.row.upc===upc)return 0;
+  if(numeric&&sku===raw)return 1;
+  if(key&&model===key)return 2;
+  if(numeric&&sku.startsWith(raw))return 3;
+  if(key&&model.startsWith(key))return 4;
+  if(entry.product.includes(raw))return 5;
+  if((numeric&&sku.includes(raw))||(key&&model.includes(key)))return 6;
   return -1;
 }
-async function lookupModel(){
+function ocrModelKeys(text){
+  var lines=String(text||'').toUpperCase().split(/\r?\n/),keys=new Set();
+  function add(value){var k=modelKey(value);if(k.length>=4&&k.length<=64&&/[A-Z]/.test(k)&&/\d/.test(k))keys.add(k);}
+  lines.forEach(function(line){
+    var match=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD(?:EL)?\.)\s*[:#-]?\s*([A-Z0-9][A-Z0-9./_-]*(?:\s+[A-Z0-9./_-]+){0,2})/);
+    if(match){var parts=match[1].trim().split(/\s+/);for(var j=1;j<=parts.length;j++)add(parts.slice(0,j).join(''));}
+    (line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(add);
+  });
+  return keys;
+}
+async function lookupModel(scan){
   var raw=modelInput.value.trim().toUpperCase(),key=modelKey(raw),numeric=/^\d+$/.test(raw),ticket=++lookupTicket;
-  if((numeric?raw.length:key.length)<3||busy)return;
+  var ocr=scan&&scan.kind==='ocr'?ocrModelKeys(scan.value):null;
+  if((!ocr&&(numeric?raw.length:key.length)<3)||busy)return;
   if(!active){showMatch('Import a catalog or enter product details manually.','error');return;}
   modelSearching=true;hideChoices();showMatch('Searching…','');
   try{
@@ -1476,16 +1512,24 @@ async function lookupModel(){
     if(ticket!==lookupTicket||busy)return;
     if(!meta)throw new Error('Import a catalog first.');
     active=meta;
-    var rows=await warmCache(meta),buckets=[[],[],[],[],[],[]],total=0;
+    var rows=await warmCache(meta),buckets=[[],[],[],[],[],[],[]],total=0;
+    var exactUPC=catalogUPC(raw);
     if(ticket!==lookupTicket||busy)return;
     for(var i=0;i<rows.length;i++){
-      var rank=rankProduct(rows[i],raw,key,numeric);
+      var rank=ocr?(ocr.has(rows[i].model)?0:-1):rankProduct(rows[i],raw,key,numeric);
+      if(scan&&scan.kind==='barcode'&&exactUPC&&rank!==0)rank=-1;
       if(rank>=0){total++;if(buckets[rank].length<10)buckets[rank].push(rows[i].row);}
       if(i>0&&i%20000===0){await new Promise(function(resolve){setTimeout(resolve,0);});if(ticket!==lookupTicket||busy)return;}
     }
     if(ticket!==lookupTicket||busy)return;
     var results=[].concat.apply([],buckets).slice(0,10);
-    if(!results.length){showMatch('No matching SKU or model found.','error');return;}
+    if(!results.length){showMatch(ocr?'No catalog model matched the photo. Try a closer picture or enter the model.':'No matching SKU, model or UPC found.','error');return;}
+    if(scan&&scan.kind==='barcode'&&total===1&&(buckets[0].length||buckets[1].length||buckets[2].length)){
+      var latest=await readSKU(db,results[0].sku);
+      if(ticket!==lookupTicket||busy)return;
+      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);return;}
+      showMatch('Catalog changed. Scan again.','error');return;
+    }
     showMatch(total>1?'Select the correct product.':'Select product.','ok');
     results.forEach(function(row){
       var btn=document.createElement('button');btn.type='button';btn.className='catalog-result';
@@ -1510,6 +1554,15 @@ async function lookupModel(){
   }catch(e){if(ticket===lookupTicket)showMatch(e.message||'Local search failed.','error');}
   finally{if(ticket===lookupTicket){modelSearching=false;sync();}}
 }
+document.addEventListener('addy-product-scan',function(e){
+  if(busy){showMatch('Catalog is still loading. Try again when ready.','error');return;}
+  var scan=e.detail;
+  if(!scan||!['ocr','barcode'].includes(scan.kind))return;
+  resetSearch();selectingModel=true;sku.value='';sku.dispatchEvent(new Event('input',{bubbles:true}));selectingModel=false;
+  modelInput.value=scan.kind==='ocr'?'':String(scan.value||'').trim();
+  if(scan.kind==='ocr'&&!ocrModelKeys(scan.value).size){showMatch('No model number read. Try a closer photo.','error');return;}
+  lookupModel(scan);
+});
 sku.addEventListener('input',schedule);
 modelInput.addEventListener('input',function(){
   resetSearch();selectingModel=true;sku.value='';sku.dispatchEvent(new Event('input',{bubbles:true}));selectingModel=false;sync();
@@ -1631,5 +1684,22 @@ sync();
 })();
 
 </script>
+<dialog id="scanDialog" aria-labelledby="scanTitle">
+  <div class="scan-head"><h2 id="scanTitle">Scan product</h2><button id="scanClose" type="button" class="secondary scan-close" aria-label="Close scanner">✕</button></div>
+  <p class="help" id="scanHint">Aim at a product barcode or photograph the model number.</p>
+  <div id="scanPreview" hidden><video id="scanVideo" autoplay muted playsinline></video><div id="scanGuide" aria-hidden="true"></div></div>
+  <p id="scanStatus" role="status" aria-live="polite"></p>
+  <div class="scan-options">
+    <button id="scanLive" type="button">Start camera scanner</button>
+    <label id="scanBarcodePhotoLabel" class="action secondary scan-file">Scan barcode from photo<input id="scanBarcodePhoto" type="file" accept="image/*" capture="environment" aria-label="Scan barcode from photo"></label>
+    <label id="scanModelPhotoLabel" class="action secondary scan-file">Photograph model number<input id="scanModelPhoto" type="file" accept="image/*" capture="environment" aria-label="Photograph model number"></label>
+  </div>
+  <div id="scanConfirm" class="scan-confirm" hidden>
+    <label for="scanReadout" id="scanReadoutLabel">Detected value</label><input id="scanReadout" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="scanUse" type="button">Use scanned value</button>
+  </div>
+  <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
+</dialog>
+<script src="scanner.js?v=19" defer></script>
 </body>
 </html>
