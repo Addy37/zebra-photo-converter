@@ -107,7 +107,7 @@ footer span{font-size:.75rem}
 @media(min-width:761px){body{background:linear-gradient(180deg,var(--bb-blue) 0,var(--bb-blue) 180px,#eef2f7 180px)}.hero{margin:0;padding:28px 26px 30px}}
 @media(max-width:440px){body{padding-top:0}.hero{margin:0 -10px;padding:22px 16px 24px}.brand-row{margin-bottom:19px}}
 @media(prefers-reduced-motion:reduce){button,.action{transition:none}}
-#lpnForm{display:grid;gap:10px}
+.standard-type{display:grid;gap:5px}.standard-type-switch{display:flex;gap:4px;background:#edf2f8;border:1px solid #c9d5e4;border-radius:11px;padding:4px}.standard-type-switch button{flex:1;background:transparent;color:#173358;box-shadow:none;min-height:40px}.standard-type-switch button[aria-pressed="true"]{background:#0046be;color:white}#sharedUPCFields,#standardOptions,#standardLpnFields,#standardOrderFields{display:grid;gap:8px}#standardOptions{gap:12px}#standardOptions .scan-field input{width:100%;min-height:48px;padding:9px 12px;color:var(--ink);background:#fff;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}#standardOptions .scan-field input[aria-invalid="true"]{border-color:#c93632}
 .label-form-actions{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px}
 .label-form-actions button{width:100%;min-width:0;min-height:44px;white-space:normal}
 #lpnForm input,#upcSkuInput{width:100%;min-height:48px;padding:9px 12px;color:var(--ink);background:#fff;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
@@ -355,9 +355,9 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 26</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 27</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
-    <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
+    <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
   </div>
 </header>
@@ -372,7 +372,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
   <button id="photoMode" type="button" aria-pressed="true">Photo</button>
   <button id="barcodeMode" type="button" aria-pressed="false">Barcode labels</button>
 </div>
-<div class="control" id="formatPanel" hidden style="margin-bottom:12px"><label for="labelFormat">Label format</label><select id="labelFormat"><option value="standard">Standard UPC</option><option value="disposition" selected>Disposition label</option><option value="lpn">Standalone LPN / order label</option></select></div>
+<div class="control" id="formatPanel" hidden style="margin-bottom:12px"><label for="labelFormat">Label format</label><select id="labelFormat"><option value="standard">Standard product label</option><option value="disposition" selected>Disposition label</option></select></div>
 <div class="panel" id="photoPanel">
   <div id="pickArea">
     <svg width="37" height="37" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
@@ -391,6 +391,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 </div>
 <div class="panel" id="barcodePanel" hidden>
   <form id="upcForm">
+    <div id="standardBarcodeType" class="standard-type" hidden><label>Barcode type</label><div class="standard-type-switch" role="group" aria-label="Barcode type"><button id="standardUPC" type="button" aria-pressed="true">UPC</button><button id="standardLPN" type="button" aria-pressed="false">LPN</button></div></div>
     <div id="productSearchGroup">
       <label for="catalogModel">Find product</label>
       <div class="scan-field"><input id="catalogModel" type="search" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="SKU, model or UPC" aria-controls="catalogChoices"><button type="button" class="scan-button" data-scan-target="product" aria-label="Scan product barcode or model" title="Scan product barcode or model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
@@ -403,11 +404,16 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
       </section>
     </div>
     <div id="standardManualSlot"><div id="manualFields">
-      <label for="upcSkuInput">SKU (optional)</label><input id="upcSkuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU">
+      <label for="upcSkuInput">SKU (optional)</label><div class="scan-field"><input id="upcSkuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU"><button type="button" class="scan-button" data-scan-target="upcSkuInput" aria-label="Scan SKU" title="Scan SKU"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
       <div id="standardModelSlot"></div>
-      <label for="upcInput">UPC number</label><div class="scan-field"><input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp"><button type="button" class="scan-button" data-scan-target="upcInput" aria-label="Scan UPC" title="Scan UPC"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
-      <span class="help" id="upcHelp">Enter 12 digits, or 11 to calculate the check digit. Keep leading zeros.</span>
+      <div id="sharedUPCFields"><label for="upcInput">UPC number</label><div class="scan-field"><input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp"><button type="button" class="scan-button" data-scan-target="upcInput" aria-label="Scan UPC" title="Scan UPC"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
+      <span class="help" id="upcHelp">Enter 12 digits, or 11 to calculate the check digit. Keep leading zeros.</span></div>
     </div></div>
+    <div id="standardOptions" hidden>
+      <div id="standardLpnFields" hidden><label for="lpnInput">LPN</label><div class="scan-field"><input id="lpnInput" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter LPN" aria-describedby="lpnHelp"><button type="button" class="scan-button" data-scan-target="lpnInput" aria-label="Scan LPN" title="Scan LPN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div><span class="help" id="lpnHelp">Code 128 barcode. Leading zeros are preserved.</span></div>
+      <label class="disposition-check"><input id="standardIncludeOrder" type="checkbox"> Include order number</label>
+      <div id="standardOrderFields" hidden><label for="orderInput">Order number</label><div class="scan-field"><input id="orderInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter order number"><button type="button" class="scan-button" data-scan-target="orderInput" aria-label="Scan order number" title="Scan order number"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div></div>
+    </div>
     <div id="dispositionFields" hidden>
       <div class="control"><label for="dispType">Disposition</label><select id="dispType"><option value="" disabled selected hidden>Choose disposition</option><option>BULK</option><option>SERVICE</option><option>OPEN BOX</option><option>OBHD</option><option>JUNK OUT</option><option>RTV</option><option>LIQUIDATION</option></select></div>
       <div class="control"><label for="dispLpn">LPN</label><div class="scan-field"><input id="dispLpn" maxlength="64" autocomplete="off" placeholder="Scan or enter LPN"><button type="button" class="scan-button" data-scan-target="dispLpn" aria-label="Scan LPN" title="Scan LPN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div></div>
@@ -441,18 +447,6 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <progress id="catalogProgress" value="0" max="100" hidden></progress>
     <p id="catalogStatus" role="status" aria-live="polite" class="help">Preparing product catalog…</p>
   </details>
-</div>
-<div class="panel" id="lpnPanel" hidden>
-  <form id="lpnForm">
-    <label for="orderInput">Order number (optional)</label>
-    <div class="scan-field"><input id="orderInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter order number"><button type="button" class="scan-button" data-scan-target="orderInput" aria-label="Scan order number" title="Scan order number"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
-    <label for="skuInput">SKU (optional)</label>
-    <div class="scan-field"><input id="skuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU"><button type="button" class="scan-button" data-scan-target="skuInput" aria-label="Scan SKU" title="Scan SKU"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
-    <label for="lpnInput">LPN</label>
-    <div class="scan-field"><input id="lpnInput" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter LPN" aria-describedby="lpnHelp"><button type="button" class="scan-button" data-scan-target="lpnInput" aria-label="Scan LPN" title="Scan LPN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
-    <span class="help" id="lpnHelp">Only the LPN is a scannable Code 128 barcode. Leading zeros are preserved.</span>
-    <div class="label-form-actions"><button type="submit">Generate LPN label</button><button id="clearLpnForm" type="button" class="secondary">Clear form</button></div>
-  </form>
 </div>
 </div>
 <div class="panel" id="previewPanel">
@@ -526,13 +520,13 @@ var photoMode=document.getElementById('photoMode'),barcodeMode=document.getEleme
 var photoPanel=document.getElementById('photoPanel'),barcodePanel=document.getElementById('barcodePanel');
 var upcInput=document.getElementById('upcInput'),upcForm=document.getElementById('upcForm'),previewMeta=document.getElementById('previewMeta');
 var upcSkuInput=document.getElementById('upcSkuInput');
-var lpnPanel=document.getElementById('lpnPanel'),formatPanel=document.getElementById('formatPanel'),labelFormat=document.getElementById('labelFormat'),dispositionFields=document.getElementById('dispositionFields'),upcGenerate=document.getElementById('upcGenerate');
+var formatPanel=document.getElementById('formatPanel'),labelFormat=document.getElementById('labelFormat'),dispositionFields=document.getElementById('dispositionFields'),upcGenerate=document.getElementById('upcGenerate');
 var disp={},catalogFilled={},selectedProduct=null,brandEdited=false;
 var more=document.getElementById('dispMore'),manualFields=document.getElementById('manualFields'),editDetails=document.getElementById('editProductDetails');
 ['Type','Category','Channel','Dept','Brand','Model','Product','Lpn','Order','OrderBarcode','Date'].forEach(function(k){disp[k]=document.getElementById('disp'+k);});
 function resetLabelDate(){var now=new Date();disp.Date.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');}
 resetLabelDate();
-var lpnForm=document.getElementById('lpnForm'),orderInput=document.getElementById('orderInput'),skuInput=document.getElementById('skuInput'),lpnInput=document.getElementById('lpnInput');
+var orderInput=document.getElementById('orderInput'),lpnInput=document.getElementById('lpnInput'),standardUPC=document.getElementById('standardUPC'),standardLPN=document.getElementById('standardLPN'),includeOrder=document.getElementById('standardIncludeOrder'),standardKind='UPC';
 var mode='photo';
 var printCopies=document.getElementById('printCopies'),findPrinters=document.getElementById('findPrinters'),directPrint=document.getElementById('directPrint'),printerSelect=document.getElementById('printerSelect');
 var laptopPrint=document.getElementById('laptopPrint'),shareZpl=document.getElementById('shareZpl'),saveZpl=document.getElementById('saveZpl'),printStatus=document.getElementById('printStatus'),printImage=document.getElementById('printImage');
@@ -854,39 +848,35 @@ function upcBits(value){
 function clearPreview(){
   ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
 }
-function drawUPC(value,sku,model){
+function drawStandard(value,sku,model,order,kind,geometry){
   clearPreview();ctx.fillStyle='#000';
-  // Same condensed thermal lettering as disposition, with only the product identifiers.
-  var left=68,width=676,module=6,bits=upcBits(value);
-  var y=220,height=215;
-  thermalText(sku?'SKU: '+sku:'',left,64,width,52);
-  thermalText(model?'MODEL: '+model:'',left,137,width,48);
-  thermalText('UPC',left,192,width,32);
-  for(var i=0;i<bits.length;i++){
-    if(bits[i]!=='1')continue;
-    var guard=i<3||(i>=45&&i<50)||i>=92;
-    ctx.fillRect(left+i*module,y,module,height+(guard?16:0));
+  var left=68,width=676,rows=[];
+  if(sku)rows.push(['SKU: '+sku,52]);
+  if(model)rows.push(['MODEL: '+model,48]);
+  if(order)rows.push(['ORDER: '+order,42]);
+  var y=60;
+  rows.forEach(function(row){thermalText(row[0],left,y,width,row[1]);y+=66;});
+  var titleY=Math.max(92,y+5),barY=titleY+30,barHeight=Math.min(280,490-barY);
+  thermalText(kind,left,titleY,width,32);
+  if(kind==='UPC'){
+    var bits=upcBits(value),module=6;
+    for(var i=0;i<bits.length;i++){
+      if(bits[i]!=='1')continue;
+      var guard=i<3||(i>=45&&i<50)||i>=92;
+      ctx.fillRect(left+i*module,barY,module,barHeight+(guard?16:0));
+    }
+  }else{
+    var x=geometry.x;
+    for(var j=0;j<geometry.pattern.length;j++){
+      var w=Number(geometry.pattern.charAt(j))*geometry.module;
+      if(j%2===0)ctx.fillRect(x,barY,w,barHeight);
+      x+=w;
+    }
   }
-  thermalText(value,left,486,width,41);
+  thermalText(value,kind==='UPC'?left:W/2,barY+barHeight+48,width,41,kind==='UPC'?'left':'center');
 }
 // Code 128 symbol widths, including start, checksum and stop patterns.
 var CODE128_PATTERNS=["212222","222122","222221","121223","121322","131222","122213","122312","132212","221213","221312","231212","112232","122132","122231","113222","123122","123221","223211","221132","221231","213212","223112","312131","311222","321122","321221","312212","322112","322211","212123","212321","232121","111323","131123","131321","112313","132113","132311","211313","231113","231311","112133","112331","132131","113123","113321","133121","313121","211331","231131","213113","213311","213131","311123","311321","331121","312113","312311","332111","314111","221411","431111","111224","111422","121124","121421","141122","141221","112214","112412","122114","122411","142112","142211","241211","221114","413111","241112","134111","111242","121142","121241","114212","124112","124211","411212","421112","421211","212141","214121","412121","111143","111341","131141","114113","114311","411113","411311","113141","114131","311141","411131","211412","211214","211232","2331112"];
-function code128(value){
-  if(!/^[\x20-\x7e]+$/.test(value))throw new Error('Enter an LPN using standard letters, numbers or punctuation.');
-  var words=[],i=0;
-  if(/^[0-9]+$/.test(value)&&value.length>=2){
-    words.push(105);
-    for(;i+1<value.length;i+=2)words.push(Number(value.slice(i,i+2)));
-    if(i<value.length)words.push(100,value.charCodeAt(i)-32);
-  }else{
-    words.push(104);
-    for(;i<value.length;i++)words.push(value.charCodeAt(i)-32);
-  }
-  var checksum=words[0];
-  for(i=1;i<words.length;i++)checksum+=i*words[i];
-  words.push(checksum%103,106);
-  return words;
-}
 function barcodeGeometry(words){
   var pattern=words.map(function(w){return CODE128_PATTERNS[w];}).join('');
   var modules=0;
@@ -895,33 +885,6 @@ function barcodeGeometry(words){
   if(module<2)throw new Error('LPN is too long to print with readable bars on this label.');
   return {pattern:pattern,module:module,x:Math.floor((W-modules*module)/2),modules:modules};
 }
-function fittedText(value,y,maxSize){
-  ctx.font='bold '+maxSize+'px Arial, sans-serif';
-  var size=maxSize;
-  while(ctx.measureText(value).width>W-2*MX && size>12){
-    size--;ctx.font='bold '+size+'px Arial, sans-serif';
-  }
-  ctx.fillText(value,W/2,y,W-2*MX);
-}
-function drawLPN(order,sku,lpn,geometry){
-  clearPreview();
-  ctx.fillStyle='#000';ctx.textAlign='center';ctx.textBaseline='middle';
-  fittedText('ORDER NUMBER',35,27);
-  fittedText(order,91,55);
-  ctx.fillRect(MX,139,W-2*MX,3);
-  fittedText('SKU',176,27);
-  fittedText(sku,231,65);
-  ctx.fillRect(MX,281,W-2*MX,3);
-  fittedText('LPN',315,27);
-  var x=geometry.x;
-  for(var i=0;i<geometry.pattern.length;i++){
-    var width=Number(geometry.pattern.charAt(i))*geometry.module;
-    if(i%2===0)ctx.fillRect(x,349,width,172);
-    x+=width;
-  }
-  fittedText(lpn,563,43);
-}
-
 function dispositionText(value,x,y,maxWidth,size,align){
   if(!value)return;
   ctx.textAlign=align||'left';ctx.textBaseline='middle';
@@ -967,7 +930,7 @@ function disp128(value,width,label){
   catch(e){throw new Error(label+' must contain standard letters, digits or punctuation.');}
   var modules=0;for(var i=0;i<pattern.length;i++)modules+=Number(pattern[i]);
   var module=Math.min(4,Math.floor(width/(modules+20)));
-  if(module<2)throw new Error(label+' is too long for a readable barcode in this layout. Use a shorter value or the standalone LPN label.');
+  if(module<2)throw new Error(label+' is too long for a readable barcode in this layout. Use a shorter value or a standard product label with LPN selected.');
   return {pattern:pattern,modules:modules,module:module};
 }
 function drawDisp128(g,left,width,y,height){
@@ -1067,9 +1030,9 @@ function sharpenDisposition(){
 function switchMode(next,force){
   if(next===mode&&!force)return;
   mode=next;++revision;disableOutput();clearPreview();
-  var barcode=mode==='barcode',lpn=mode==='lpn',photo=mode==='photo';
+  var barcode=mode==='barcode',photo=mode==='photo';
   photoMode.setAttribute('aria-pressed',String(photo));
-  barcodeMode.setAttribute('aria-pressed',String(barcode||lpn));
+  barcodeMode.setAttribute('aria-pressed',String(barcode));
   formatPanel.hidden=photo;
   var advanced=barcode&&labelFormat.value==='disposition';
   dispositionFields.hidden=!advanced;
@@ -1081,18 +1044,32 @@ function switchMode(next,force){
   document.getElementById('sharedModelLabel').textContent=advanced?'Model override':'Model (optional)';
   updateSummary();
   if(advanced)more.open=false;
-  photoPanel.hidden=!photo;barcodePanel.hidden=!barcode;lpnPanel.hidden=!lpn;
-  previewMeta.textContent=advanced?'812 × 609 pixels • disposition':barcode?'812 × 609 pixels • UPC-A':lpn?'812 × 609 pixels • Code 128':'812 × 609 pixels • no crop';
-  canvas.setAttribute('aria-label',barcode?'UPC barcode label preview':lpn?'Order, SKU and LPN label preview':'Converted black and white label preview');
+  photoPanel.hidden=!photo;barcodePanel.hidden=!barcode;syncStandardFields();
+  previewMeta.textContent=advanced?'812 × 609 pixels • disposition':barcode?'812 × 609 pixels • '+(standardKind==='LPN'?'Code 128':'UPC-A'):'812 × 609 pixels • no crop';
+  canvas.setAttribute('aria-label',barcode?'Product barcode label preview':'Converted black and white label preview');
   upcInput.removeAttribute('aria-invalid');lpnInput.removeAttribute('aria-invalid');
-  if(barcode){setStatus(advanced?'Find a product to start.':'Find a product or enter the SKU, model and UPC.');}
-  else if(lpn){setStatus('Enter the order, SKU and LPN to start.');}
+  if(barcode){setStatus(advanced?'Find a product to start.':'Find a product or enter the '+standardKind+' and optional details.');}
   else if(source){rotate.disabled=false;convert();}
   else{input.value='';setStatus('Choose a photo to start.');}
 }
 photoMode.addEventListener('click',function(){switchMode('photo');});
-barcodeMode.addEventListener('click',function(){switchMode(labelFormat.value==='lpn'?'lpn':'barcode');});
-labelFormat.addEventListener('change',function(){switchMode(labelFormat.value==='lpn'?'lpn':'barcode',true);});
+barcodeMode.addEventListener('click',function(){switchMode('barcode');});
+labelFormat.addEventListener('change',function(){switchMode('barcode',true);});
+function syncStandardFields(){
+  var standard=mode==='barcode'&&labelFormat.value==='standard',lpn=standard&&standardKind==='LPN';
+  document.getElementById('standardBarcodeType').hidden=!standard;
+  document.getElementById('standardOptions').hidden=!standard;
+  document.getElementById('sharedUPCFields').hidden=lpn;
+  document.getElementById('standardLpnFields').hidden=!lpn;
+  document.getElementById('standardOrderFields').hidden=!standard||!includeOrder.checked;
+  standardUPC.setAttribute('aria-pressed',String(standardKind==='UPC'));
+  standardLPN.setAttribute('aria-pressed',String(standardKind==='LPN'));
+  if(standard)previewMeta.textContent='812 × 609 pixels • '+(lpn?'Code 128':'UPC-A');
+}
+function setStandardKind(kind){if(standardKind===kind)return;standardKind=kind;syncStandardFields();++revision;disableOutput();clearPreview();setStatus('Enter the '+kind+' or scan it.');}
+standardUPC.addEventListener('click',function(){setStandardKind('UPC');});
+standardLPN.addEventListener('click',function(){setStandardKind('LPN');});
+includeOrder.addEventListener('change',function(){syncStandardFields();++revision;disableOutput();clearPreview();setStatus('Tap Generate label when ready.');});
 function invalidateDisposition(field){
   if(mode!=='barcode'||(labelFormat.value!=='disposition'&&field!=='Model'))return;
   ++revision;disableOutput();clearPreview();setStatus(labelFormat.value==='disposition'?'Tap Generate disposition label when ready.':'Tap Generate label when ready.');
@@ -1139,59 +1116,43 @@ function clearBarcodeForm(){
   upcForm.reset();
   search.value='';upcSkuInput.value='';upcInput.value='';
   catalogFilled={};selectedProduct=null;brandEdited=false;
-  resetLabelDate();more.open=false;updateSummary();
-  upcInput.removeAttribute('aria-invalid');
+  resetLabelDate();more.open=false;standardKind='UPC';syncStandardFields();updateSummary();
+  upcInput.removeAttribute('aria-invalid');lpnInput.removeAttribute('aria-invalid');
   ++revision;disableOutput();clearPreview();
   setStatus('Form cleared.');
   if(!search.disabled)search.focus();
 }
-function clearLpnForm(){
-  if(mode!=='lpn')return;
-  lpnForm.reset();lpnInput.removeAttribute('aria-invalid');
-  ++revision;disableOutput();clearPreview();
-  setStatus('Form cleared.');orderInput.focus();
-}
 document.getElementById('clearBarcodeForm').addEventListener('click',clearBarcodeForm);
-document.getElementById('clearLpnForm').addEventListener('click',clearLpnForm);
+[orderInput,lpnInput].forEach(function(field){
+  field.addEventListener('input',function(){
+    if(mode!=='barcode'||labelFormat.value!=='standard')return;
+    ++revision;disableOutput();clearPreview();lpnInput.removeAttribute('aria-invalid');
+    setStatus('Tap Generate label when ready.');
+  });
+});
 upcForm.addEventListener('submit',async function(e){
   e.preventDefault();if(mode!=='barcode')return;
-  var mine=++revision,value;
-  disableOutput();clearPreview();upcInput.removeAttribute('aria-invalid');
-  try{value=normalizeUPC(upcInput.value);}
-  catch(err){upcInput.setAttribute('aria-invalid','true');if(labelFormat.value==='disposition')more.open=true;setStatus(err.message);return;}
-  upcInput.value=value;
+  var mine=++revision,value,geometry,advanced=labelFormat.value==='disposition',kind=advanced?'UPC':standardKind;
+  disableOutput();clearPreview();upcInput.removeAttribute('aria-invalid');lpnInput.removeAttribute('aria-invalid');
   try{
-    var advanced=labelFormat.value==='disposition';
-    if(advanced){drawDisposition(value,upcSkuInput.value.trim());}else{drawUPC(value,upcSkuInput.value.trim(),disp.Model.value.trim());}sharpenDisposition();
+    if(kind==='LPN'){
+      value=lpnInput.value.trim();
+      if(!value)throw new Error('Enter or scan an LPN.');
+      geometry=barcodeGeometry(compactCode128(value));
+    }else{value=normalizeUPC(upcInput.value);upcInput.value=value;}
+  }catch(err){
+    (kind==='LPN'?lpnInput:upcInput).setAttribute('aria-invalid','true');if(advanced)more.open=true;setStatus(err.message);return;
+  }
+  try{
+    if(advanced){drawDisposition(value,upcSkuInput.value.trim());}
+    else{drawStandard(value,upcSkuInput.value.trim(),disp.Model.value.trim(),includeOrder.checked?orderInput.value.trim():'',kind,geometry);}
+    sharpenDisposition();
     setStatus('Generating label…');
     var blob=await withPrintDpi(await toPngBlob());
     if(mine!==revision||mode!=='barcode')return;
-    var file=new File([blob],(advanced?'Disposition_':'UPC_')+value+'_Zebra_4x3.png',{type:'image/png'});
-    activateOutput(file,blob);
-    setStatus((advanced?'Label':'UPC '+value)+' ready.');
+    var file=new File([blob],(advanced?'Disposition':kind)+'_'+value.replace(/[^a-z0-9_-]/gi,'_')+'_Zebra_4x3.png',{type:'image/png'});
+    activateOutput(file,blob);setStatus((advanced?'Label':kind+' '+value)+' ready.');
   }catch(err){if(mine===revision){clearPreview();setStatus(err.message||'Could not export this barcode. Try again.');}}
-});
-[orderInput,skuInput,lpnInput].forEach(function(field){
-  field.addEventListener('input',function(){
-    if(mode!=='lpn')return;
-    ++revision;disableOutput();clearPreview();lpnInput.removeAttribute('aria-invalid');
-    setStatus('Tap Generate LPN label when ready.');
-  });
-});
-lpnForm.addEventListener('submit',async function(e){
-  e.preventDefault();if(mode!=='lpn')return;
-  var mine=++revision,lpn=lpnInput.value.trim(),geometry;
-  disableOutput();clearPreview();lpnInput.removeAttribute('aria-invalid');
-  try{geometry=barcodeGeometry(code128(lpn));}
-  catch(err){lpnInput.setAttribute('aria-invalid','true');setStatus(err.message);return;}
-  try{
-    drawLPN(orderInput.value.trim(),skuInput.value.trim(),lpn,geometry);
-    setStatus('Generating LPN label…');
-    var blob=await withPrintDpi(await toPngBlob());
-    if(mine!==revision||mode!=='lpn')return;
-    var file=new File([blob],'LPN_'+lpn.replace(/[^a-z0-9_-]/gi,'_')+'_Zebra_4x3.png',{type:'image/png'});
-    activateOutput(file,blob);setStatus('LPN '+lpn+' ready. Share, download or open the PNG.');
-  }catch(err){if(mine===revision)setStatus('Could not export this label. Try again.');}
 });
 function paintPhoto(ctx,source,degrees,shading){
   ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
@@ -1780,7 +1741,7 @@ sync();
   </div>
   <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
 </dialog>
-<script id="beta26-scanner">
+<script id="beta27-scanner">
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id);};
@@ -2017,4 +1978,4 @@ use.addEventListener('click',function(){
 </script>
 </body>
 </html>
-<!-- Beta 26: switch camera modes in the same dialog; remove redundant still barcode capture. -->
+<!-- Beta 27: unified standard product label with optional order and UPC/LPN selection. -->
