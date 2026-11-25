@@ -301,7 +301,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 13</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 14</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -931,7 +931,7 @@ function thermalText(value,x,y,maxWidth,size,align,clip){
   value=String(value);
   ctx.save();
   // Condensed bold lettering with explicit character separation, like the reference.
-  var sx=.73, sy=1.035, tracking=(size<=29?.9:.6)/sx;
+  var sx=.73, sy=1.06, tracking=(size<=29?.9:.6)/sx;
   ctx.translate(x,y);ctx.scale(sx,sy);
   ctx.textAlign='left';ctx.textBaseline='middle';
   function setFont(){ctx.font='bold '+size+'px Arial, sans-serif';}
@@ -947,10 +947,10 @@ function thermalText(value,x,y,maxWidth,size,align,clip){
     while(width(value)*sx>maxWidth&&size>16){size--;setFont();}
   }
   var total=width(value),pos=align==='right'?-total:align==='center'?-total/2:0;
-  // Avoid the heavy outline that closed the counters in small barcode captions.
-  ctx.strokeStyle='#000';ctx.lineWidth=.35;ctx.lineJoin='round';
+  // A restrained outline restores the reference weight without closing small counters.
+  ctx.strokeStyle='#000';ctx.lineWidth=size<=29?.55:.75;ctx.lineJoin='round';
   Array.from(value).forEach(function(ch){
-    if(size>=32&&ch!==' ')ctx.strokeText(ch,pos,0);
+    if(ch!==' ')ctx.strokeText(ch,pos,0);
     ctx.fillText(ch,pos,0);
     pos+=ctx.measureText(ch).width+tracking;
   });
