@@ -318,6 +318,10 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 #scanDialog .scan-options{display:grid;gap:8px;margin-top:10px}
 #scanUploadOptions summary{cursor:pointer;padding:9px 4px;color:inherit;font-size:.85rem}
 #scanDialog .scan-options button{min-height:44px}
+#scanDialog .scan-mode-switch{display:flex;gap:4px;padding:4px;margin-top:10px;background:#edf2f8;border:1px solid #c9d5e4;border-radius:12px}
+#scanDialog .scan-mode-switch button{flex:1;min-width:0;min-height:44px;padding:8px 5px;border:1px solid transparent;border-radius:8px;background:transparent;color:#173358;font-size:.85rem;white-space:normal;box-shadow:none}
+#scanDialog .scan-mode-switch button[aria-pressed="true"]{background:#0046be;color:#fff}
+#scanDialog .scan-mode-switch button:disabled{opacity:1;cursor:default}
 #scanDialog .scan-file{position:relative;overflow:hidden}
 #scanDialog .scan-file input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
 /* Live barcode viewfinder: fill the frame, keep the guide on top of the image. */
@@ -351,7 +355,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 25</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 26</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -1747,6 +1751,10 @@ sync();
 <dialog id="scanDialog" aria-labelledby="scanTitle">
   <div class="scan-head"><h2 id="scanTitle">Scan product</h2><button id="scanClose" type="button" class="secondary scan-close" aria-label="Close scanner">✕</button></div>
   <p class="help" id="scanHint">Aim at a product barcode or photograph the model number.</p>
+  <div class="scan-mode-switch" role="group" aria-label="Scanner mode">
+    <button id="scanLive" type="button" aria-pressed="true">Scan barcode</button>
+    <button id="scanModelLive" type="button" aria-pressed="false" hidden>Scan model number</button>
+  </div>
   <div id="scanPreview" hidden>
     <video id="scanVideo" autoplay muted playsinline></video>
     <div id="scanGuide" aria-hidden="true">
@@ -1759,9 +1767,6 @@ sync();
   <div id="scanCameraTools" hidden style="display:flex;gap:8px;margin-top:8px"><button id="scanCapture" type="button" style="flex:1">Capture model number</button><button id="scanTorch" type="button" class="secondary" hidden aria-pressed="false">Flashlight</button></div>
   <p id="scanStatus" role="status" aria-live="polite"></p>
   <div class="scan-options">
-    <button id="scanLive" type="button">Scan barcode (live)</button>
-    <button id="scanModelLive" type="button" class="secondary" hidden>Scan model number (camera)</button>
-    <button id="scanBarcodeStill" type="button" class="secondary">Take barcode photo (camera)</button>
     <details id="scanUploadOptions"><summary>Use an existing photo</summary>
       <div class="scan-options">
         <label id="scanBarcodePhotoLabel" class="action secondary scan-file">Upload barcode image<input id="scanBarcodePhoto" type="file" accept="image/*" aria-label="Upload barcode image"></label>
@@ -1775,7 +1780,7 @@ sync();
   </div>
   <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
 </dialog>
-<script id="beta25-scanner">
+<script id="beta26-scanner">
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id);};
@@ -1783,7 +1788,7 @@ var dialog=$('scanDialog'),video=$('scanVideo'),preview=$('scanPreview'),status=
 if(!dialog||!video)return;
 var target='',session=0,stream=null,controls=null,worker=null,loaded={},pending=false,returnFocus=null,kind='barcode';
 function say(s){status.textContent=s;}
-var modelLive=$('scanModelLive'),barcodeStill=$('scanBarcodeStill'),capture=$('scanCapture'),torch=$('scanTorch'),cameraTools=$('scanCameraTools'),modelMode=false,stillMode=false;
+var modelLive=$('scanModelLive'),capture=$('scanCapture'),torch=$('scanTorch'),cameraTools=$('scanCameraTools'),modelMode=false,stillMode=false;
 var css=document.createElement('style');css.textContent='#scanPreview.model-camera #scanGuide{inset:36% 6%;}#scanPreview.still-camera .scan-beam{display:none}#scanPreview.model-camera{touch-action:manipulation}.scan-success-toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:99999;max-width:calc(100% - 24px);width:max-content;padding:12px 18px;border-radius:12px;background:#17663d;color:white;font:600 15px system-ui;box-shadow:0 6px 24px #0004;text-align:center}';document.head.appendChild(css);
 var toastTimer,toast=null,lastVibration=0;
 function scanVibrate(){var now=Date.now();if(now-lastVibration<650)return;lastVibration=now;if(navigator.vibrate){try{navigator.vibrate(300);}catch(err){}}}
@@ -1794,11 +1799,12 @@ document.addEventListener('addy-scan-success',function(e){
   toast.textContent='✓ '+((e.detail&&e.detail.message)||'Scan successful');toast.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(function(){toast.hidden=true;},2200);
 });
 function notifySuccess(){document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful'}}));}
-function setCameraMode(model,still){modelMode=model;stillMode=!!still;preview.classList.toggle('model-camera',model);preview.classList.toggle('still-camera',stillMode);preview.querySelector('.scan-aim').textContent=model?'Align model number inside the frame':'Align the barcode inside the frame';capture.textContent=model?'Capture model number':'Capture barcode';cameraTools.hidden=true;torch.hidden=true;torch.setAttribute('aria-pressed','false');torch.textContent='Flashlight';}
+function setCameraMode(model,still){modelMode=model;stillMode=!!still;live.setAttribute('aria-pressed',String(!model));modelLive.setAttribute('aria-pressed',String(model));preview.classList.toggle('model-camera',model);preview.classList.toggle('still-camera',stillMode);preview.querySelector('.scan-aim').textContent=model?'Align model number inside the frame':'Align the barcode inside the frame';capture.textContent='Capture model number';cameraTools.hidden=true;torch.hidden=true;torch.setAttribute('aria-pressed','false');torch.textContent='Flashlight';}
 function track(){return stream&&stream.getVideoTracks()[0];}
 function caps(t){try{return t&&t.getCapabilities?t.getCapabilities():{};}catch(e){return {};}}
-async function startStillCamera(model){
-  cancelWork();var ticket=session;confirm.hidden=true;setCameraMode(model,true);setBusy(true);say(model?'Opening model camera…':'Opening barcode camera…');
+function freshVideo(){var next=video.cloneNode(false);video.replaceWith(next);video=next;}
+async function startModelCamera(){
+  cancelWork();freshVideo();var ticket=session;confirm.hidden=true;readout.value='';setCameraMode(true,true);setBusy(true);say('Opening model camera…');
   try{
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Live camera unavailable. Upload an existing photo instead.');
     var media=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}});
@@ -1806,13 +1812,12 @@ async function startStillCamera(model){
     stream=media;preview.hidden=false;video.srcObject=media;await video.play();if(!isCurrent(ticket))return;
     var t=track(),c=caps(t);if(c.focusMode&&c.focusMode.includes('continuous')){try{await t.applyConstraints({advanced:[{focusMode:'continuous'}]});}catch(e){}}
     if(!isCurrent(ticket))return;
-    torch.hidden=!c.torch;cameraTools.hidden=false;capture.disabled=false;say(model?'Center the model number in the frame, then tap Capture.':'Center the barcode in the frame, then tap Capture.');
+    torch.hidden=!c.torch;cameraTools.hidden=false;capture.disabled=false;say('Center the model number in the frame, then tap Capture.');
   }catch(e){if(isCurrent(ticket)){stopVideo();setBusy(false);say(e.name==='NotAllowedError'?'Camera permission denied. Allow access or upload an existing photo.':(e.message||'Could not open camera.'));}}
 }
-modelLive.addEventListener('click',function(){startStillCamera(true);});
-barcodeStill.addEventListener('click',function(){startStillCamera(false);});
+modelLive.addEventListener('click',startModelCamera);
 torch.addEventListener('click',async function(){var t=track(),next=torch.getAttribute('aria-pressed')!=='true';if(!t||!caps(t).torch)return;try{await t.applyConstraints({advanced:[{torch:next}]});if(track()===t){torch.setAttribute('aria-pressed',String(next));torch.textContent=next?'Flashlight on':'Flashlight';}}catch(e){say('Flashlight unavailable on this camera.');}});
-video.addEventListener('click',async function(e){if(!stillMode||!stream)return;var t=track(),c=caps(t);if(!c.focusMode||!c.focusMode.includes('single-shot'))return;try{var rect=video.getBoundingClientRect(),p={x:Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),y:Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height))};var constraint={focusMode:'single-shot'};if(c.pointsOfInterest)constraint.pointsOfInterest=[p];await t.applyConstraints({advanced:[constraint]});}catch(err){}});
+preview.addEventListener('click',async function(e){if(e.target!==video||!stillMode||!stream)return;var t=track(),c=caps(t);if(!c.focusMode||!c.focusMode.includes('single-shot'))return;try{var rect=video.getBoundingClientRect(),p={x:Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),y:Math.max(0,Math.min(1,(e.clientY-rect.top)/rect.height))};var constraint={focusMode:'single-shot'};if(c.pointsOfInterest)constraint.pointsOfInterest=[p];await t.applyConstraints({advanced:[constraint]});}catch(err){}});
 capture.addEventListener('click',function(){
   if(!stillMode||!stream||!video.videoWidth||!video.videoHeight)return;
   var frame=video.getBoundingClientRect(),guide=$('scanGuide').getBoundingClientRect(),vw=video.videoWidth,vh=video.videoHeight;
@@ -1821,7 +1826,7 @@ capture.addEventListener('click',function(){
   var w=Math.min(vw-x,guide.width/scale),h=Math.min(vh-y,guide.height/scale);if(w<1||h<1)return;
   var canvas=document.createElement('canvas');var up=Math.min(2,2400/Math.max(w,h));canvas.width=Math.max(1,Math.round(w*up));canvas.height=Math.max(1,Math.round(h*up));
   canvas.getContext('2d').drawImage(video,x,y,w,h,0,0,canvas.width,canvas.height);
-  capture.disabled=true;if(modelMode){photoModel(canvas);}else{var imageURL=canvas.toDataURL('image/png');canvas.width=canvas.height=0;photoBarcode(imageURL);}
+  capture.disabled=true;photoModel(canvas);
 });
 function stopVideo(){
   if(controls){try{var stopped=controls.stop();if(stopped&&stopped.catch)stopped.catch(function(){});}catch(e){}controls=null;}
@@ -1829,7 +1834,7 @@ function stopVideo(){
   video.pause();video.srcObject=null;preview.hidden=true;cameraTools.hidden=true;
 }
 function stopWorker(){var w=worker;worker=null;if(w){try{Promise.resolve(w.terminate()).catch(function(){});}catch(e){}}}
-function setBusy(value){pending=value;live.disabled=value;barcodePhoto.disabled=value;modelPhoto.disabled=value;use.disabled=value;modelLive.disabled=value;barcodeStill.disabled=value;}
+function setBusy(value){pending=value;live.disabled=value&&!modelMode;modelLive.disabled=value&&modelMode;barcodePhoto.disabled=value;modelPhoto.disabled=value;use.disabled=value;}
 function cancelWork(){++session;stopVideo();stopWorker();setBusy(false);}
 function isCurrent(ticket){return dialog.open&&ticket===session;}
 function closeScanner(){
@@ -1839,7 +1844,7 @@ dialog.addEventListener('close',function(){if(!dialog.open){cancelWork();if(retu
 dialog.addEventListener('cancel',function(e){e.preventDefault();closeScanner();});
 $('scanClose').addEventListener('click',closeScanner);
 window.addEventListener('pagehide',closeScanner);
-document.addEventListener('visibilitychange',function(){if(document.hidden&&stream){cancelWork();say(modelMode?'Camera stopped. Open model number camera to resume.':'Camera stopped. Tap Start camera scanner to resume.');}});
+document.addEventListener('visibilitychange',function(){if(document.hidden&&stream){cancelWork();say(modelMode?'Camera stopped. Tap Scan model number to resume.':'Camera stopped. Tap Scan barcode to resume.');}});
 function loadScript(name,url,globalName){
   if(window[globalName])return Promise.resolve(window[globalName]);
   if(loaded[name])return loaded[name];
@@ -1873,10 +1878,10 @@ function showValue(ticket,value,source){
   detected('Barcode scanned successfully. Verify the value.');
 }
 async function liveScan(){
-  cancelWork();var ticket=session;confirm.hidden=true;setCameraMode(false);setBusy(true);
+  cancelWork();freshVideo();var ticket=session;confirm.hidden=true;readout.value='';setCameraMode(false);setBusy(true);
   say('Opening camera…');
   try{
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Live camera unavailable. Use Scan barcode from photo.');
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Live camera unavailable. Upload an existing barcode image instead.');
     var media=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
     if(!isCurrent(ticket)){media.getTracks().forEach(function(t){t.stop();});return;}
     stream=media;preview.hidden=false;video.srcObject=media;await video.play();
@@ -1901,8 +1906,8 @@ async function liveScan(){
 }
 async function startZXing(ticket){
   var api=await zxing();if(!isCurrent(ticket)||!stream)return;
-  var reader=new api.BrowserMultiFormatReader();
-  var c=await reader.decodeFromStream(stream,video,function(result,error,localControls){
+  var reader=new api.BrowserMultiFormatReader(),activeStream=stream,activeVideo=video;
+  var c=await reader.decodeFromStream(activeStream,activeVideo,function(result,error,localControls){
     if(result&&isCurrent(ticket)&&stream){
       if(localControls){try{localControls.stop();}catch(e){}}
       showValue(ticket,result.getText(),'barcode');
@@ -1913,13 +1918,13 @@ async function startZXing(ticket){
 live.addEventListener('click',liveScan);
 async function photoBarcode(file){
   cancelWork();var ticket=session;confirm.hidden=true;setBusy(true);say('Reading barcode…');
-  var isURL=typeof file==='string',url=isURL?file:URL.createObjectURL(file);
+  var url=URL.createObjectURL(file);
   try{
     var api=await zxing();if(!isCurrent(ticket))return;
     var reader=new api.BrowserMultiFormatReader(),result=await reader.decodeFromImageUrl(url);
     showValue(ticket,result.getText(),'barcode');
   }catch(e){if(isCurrent(ticket)){setBusy(false);say('No readable barcode found. Try a closer, well-lit photo.');}}
-  finally{if(!isURL)URL.revokeObjectURL(url);}
+  finally{URL.revokeObjectURL(url);}
 }
 function modelCandidates(text){
   var lines=String(text||'').toUpperCase().split(/\r?\n/),out=[];
@@ -2012,4 +2017,4 @@ use.addEventListener('click',function(){
 </script>
 </body>
 </html>
-<!-- Beta 25: in-page live and still cameras; longer vibration; optional image uploads. -->
+<!-- Beta 26: switch camera modes in the same dialog; remove redundant still barcode capture. -->
