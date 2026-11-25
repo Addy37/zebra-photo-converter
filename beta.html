@@ -303,7 +303,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 16</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 17</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -1578,8 +1578,13 @@ async function loadHostedCatalog(){
       blob=await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).blob();
     }
     checkCancel();
-    var header=await blob.slice(0,256).text();
-    if(!/^\uFEFF?SKU,Product,UPC,Model,Dept(?:\r?\n|\r)/i.test(header)&&!/^SKU,Product,UPC,Model,Dept(?:\r?\n|\r)/i.test(header))throw new Error('Built-in catalog has an unexpected format.');
+    var headerText=await blob.slice(0,4096).text();
+    var firstLine=headerText.split(/\r\n|\n|\r/,1)[0].replace(/^\uFEFF/,'');
+    // Accept standard quoted CSV headers as well as unquoted ones.
+    var headerRows=csvParser()(firstLine,true);
+    if(headerRows.length!==1)throw new Error('Built-in catalog has an unexpected format.');
+    var columns=getColumns(headerRows[0]);
+    if(columns[4]<0||columns[5]<0)throw new Error('Built-in catalog is missing Model or Dept.');
     // Hand off to the existing atomic CSV importer, with validation before activation.
     busy=false;await importFile(blob,true);
     if(active){showMatch('');}
