@@ -108,6 +108,8 @@ footer span{font-size:.75rem}
 @media(max-width:440px){body{padding-top:0}.hero{margin:0 -10px;padding:22px 16px 24px}.brand-row{margin-bottom:19px}}
 @media(prefers-reduced-motion:reduce){button,.action{transition:none}}
 #lpnForm{display:grid;gap:10px}
+.label-form-actions{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px}
+.label-form-actions button{width:100%;min-width:0;min-height:44px;white-space:normal}
 #lpnForm input,#upcSkuInput{width:100%;min-height:48px;padding:9px 12px;color:var(--ink);background:#fff;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
 #lpnForm input:focus-visible,#upcSkuInput:focus-visible{outline:3px solid var(--bb-blue);outline-offset:2px}
 #lpnForm input[aria-invalid="true"]{border-color:#c93632}
@@ -301,7 +303,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 14</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 15</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -372,7 +374,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
         <p class="help">Verify identifiers and disposition before printing. This tool does not update inventory or orders.</p>
       </details>
     </div>
-    <button id="upcGenerate" type="submit">Generate label</button>
+    <div class="label-form-actions"><button id="upcGenerate" type="submit">Generate label</button><button id="clearBarcodeForm" type="button" class="secondary">Clear form</button></div>
   </form>
   <details class="print-extra" id="catalogPanel">
     <summary>Local product catalog <span id="catalogBadge" class="muted">· Not loaded</span></summary>
@@ -395,7 +397,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <label for="lpnInput">LPN</label>
     <input id="lpnInput" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter LPN" aria-describedby="lpnHelp">
     <span class="help" id="lpnHelp">Only the LPN is a scannable Code 128 barcode. Leading zeros are preserved.</span>
-    <button type="submit">Generate LPN label</button>
+    <div class="label-form-actions"><button type="submit">Generate LPN label</button><button id="clearLpnForm" type="button" class="secondary">Clear form</button></div>
   </form>
 </div>
 </div>
@@ -474,7 +476,8 @@ var lpnPanel=document.getElementById('lpnPanel'),formatPanel=document.getElement
 var disp={},catalogFilled={},selectedProduct=null,brandEdited=false;
 var more=document.getElementById('dispMore'),manualFields=document.getElementById('manualFields'),editDetails=document.getElementById('editProductDetails');
 ['Type','Category','Channel','Dept','Brand','Model','Product','Lpn','Order','OrderBarcode','Date'].forEach(function(k){disp[k]=document.getElementById('disp'+k);});
-var now=new Date();disp.Date.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+function resetLabelDate(){var now=new Date();disp.Date.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');}
+resetLabelDate();
 var lpnForm=document.getElementById('lpnForm'),orderInput=document.getElementById('orderInput'),skuInput=document.getElementById('skuInput'),lpnInput=document.getElementById('lpnInput');
 var mode='photo';
 var printCopies=document.getElementById('printCopies'),findPrinters=document.getElementById('findPrinters'),directPrint=document.getElementById('directPrint'),printerSelect=document.getElementById('printerSelect');
@@ -1075,6 +1078,28 @@ document.addEventListener('addy-catalog-match',function(e){
     setStatus(labelFormat.value==='disposition'?'Tap Generate disposition label when ready.':'Tap Generate barcode when ready.');
   });
 });
+function clearBarcodeForm(){
+  if(mode!=='barcode')return;
+  // Reuse the search input reset path to cancel in-flight lookups and hide suggestions.
+  var search=document.getElementById('catalogModel');
+  search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));
+  upcForm.reset();
+  search.value='';upcSkuInput.value='';upcInput.value='';
+  catalogFilled={};selectedProduct=null;brandEdited=false;
+  resetLabelDate();more.open=false;updateSummary();
+  upcInput.removeAttribute('aria-invalid');
+  ++revision;disableOutput();clearPreview();
+  setStatus('Form cleared.');
+  if(!search.disabled)search.focus();
+}
+function clearLpnForm(){
+  if(mode!=='lpn')return;
+  lpnForm.reset();lpnInput.removeAttribute('aria-invalid');
+  ++revision;disableOutput();clearPreview();
+  setStatus('Form cleared.');orderInput.focus();
+}
+document.getElementById('clearBarcodeForm').addEventListener('click',clearBarcodeForm);
+document.getElementById('clearLpnForm').addEventListener('click',clearLpnForm);
 upcForm.addEventListener('submit',async function(e){
   e.preventDefault();if(mode!=='barcode')return;
   var mine=++revision,value;
