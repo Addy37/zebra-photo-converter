@@ -200,8 +200,8 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 /* Beta 5 compact desktop workspace. Screen-only; print pages retain the exact original geometry. */
 @media screen and (min-width:851px){
  html[data-layout="desktop"] body{padding:0 18px 20px;background:#eef2f7}
- html[data-layout="desktop"] main{position:relative;max-width:1600px}
- html[data-layout="desktop"] .hero{display:flex;align-items:center;gap:20px;min-height:90px;padding:12px 215px 12px 18px;margin:0 0 14px;border-radius:0 0 12px 12px;border-bottom-width:4px}
+ html[data-layout="desktop"] main{position:relative;width:100%;max-width:none;min-height:calc(100vh - 20px);min-height:calc(100dvh - 20px);display:flex;flex-direction:column}
+ html[data-layout="desktop"] .hero{display:flex;align-items:center;gap:20px;min-height:90px;padding:12px 233px 12px 18px;margin:0 -18px 14px;border-radius:0;border-bottom-width:4px;flex-shrink:0}
  html[data-layout="desktop"] .brand-row{flex:0 0 auto;gap:9px;margin:0}
  html[data-layout="desktop"] .brand-wordmark{font-size:25px;padding-right:17px;letter-spacing:-1.5px}
  html[data-layout="desktop"] .brand-tag{right:0;bottom:0;width:17px;height:11px}
@@ -216,7 +216,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
  html[data-layout="desktop"] .view-toolbar{position:absolute;right:16px;top:13px;margin:0;display:grid;gap:3px;width:180px;z-index:2}
  html[data-layout="desktop"] .view-toolbar label,html[data-layout="desktop"] .view-toolbar .muted{color:#e1ebff;font-size:.72rem}
  html[data-layout="desktop"] .view-toolbar select{width:100%;min-height:32px;font-size:.86rem;padding:4px 7px}
- html[data-layout="desktop"] .workspace{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:auto auto;gap:12px;align-items:start}
+ html[data-layout="desktop"] .workspace{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);grid-template-rows:auto 1fr;gap:12px;align-items:start;flex-shrink:0}
  html[data-layout="desktop"] .panel{padding:12px;border-radius:12px}
  html[data-layout="desktop"] .editor .mode-switch{margin-bottom:8px;padding:4px}
  html[data-layout="desktop"] .mode-switch button{min-height:36px;padding:5px}
@@ -228,23 +228,24 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
  html[data-layout="desktop"] #upcForm,html[data-layout="desktop"] #lpnForm{gap:7px}
  html[data-layout="desktop"] .help{font-size:.79rem;line-height:1.4;margin-top:7px}
  html[data-layout="desktop"] .section-header{margin-bottom:8px}
- html[data-layout="desktop"] #previewPanel{position:static}
- html[data-layout="desktop"] #previewWrap{padding:10px;min-height:0}
- html[data-layout="desktop"] #preview{width:min(100%,420px,48vh);height:auto;aspect-ratio:4/3}
+ html[data-layout="desktop"] #previewPanel{position:static;align-self:stretch;display:flex;flex-direction:column}
+ html[data-layout="desktop"] #previewWrap{padding:10px;min-height:0;flex:1}
+ html[data-layout="desktop"] #preview{width:min(100%,clamp(320px,calc(133.333vh - 650px),812px));height:auto;aspect-ratio:4/3}
  html[data-layout="desktop"] .actions{margin-top:9px;gap:6px}
  html[data-layout="desktop"] #batchAddCurrent{margin-top:7px!important}
  html[data-layout="desktop"] #status{margin-top:7px;min-height:18px;font-size:.8rem}
  html[data-layout="desktop"] #printPrimary{margin:8px 0}
  html[data-layout="desktop"] .print-extra{margin-top:8px;padding:8px}
  html[data-layout="desktop"] #printStatus{font-size:.8rem;margin-top:8px}
- html[data-layout="desktop"] #batchPanel{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"heading import output" "intro intro intro" "list list list" "help help help" "status status status";gap:7px 10px;margin:12px 0;align-items:center}
+ html[data-layout="desktop"] #batchPanel{display:grid;grid-template-columns:minmax(0,1fr) auto auto;grid-template-areas:"heading import output" "intro intro intro" "list list list" "help help help" "status status status";gap:7px 10px;margin:12px 0;align-items:center;align-content:start;flex:1 0 auto;min-height:154px}
  html[data-layout="desktop"] #batchPanel .section-header{grid-area:heading;justify-content:flex-start;margin:0;gap:9px}
  html[data-layout="desktop"] #batchPanel>.help:first-of-type{grid-area:intro;margin:0}
  html[data-layout="desktop"] #batchPanel>.help:last-of-type{grid-area:help;margin:0}
  html[data-layout="desktop"] .batch-import{grid-area:import}
  html[data-layout="desktop"] .batch-output{grid-area:output}
  html[data-layout="desktop"] .batch-tools{display:flex;gap:6px;margin:0}
- html[data-layout="desktop"] #batchList{grid-area:list;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:8px}
+ html[data-layout="desktop"] #batchList{grid-area:list;grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr));gap:8px}
+ html[data-layout="desktop"] #batchList:empty{min-height:36px;border:1px dashed var(--line);border-radius:8px;background:#f7f9fc}
  html[data-layout="desktop"] #batchStatus{grid-area:status;margin:0;font-size:.8rem}
  html[data-layout="desktop"] .batch-card{padding:8px;gap:6px}
  html[data-layout="desktop"] .batch-card img{max-height:140px}
@@ -252,7 +253,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
  html[data-layout="desktop"] .batch-controls button{min-height:30px;padding:4px 7px}
  html[data-layout="desktop"] .batch-controls input{min-height:32px;width:56px}
  html[data-layout="desktop"] .info{margin:12px 0}
- html[data-layout="desktop"] footer{margin:12px 0}
+ html[data-layout="desktop"] footer{margin:4px 0 0;flex-shrink:0}
 }
 @media screen and (min-width:851px) and (max-width:1100px){
  html[data-layout="desktop"] #batchPanel{grid-template-columns:1fr 1fr;grid-template-areas:"heading heading" "import output" "intro intro" "list list" "help help" "status status"}
@@ -268,7 +269,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 5</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 6</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert a photo, create a UPC barcode or print an order / SKU / LPN label.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
