@@ -332,7 +332,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 20</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 21</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -1576,11 +1576,11 @@ async function lookupModel(scan){
       var btn=document.createElement('button');btn.type='button';btn.className='catalog-result';
       var body=document.createElement('span');body.className='catalog-result-body';
       var title=document.createElement('strong');title.className='catalog-result-title';title.textContent=row.product||'Product';
-      var meta=document.createElement('span');meta.className='catalog-result-meta';
+      var resultMeta=document.createElement('span');resultMeta.className='catalog-result-meta';
       var skuLabel=document.createElement('span');skuLabel.className='catalog-result-sku';skuLabel.textContent='SKU '+row.sku;
       var modelLabel=document.createElement('span');modelLabel.textContent=row.model||'No model';
       var upcLabel=document.createElement('span');upcLabel.textContent='UPC '+row.upc;
-      meta.append(skuLabel,modelLabel,upcLabel);body.append(title,meta);
+      resultMeta.append(skuLabel,modelLabel,upcLabel);body.append(title,resultMeta);
       var arrow=document.createElement('span');arrow.className='catalog-result-arrow';arrow.setAttribute('aria-hidden','true');
       btn.append(body,arrow);
       btn.addEventListener('click',async function(){
