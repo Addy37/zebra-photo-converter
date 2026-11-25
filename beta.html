@@ -270,6 +270,14 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 .catalog-match{padding:10px 12px;background:#edf5ff;border:1px solid #b6cee9;border-radius:8px;color:var(--ink);overflow-wrap:anywhere;font-size:.9rem}
 .catalog-match[data-state="error"]{background:#fff8e2;border-color:#e7cb75}
 #catalogBadge{font-weight:500}
+.mode-switch{grid-template-columns:repeat(2,minmax(0,1fr))}
+#dispositionFields{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px;min-width:0}
+.disposition-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#dispositionFields .control{min-width:0}
+#dispositionFields input:not([type="checkbox"]){box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:9px 12px;color:var(--ink);background:#fff;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
+.disposition-check{display:flex;align-items:center;gap:8px;cursor:pointer}
+#dispositionFields input[type="checkbox"]{width:20px;height:20px;flex:0 0 20px;accent-color:var(--bb-blue)}
+@media(max-width:380px){.disposition-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -280,9 +288,9 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 7</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 8</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
-    <p>Convert a photo, create a UPC barcode or print an order / SKU / LPN label.</p>
+    <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
   </div>
 </header>
@@ -296,8 +304,8 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 <div class="mode-switch" role="group" aria-label="Label type">
   <button id="photoMode" type="button" aria-pressed="true">Photo</button>
   <button id="barcodeMode" type="button" aria-pressed="false">UPC Barcode</button>
-  <button id="lpnMode" type="button" aria-pressed="false">LPN Barcode</button>
 </div>
+<div class="control" id="formatPanel" hidden style="margin-bottom:12px"><label for="labelFormat">Label format</label><select id="labelFormat"><option value="standard">Standard UPC</option><option value="disposition">Disposition label</option><option value="lpn">Standalone LPN / order label</option></select></div>
 <div class="panel" id="photoPanel">
   <div id="pickArea">
     <svg width="37" height="37" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
@@ -324,11 +332,11 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <label for="upcInput">UPC number</label>
     <input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp">
     <span class="help" id="upcHelp">Enter 12 digits, or 11 to calculate the final check digit. Keep any leading zeros.</span>
-    <button type="submit">Generate barcode</button>
+<div id="dispositionFields" hidden><div class="disposition-grid"><div class="control"><label for="dispType">Disposition</label><input id="dispType" maxlength="24" autocomplete="off" placeholder="e.g. LIQ"></div><div class="control"><label for="dispCategory">Category / reason (optional)</label><input id="dispCategory" maxlength="24" autocomplete="off" placeholder="e.g. SVC LIQ"></div><div class="control"><label for="dispChannel">Channel (optional)</label><input id="dispChannel" maxlength="20" autocomplete="off" placeholder="e.g. DEL"></div><div class="control"><label for="dispDept">Department (optional)</label><input id="dispDept" maxlength="20" autocomplete="off" placeholder="e.g. 4"></div><div class="control"><label for="dispBrand">Brand (optional)</label><input id="dispBrand" maxlength="40" autocomplete="off" placeholder="Brand"></div><div class="control"><label for="dispModel">Model (optional)</label><input id="dispModel" maxlength="64" autocomplete="off" placeholder="Model number"></div></div><div class="control"><label for="dispProduct">Product description (optional)</label><input id="dispProduct" maxlength="120" autocomplete="off" placeholder="Auto-filled from catalog"></div><div class="control"><label for="dispLpn">LPN (optional)</label><input id="dispLpn" maxlength="64" autocomplete="off" placeholder="Scan or enter existing LPN"></div><div class="control"><label for="dispOrder">Order number (optional)</label><input id="dispOrder" maxlength="40" autocomplete="off" placeholder="Enter order number"></div><label class="disposition-check"><input id="dispOrderBarcode" type="checkbox"> Include scannable order barcode</label><div class="control"><label for="dispDate">Label date (optional)</label><input id="dispDate" type="date"></div><p class="help">Verify all identifiers and disposition before printing. This tool creates labels only; it does not update inventory or orders.</p></div><button id="upcGenerate" type="submit">Generate barcode</button>
   </form>
   <details class="print-extra" id="catalogPanel">
     <summary>Local product catalog <span id="catalogBadge" class="muted">· Not loaded</span></summary>
-    <p class="help">Import an authorized CSV with columns SKU, Product, UPC. The file is processed and stored in this browser, not sent to a server. Use only on approved devices. Each browser profile needs its own import.</p>
+    <p class="help">Import an authorized CSV with columns SKU, Product, UPC (optional Brand, Model, Dept). The file is processed and stored in this browser, not sent to a server. Use only on approved devices. Each browser profile needs its own import.</p>
     <div class="catalog-actions">
       <label class="action secondary catalog-picker" for="catalogFile">Import / update CSV<input id="catalogFile" type="file" accept=".csv,text/csv"></label>
       <button id="catalogCancel" type="button" class="secondary" hidden>Cancel import</button>
@@ -386,7 +394,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 </div>
 <section class="panel" id="batchPanel" aria-labelledby="batchHeading">
   <div class="section-header"><h2 id="batchHeading">Batch print queue</h2><span class="muted" id="batchCount">0 labels</span></div>
-  <p class="help">Add photos in bulk or add generated Photo, UPC and LPN labels from the preview. Each prints on its own 4 × 3-inch label.</p>
+  <p class="help">Add photos in bulk or add generated Photo, UPC, disposition and LPN labels from the preview. Each prints on its own 4 × 3-inch label.</p>
   <div class="batch-tools batch-import">
     <label class="action secondary batch-picker" for="batchPicker">Add images<input type="file" id="batchPicker" accept="image/*,.heic,.heif" multiple></label>
     <button id="batchClear" class="secondary" type="button" disabled>Clear queue</button>
@@ -422,7 +430,10 @@ var photoMode=document.getElementById('photoMode'),barcodeMode=document.getEleme
 var photoPanel=document.getElementById('photoPanel'),barcodePanel=document.getElementById('barcodePanel');
 var upcInput=document.getElementById('upcInput'),upcForm=document.getElementById('upcForm'),previewMeta=document.getElementById('previewMeta');
 var upcSkuInput=document.getElementById('upcSkuInput');
-var lpnMode=document.getElementById('lpnMode'),lpnPanel=document.getElementById('lpnPanel');
+var lpnPanel=document.getElementById('lpnPanel'),formatPanel=document.getElementById('formatPanel'),labelFormat=document.getElementById('labelFormat'),dispositionFields=document.getElementById('dispositionFields'),upcGenerate=document.getElementById('upcGenerate');
+var disp={},catalogFilled={};
+['Type','Category','Channel','Dept','Brand','Model','Product','Lpn','Order','OrderBarcode','Date'].forEach(function(k){disp[k]=document.getElementById('disp'+k);});
+var now=new Date();disp.Date.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
 var lpnForm=document.getElementById('lpnForm'),orderInput=document.getElementById('orderInput'),skuInput=document.getElementById('skuInput'),lpnInput=document.getElementById('lpnInput');
 var mode='photo';
 var printCopies=document.getElementById('printCopies'),findPrinters=document.getElementById('findPrinters'),directPrint=document.getElementById('directPrint'),printerSelect=document.getElementById('printerSelect');
@@ -816,29 +827,120 @@ function drawLPN(order,sku,lpn,geometry){
   }
   fittedText(lpn,563,43);
 }
-function switchMode(next){
-  if(next===mode)return;
+
+function dispositionText(value,x,y,maxWidth,size,align){
+  if(!value)return;
+  ctx.textAlign=align||'left';ctx.textBaseline='middle';
+  ctx.font='bold '+size+'px Arial, sans-serif';
+  while(ctx.measureText(value).width>maxWidth&&size>17){size--;ctx.font='bold '+size+'px Arial, sans-serif';}
+  if(ctx.measureText(value).width>maxWidth){
+    while(value.length>1&&ctx.measureText(value+'…').width>maxWidth)value=value.slice(0,-1);
+    value+='…';
+  }
+  ctx.fillText(value,x,y);
+}
+function disp128(value,width,label){
+  var pattern;
+  try{pattern=code128(value).map(function(w){return CODE128_PATTERNS[w];}).join('');}
+  catch(e){throw new Error(label+' must contain standard letters, digits or punctuation.');}
+  var modules=0;for(var i=0;i<pattern.length;i++)modules+=Number(pattern[i]);
+  var module=Math.min(4,Math.floor(width/(modules+20)));
+  if(module<2)throw new Error(label+' is too long for a readable barcode in this layout. Use a shorter value or the standalone LPN label.');
+  return {pattern:pattern,modules:modules,module:module};
+}
+function drawDisp128(g,left,width,y,height){
+  var x=left+Math.floor((width-g.modules*g.module)/2);
+  for(var i=0;i<g.pattern.length;i++){
+    var n=Number(g.pattern[i])*g.module;
+    if(i%2===0)ctx.fillRect(x,y,n,height);
+    x+=n;
+  }
+}
+function drawDisposition(value,sku){
+  var d={};Object.keys(disp).forEach(function(k){d[k]=k==='OrderBarcode'?disp[k].checked:disp[k].value.trim();});
+  if(!d.Type)throw new Error('Enter a disposition before generating the label.');
+  if(d.OrderBarcode&&!d.Order)throw new Error('Enter an order number or turn off the order barcode.');
+  if(value==='000000000000')throw new Error('An all-zero UPC is not a product barcode.');
+  var lpnGeometry=d.Lpn?disp128(d.Lpn,400,'LPN'):null;
+  var orderGeometry=d.Order&&d.OrderBarcode?disp128(d.Order,748,'Order number'):null;
+  clearPreview();ctx.fillStyle='#000';
+  dispositionText(d.Type,32,29,345,34);
+  dispositionText(d.Category,780,29,360,30,'right');
+  dispositionText(d.Channel,780,65,320,28,'right');
+  dispositionText(d.Brand,32,69,400,32);
+  dispositionText(d.Model,32,109,748,36);
+  dispositionText(d.Product,32,152,748,30);
+  dispositionText(sku?'SKU: '+sku:'',32,199,475,37);
+  dispositionText(d.Dept?'Dept: '+d.Dept:'',780,199,260,31,'right');
+  var bits=upcBits(value),module=3,x=52,y=257,h=94;
+  dispositionText('UPC',32,235,340,26);
+  for(var i=0;i<bits.length;i++)if(bits[i]==='1'){
+    var guard=i<3||(i>=45&&i<50)||i>=92;
+    ctx.fillRect(x+i*module,y,module,h+(guard?8:0));
+  }
+  dispositionText(value,32,385,340,29);
+  if(lpnGeometry){
+    dispositionText('LPN',392,286,370,26);
+    drawDisp128(lpnGeometry,380,400,306,92);
+    dispositionText(d.Lpn,580,419,380,27,'center');
+  }
+  if(orderGeometry){
+    dispositionText('ORDER',32,447,165,23);
+    drawDisp128(orderGeometry,32,748,461,66);
+    dispositionText(d.Order,406,547,748,26,'center');
+  }else if(d.Order){
+    dispositionText('Order: '+d.Order,32,489,748,33);
+  }
+  if(d.Date){
+    var p=d.Date.split('-');
+    dispositionText(p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d.Date,780,580,300,30,'right');
+  }
+}
+
+function switchMode(next,force){
+  if(next===mode&&!force)return;
   mode=next;++revision;disableOutput();clearPreview();
   var barcode=mode==='barcode',lpn=mode==='lpn',photo=mode==='photo';
   photoMode.setAttribute('aria-pressed',String(photo));
-  barcodeMode.setAttribute('aria-pressed',String(barcode));
-  lpnMode.setAttribute('aria-pressed',String(lpn));
+  barcodeMode.setAttribute('aria-pressed',String(barcode||lpn));
+  formatPanel.hidden=photo;
+  var advanced=barcode&&labelFormat.value==='disposition';
+  dispositionFields.hidden=!advanced;
+  upcGenerate.textContent=advanced?'Generate disposition label':'Generate barcode';
   photoPanel.hidden=!photo;barcodePanel.hidden=!barcode;lpnPanel.hidden=!lpn;
-  previewMeta.textContent=barcode?'812 × 609 pixels • UPC-A':lpn?'812 × 609 pixels • Code 128':'812 × 609 pixels • no crop';
+  previewMeta.textContent=advanced?'812 × 609 pixels • disposition':barcode?'812 × 609 pixels • UPC-A':lpn?'812 × 609 pixels • Code 128':'812 × 609 pixels • no crop';
   canvas.setAttribute('aria-label',barcode?'UPC barcode label preview':lpn?'Order, SKU and LPN label preview':'Converted black and white label preview');
   upcInput.removeAttribute('aria-invalid');lpnInput.removeAttribute('aria-invalid');
-  if(barcode){setStatus('Enter a UPC to start.');}
+  if(barcode){setStatus(advanced?'Enter product details and disposition to start.':'Enter a UPC to start.');}
   else if(lpn){setStatus('Enter the order, SKU and LPN to start.');}
   else if(source){rotate.disabled=false;convert();}
   else{input.value='';setStatus('Choose a photo to start.');}
 }
 photoMode.addEventListener('click',function(){switchMode('photo');});
-barcodeMode.addEventListener('click',function(){switchMode('barcode');});
+barcodeMode.addEventListener('click',function(){switchMode(labelFormat.value==='lpn'?'lpn':'barcode');});
+labelFormat.addEventListener('change',function(){switchMode(labelFormat.value==='lpn'?'lpn':'barcode',true);});
+function invalidateDisposition(){
+  if(mode!=='barcode'||labelFormat.value!=='disposition')return;
+  ++revision;disableOutput();clearPreview();setStatus('Tap Generate disposition label when ready.');
+}
+Object.keys(disp).forEach(function(k){disp[k].addEventListener('input',invalidateDisposition);disp[k].addEventListener('change',invalidateDisposition);});
+function clearCatalogFields(){
+  Object.keys(catalogFilled).forEach(function(k){if(disp[k].value===catalogFilled[k])disp[k].value='';});
+  catalogFilled={};invalidateDisposition();
+}
+upcSkuInput.addEventListener('input',clearCatalogFields);
+document.addEventListener('addy-catalog-match',function(e){
+  clearCatalogFields();
+  var row=e.detail;if(!row)return;
+  var mapping={Product:'product',Brand:'brand',Model:'model',Dept:'dept'};
+  Object.keys(mapping).forEach(function(k){var v=row[mapping[k]];if(v&&!disp[k].value){disp[k].value=String(v);catalogFilled[k]=disp[k].value;}});
+  invalidateDisposition();
+});
 [upcInput,upcSkuInput].forEach(function(field){
   field.addEventListener('input',function(){
     if(mode!=='barcode')return;
     ++revision;disableOutput();clearPreview();upcInput.removeAttribute('aria-invalid');
-    setStatus('Tap Generate barcode when ready.');
+    setStatus(labelFormat.value==='disposition'?'Tap Generate disposition label when ready.':'Tap Generate barcode when ready.');
   });
 });
 upcForm.addEventListener('submit',async function(e){
@@ -849,15 +951,16 @@ upcForm.addEventListener('submit',async function(e){
   catch(err){upcInput.setAttribute('aria-invalid','true');setStatus(err.message);return;}
   upcInput.value=value;
   try{
-    drawUPC(value,upcSkuInput.value.trim());setStatus('Generating barcode…');
+    var advanced=labelFormat.value==='disposition';
+    if(advanced)drawDisposition(value,upcSkuInput.value.trim());else drawUPC(value,upcSkuInput.value.trim());
+    setStatus(advanced?'Generating disposition label…':'Generating barcode…');
     var blob=await withPrintDpi(await toPngBlob());
     if(mine!==revision||mode!=='barcode')return;
-    var file=new File([blob],'UPC_'+value+'_Zebra_4x3.png',{type:'image/png'});
+    var file=new File([blob],(advanced?'Disposition_':'UPC_')+value+'_Zebra_4x3.png',{type:'image/png'});
     activateOutput(file,blob);
-    setStatus('UPC '+value+' ready. Share, download or open the PNG.');
-  }catch(err){if(mine===revision)setStatus('Could not export this barcode. Try again.');}
+    setStatus((advanced?'Disposition label':'UPC '+value)+' ready. Share, download or open the PNG.');
+  }catch(err){if(mine===revision){clearPreview();setStatus(err.message||'Could not export this barcode. Try again.');}}
 });
-lpnMode.addEventListener('click',function(){switchMode('lpn');});
 [orderInput,skuInput,lpnInput].forEach(function(field){
   field.addEventListener('input',function(){
     if(mode!=='lpn')return;
@@ -1081,13 +1184,15 @@ function getColumns(header){
   var cols=header.map(function(v){return v.replace(/^\uFEFF/,'').trim().toLowerCase();});
   var indexes=['sku','product','upc'].map(function(n){return cols.indexOf(n);});
   if(indexes.some(function(i){return i<0;}))throw new Error('CSV must include SKU, Product and UPC headers.');
-  return indexes;
+  return indexes.concat(['brand','model','dept'].map(function(n){return cols.indexOf(n);}));
 }
 function rowRecord(row,cols){
   if(row.length<=Math.max.apply(null,cols))throw new Error('Malformed CSV row.');
   var key=skuKey(row[cols[0]]),code=row[cols[2]].trim();
   if(!key||!validUPC(code))return null;
-  return {sku:key,product:row[cols[1]].trim(),upc:code};
+  var record={sku:key,product:row[cols[1]].trim(),upc:code};
+  ['brand','model','dept'].forEach(function(k,i){var col=cols[i+3];if(col>=0&&row[col])record[k]=row[col].trim();});
+  return record;
 }
 function say(text){status.textContent=text;}
 function showMatch(text,state){match.hidden=!text;match.textContent=text;match.dataset.state=state||'';}
@@ -1099,7 +1204,7 @@ function sync(){
 }
 function clearAuto(){
   if(autoValue&&upc.value===autoValue){settingUPC=true;upc.value='';upc.dispatchEvent(new Event('input',{bubbles:true}));settingUPC=false;}
-  autoValue='';showMatch('');
+  autoValue='';showMatch('');document.dispatchEvent(new CustomEvent('addy-catalog-match',{detail:null}));
 }
 async function lookup(){
   var key=skuKey(sku.value),ticket=++lookupTicket;
@@ -1113,6 +1218,7 @@ async function lookup(){
     autoValue=result.row.upc;
     settingUPC=true;upc.value=autoValue;upc.dispatchEvent(new Event('input',{bubbles:true}));settingUPC=false;
     showMatch('Found: '+(result.row.product||'Product description unavailable')+' | UPC '+result.row.upc+' | Verify the product before printing.','ok');
+    document.dispatchEvent(new CustomEvent('addy-catalog-match',{detail:result.row}));
   }catch(e){if(ticket===lookupTicket)showMatch('Local lookup failed. Manual UPC entry is available.','error');}
 }
 function schedule(){
@@ -1137,7 +1243,7 @@ async function importFile(file){
       var db=await openDB(),previous=await getMeta(db),slot=previous&&previous.slot===SLOTS[0]?SLOTS[1]:SLOTS[0];
       var activated=false,count=0,skipped=0,rows=[],cols=null,parser=csvParser(),decoder=new TextDecoder('utf-8',{fatal:true}),offset=0;
       try{
-        await clearSlot(db,slot);
+        say('Preparing replacement catalog storage…');await clearSlot(db,slot);checkCancel();say('Reading CSV…');
         var batchSize=4000,chunkSize=512*1024;
         while(offset<file.size){
           checkCancel();
@@ -1160,7 +1266,7 @@ async function importFile(file){
         if(!cols||!count)throw new Error('No usable SKU/UPC records found.');
         var metadata={slot:slot,count:count,importedAt:new Date().toISOString(),skipped:skipped};
         await activate(db,metadata);activated=true;active=metadata;
-        if(previous&&previous.slot!==slot){try{await clearSlot(db,previous.slot);}catch(e){}}
+        if(previous&&previous.slot!==slot){say('New catalog saved. Cleaning up old catalog…');try{await clearSlot(db,previous.slot);}catch(e){}}
         say('Catalog ready: '+count.toLocaleString()+' products.'+(skipped?' '+skipped.toLocaleString()+' invalid or placeholder rows skipped.':''));
       }catch(e){
         if(!activated){try{await clearSlot(db,slot);}catch(ignore){}}
