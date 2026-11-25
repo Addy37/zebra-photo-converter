@@ -129,7 +129,7 @@ footer span{font-size:.75rem}
   html,body{margin:0!important;padding:0!important;background:white!important;width:4in!important;height:3in!important;min-height:0!important}
   main{display:none!important}
   #printSheet{display:block!important;width:4in;height:3in;margin:0;padding:0;overflow:hidden}
-  #printSheet img{display:block;width:4in;height:3in;margin:0;object-fit:fill}
+  #printSheet img{display:block;width:4in;height:3in;margin:0;object-fit:fill;image-rendering:pixelated}
 }
 /* Beta 3: responsive workspace, independent of label and print rendering. */
 .view-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0 4px}
@@ -301,7 +301,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 11</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 12</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -940,6 +940,9 @@ function thermalText(value,x,y,maxWidth,size,align,clip){
       size--;ctx.font='bold '+size+'px Arial, sans-serif';
     }
   }
+  // Add weight to text only, never to barcode modules or quiet zones.
+  ctx.strokeStyle='#000';ctx.lineWidth=1.5;ctx.lineJoin='round';
+  ctx.strokeText(value,0,0,maxWidth/.78);
   ctx.fillText(value,0,0,maxWidth/.78);ctx.restore();
 }
 function drawDisposition(value,sku){
@@ -957,21 +960,21 @@ function drawDisposition(value,sku){
   var lpnBarX=lpnStart+10*lpnGeometry.module;
   var orderGeometry=order&&d.OrderBarcode?disp128(order,690,'Order number'):null;
   clearPreview();ctx.fillStyle='#000';
-  thermalText(d.Type==='LIQUIDATION'?'LIQ':d.Type,left,23,325,32);
-  thermalText(d.Category,420,23,340,30);
-  thermalText(d.Channel,523,54,245,29);
-  thermalText(d.Brand,left,55,330,33);
+  thermalText(d.Type==='LIQUIDATION'?'LIQ':d.Type,left,30,325,32);
+  thermalText(d.Category,420,30,340,30);
+  thermalText(d.Channel,523,61,245,29);
+  thermalText(d.Brand,left,63,330,33);
   thermalText(d.Model,left,98,680,37);
-  thermalText(d.Product,left,143,365,37,'left',true);
+  thermalText(d.Product,left,143,350,37,'left',true);
   thermalText(sku?'SKU: '+sku:'',left,188,330,38);
   thermalText(d.Dept?'Dept: '+d.Dept:'',400,188,355,36);
   thermalText('UPC',left,224,220,27);
   var bits=upcBits(value),module=3,y=246,h=54;
   for(var i=0;i<bits.length;i++)if(bits[i]==='1')ctx.fillRect(left+i*module,y,module,h);
-  thermalText(value,left,314,325,27);
+  thermalText(value,left,319,325,27);
   thermalText('LPN',lpnBarX,340,230,27);
   drawDisp128(lpnGeometry,lpnStart,(lpnGeometry.modules+20)*lpnGeometry.module,360,57);
-  thermalText(d.Lpn,lpnBarX,432,Math.max(50,778-lpnBarX),29);
+  thermalText(d.Lpn,lpnBarX,438,Math.max(50,778-lpnBarX),29);
   // The original has no order strip. Print the optional extension only when a real order exists.
   if(orderGeometry){
     thermalText('ORDER',left,464,220,23);
@@ -981,6 +984,21 @@ function drawDisposition(value,sku){
     thermalText('Order: '+order,left,485,690,30);
   }
   if(d.Date){var p=d.Date.split('-');thermalText(p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d.Date,770,581,350,36,'right');}
+}
+// Generated disposition labels are line art, not photographs. Convert antialiased
+// text to solid printer dots without applying photo dithering or changing bar widths.
+function solidThermalPixels(pixels){
+  for(var i=0;i<pixels.length;i+=4){
+    var gray=(pixels[i]+pixels[i+1]+pixels[i+2])/3;
+    var bw=pixels[i+3]>127&&gray<176?0:255;
+    pixels[i]=pixels[i+1]=pixels[i+2]=bw;pixels[i+3]=255;
+  }
+  return pixels;
+}
+function sharpenDisposition(){
+  var image=ctx.getImageData(0,0,W,H);
+  solidThermalPixels(image.data);
+  ctx.putImageData(image,0,0);
 }
 function switchMode(next,force){
   if(next===mode&&!force)return;
@@ -1055,7 +1073,7 @@ upcForm.addEventListener('submit',async function(e){
   upcInput.value=value;
   try{
     var advanced=labelFormat.value==='disposition';
-    if(advanced)drawDisposition(value,upcSkuInput.value.trim());else drawUPC(value,upcSkuInput.value.trim());
+    if(advanced){drawDisposition(value,upcSkuInput.value.trim());sharpenDisposition();}else drawUPC(value,upcSkuInput.value.trim());
     setStatus('Generating label…');
     var blob=await withPrintDpi(await toPngBlob());
     if(mine!==revision||mode!=='barcode')return;
