@@ -301,7 +301,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 10</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 11</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -925,45 +925,62 @@ function drawDisp128(g,left,width,y,height){
     x+=n;
   }
 }
+// Match the photographed warehouse label: condensed, left aligned, staggered bars.
+function thermalText(value,x,y,maxWidth,size,align,clip){
+  if(!value)return;
+  value=String(value);
+  ctx.save();
+  ctx.translate(x,y);ctx.scale(.78,1);
+  ctx.textAlign=align||'left';ctx.textBaseline='middle';
+  ctx.font='bold '+size+'px Arial, sans-serif';
+  if(clip){
+    while(value.length>1&&ctx.measureText(value).width*.78>maxWidth)value=value.slice(0,-1);
+  }else{
+    while(ctx.measureText(value).width*.78>maxWidth&&size>16){
+      size--;ctx.font='bold '+size+'px Arial, sans-serif';
+    }
+  }
+  ctx.fillText(value,0,0,maxWidth/.78);ctx.restore();
+}
 function drawDisposition(value,sku){
   var d={};Object.keys(disp).forEach(function(k){d[k]=k==='OrderBarcode'?disp[k].checked:disp[k].value.trim();});
   if(!d.Type)throw new Error('Choose a disposition.');
   if(!d.Lpn)throw new Error('Enter an LPN.');
-  if(d.OrderBarcode&&!d.Order)throw new Error('Enter an order number or turn off the order barcode.');
+  var order=d.Order;
+  if(/^(?:N\/?A|NONE|-)$/i.test(order))order='';
+  if(d.OrderBarcode&&!order)throw new Error('Enter an order number or turn off the order barcode.');
   if(value==='000000000000')throw new Error('An all-zero UPC is not a product barcode.');
-  var left=18,available=776,upcWidth=452,module=4,lpnGeometry;
-  try{lpnGeometry=disp128(d.Lpn,available-upcWidth,'LPN');}
-  catch(e){upcWidth=344;module=3;lpnGeometry=disp128(d.Lpn,available-upcWidth,'LPN');}
-  var right=left+upcWidth,rightWidth=available-upcWidth;
-  var orderGeometry=d.Order&&d.OrderBarcode?disp128(d.Order,available,'Order number'):null;
+  var left=68, lpnLeft=350, lpnWidth=428;
+  var lpnGeometry=disp128(d.Lpn,lpnWidth,'LPN');
+  // The reference barcode is about half the label width. Keep integer printer dots and quiet zones.
+  var lpnStart=lpnLeft+Math.max(0,Math.floor((lpnWidth-(lpnGeometry.modules+20)*lpnGeometry.module)/2));
+  var lpnBarX=lpnStart+10*lpnGeometry.module;
+  var orderGeometry=order&&d.OrderBarcode?disp128(order,690,'Order number'):null;
   clearPreview();ctx.fillStyle='#000';
-  dispositionText(d.Type==='LIQUIDATION'?'LIQ':d.Type,left,34,454,48);
-  dispositionText(d.Category,794,24,302,29,'right');
-  dispositionText(d.Channel,794,55,302,25,'right');
-  ctx.fillRect(left,76,available,3);
-  dispositionText(d.Product,left,111,available,35);
-  dispositionText(d.Model,left,159,available,42);
-  dispositionText(sku?'SKU: '+sku:'',left,207,370,34);
-  dispositionText(d.Brand,570,207,170,23,'right');
-  dispositionText(d.Dept?'Dept: '+d.Dept:'',794,207,210,30,'right');
-  ctx.fillRect(left,233,available,2);
-  var bits=upcBits(value),x=left+Math.floor((upcWidth-bits.length*module)/2),y=275,h=88;
-  dispositionText('UPC',left+upcWidth/2,255,upcWidth,25,'center');
-  dispositionText('LPN',right+rightWidth/2,255,rightWidth,25,'center');
-  for(var i=0;i<bits.length;i++)if(bits[i]==='1'){
-    var guard=i<3||(i>=45&&i<50)||i>=92;
-    ctx.fillRect(x+i*module,y,module,h+(guard?8:0));
-  }
-  drawDisp128(lpnGeometry,right,rightWidth,y,96);
-  dispositionText(value,left+upcWidth/2,390,upcWidth-12,30,'center');
-  dispositionText(d.Lpn,right+rightWidth/2,390,rightWidth-8,28,'center');
-  ctx.fillRect(left,415,available,2);
+  thermalText(d.Type==='LIQUIDATION'?'LIQ':d.Type,left,23,325,32);
+  thermalText(d.Category,420,23,340,30);
+  thermalText(d.Channel,523,54,245,29);
+  thermalText(d.Brand,left,55,330,33);
+  thermalText(d.Model,left,98,680,37);
+  thermalText(d.Product,left,143,365,37,'left',true);
+  thermalText(sku?'SKU: '+sku:'',left,188,330,38);
+  thermalText(d.Dept?'Dept: '+d.Dept:'',400,188,355,36);
+  thermalText('UPC',left,224,220,27);
+  var bits=upcBits(value),module=3,y=246,h=54;
+  for(var i=0;i<bits.length;i++)if(bits[i]==='1')ctx.fillRect(left+i*module,y,module,h);
+  thermalText(value,left,314,325,27);
+  thermalText('LPN',lpnBarX,340,230,27);
+  drawDisp128(lpnGeometry,lpnStart,(lpnGeometry.modules+20)*lpnGeometry.module,360,57);
+  thermalText(d.Lpn,lpnBarX,432,Math.max(50,778-lpnBarX),29);
+  // The original has no order strip. Print the optional extension only when a real order exists.
   if(orderGeometry){
-    dispositionText('ORDER',left,437,180,23);
-    drawDisp128(orderGeometry,left,available,452,77);
-    dispositionText(d.Order,406,548,available,28,'center');
-  }else if(d.Order)dispositionText('Order: '+d.Order,left,455,available,33);
-  if(d.Date){var p=d.Date.split('-');dispositionText(p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d.Date,794,581,350,31,'right');}
+    thermalText('ORDER',left,464,220,23);
+    drawDisp128(orderGeometry,left,690,481,50);
+    thermalText(order,413,548,690,25,'center');
+  }else if(order){
+    thermalText('Order: '+order,left,485,690,30);
+  }
+  if(d.Date){var p=d.Date.split('-');thermalText(p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d.Date,770,581,350,36,'right');}
 }
 function switchMode(next,force){
   if(next===mode&&!force)return;
