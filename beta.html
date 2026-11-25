@@ -266,9 +266,21 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 #productSummary dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:.85rem}
 #productSummary dt{color:#465771}#productSummary dd{margin:0;font-weight:650}
 #productSummary button{justify-self:start;min-height:36px;padding:5px 10px;font-size:.8rem}
-#catalogChoices{max-height:300px;overflow:auto;overscroll-behavior:contain}
-#catalogChoices button{min-height:48px;padding:8px 12px;display:grid;gap:2px}
-#catalogChoices button small{font-size:.8rem;font-weight:500}
+/* Search results are non-shrinking list rows, not fixed-height action buttons. */
+#catalogChoices{display:flex;flex-direction:column;gap:0;min-width:0;max-height:320px;max-height:min(320px,42dvh);overflow:auto;overscroll-behavior:contain;border:1px solid #d4dce9;border-radius:10px;background:#fff;scrollbar-width:thin}
+#catalogChoices button.catalog-result{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr) 12px;align-items:center;gap:8px;width:100%;min-width:0;min-height:56px;height:auto;padding:9px 10px;border:0;border-radius:0;background:#fff;color:var(--ink);text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.3;font-weight:400;transform:none}
+#catalogChoices button.catalog-result+button{border-top:1px solid #e4e9f0}
+#catalogChoices button.catalog-result:hover,#catalogChoices button.catalog-result:focus-visible{background:#edf4ff}
+#catalogChoices button.catalog-result:focus-visible{outline-offset:-3px}
+#catalogChoices button.catalog-result:active{background:#dceaff;transform:none}
+.catalog-result-body{display:grid;gap:4px;min-width:0}
+.catalog-result-title{display:block;font-size:.875rem;font-weight:700;line-height:1.3;color:var(--ink);overflow-wrap:anywhere}
+.catalog-result-meta{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:.75rem;line-height:1.4;color:var(--muted);font-weight:500;min-width:0}
+.catalog-result-meta span{min-width:0;overflow-wrap:anywhere}
+.catalog-result-sku{color:var(--bb-blue);font-weight:700}
+.catalog-result-arrow{justify-self:center;width:7px;height:7px;border-top:1.5px solid #718095;border-right:1.5px solid #718095;transform:rotate(45deg)}
+#catalogMatch[data-state="ok"]{background:transparent;border:0;padding:2px 1px;font-size:.78rem;color:var(--muted)}
+@media screen and (min-width:851px){html[data-layout="desktop"] #catalogChoices button.catalog-result{min-height:48px;padding:7px 10px}}
 #dispMore .disposition-grid,#dispMore #manualFields{margin-top:10px}
 #dispositionFields{gap:8px}
 /* Local catalog lookup */
@@ -291,8 +303,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 #dispositionFields input[type="checkbox"]{width:20px;height:20px;flex:0 0 20px;accent-color:var(--bb-blue)}
 @media(max-width:380px){.disposition-grid{grid-template-columns:1fr}}
 #catalogModel,#dispType{box-sizing:border-box;width:100%;min-height:44px;min-width:0;padding:9px 12px;color:var(--ink);background:white;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
-#catalogChoices{display:grid;gap:6px}
-#catalogChoices button{text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.35}
+/* Keep result rows at their natural height on every viewport. */
 </style>
 </head>
 <body>
@@ -303,7 +314,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 17</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 18</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -342,8 +353,8 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <div id="productSearchGroup">
       <label for="catalogModel">Find product</label>
       <input id="catalogModel" type="search" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter SKU or model" aria-controls="catalogChoices">
-      <div id="catalogChoices" hidden aria-label="Matching products"></div>
       <div id="catalogMatch" class="catalog-match" hidden role="status" aria-live="polite"></div>
+      <div id="catalogChoices" hidden aria-label="Matching products"></div>
       <section id="productSummary" hidden aria-label="Selected product">
         <strong id="summaryProduct"></strong>
         <dl><dt>Model</dt><dd id="summaryModel"></dd><dt>SKU</dt><dd id="summarySku"></dd><dt>UPC</dt><dd id="summaryUpc"></dd><dt>Dept</dt><dd id="summaryDept"></dd><dt>Brand</dt><dd id="summaryBrand"></dd></dl>
@@ -1477,10 +1488,16 @@ async function lookupModel(){
     if(!results.length){showMatch('No matching SKU or model found.','error');return;}
     showMatch(total>1?'Select the correct product.':'Select product.','ok');
     results.forEach(function(row){
-      var btn=document.createElement('button');btn.type='button';btn.className='secondary';
-      var title=document.createElement('strong'),sub=document.createElement('small');
-      title.textContent=row.product||'Product';sub.textContent='SKU '+row.sku+' · '+(row.model||'No model')+' · UPC '+row.upc;
-      btn.append(title,sub);
+      var btn=document.createElement('button');btn.type='button';btn.className='catalog-result';
+      var body=document.createElement('span');body.className='catalog-result-body';
+      var title=document.createElement('strong');title.className='catalog-result-title';title.textContent=row.product||'Product';
+      var meta=document.createElement('span');meta.className='catalog-result-meta';
+      var skuLabel=document.createElement('span');skuLabel.className='catalog-result-sku';skuLabel.textContent='SKU '+row.sku;
+      var modelLabel=document.createElement('span');modelLabel.textContent=row.model||'No model';
+      var upcLabel=document.createElement('span');upcLabel.textContent='UPC '+row.upc;
+      meta.append(skuLabel,modelLabel,upcLabel);body.append(title,meta);
+      var arrow=document.createElement('span');arrow.className='catalog-result-arrow';arrow.setAttribute('aria-hidden','true');
+      btn.append(body,arrow);
       btn.addEventListener('click',async function(){
         try{
           var latest=await readSKU(db,row.sku);
@@ -1489,7 +1506,7 @@ async function lookupModel(){
           selectProduct(latest.row);
         }catch(e){showMatch('Could not retrieve product. Try again.','error');}
       });choices.appendChild(btn);
-    });choices.hidden=false;
+    });choices.hidden=false;choices.scrollTop=0;
   }catch(e){if(ticket===lookupTicket)showMatch(e.message||'Local search failed.','error');}
   finally{if(ticket===lookupTicket){modelSearching=false;sync();}}
 }
