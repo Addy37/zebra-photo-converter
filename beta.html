@@ -318,9 +318,23 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 #scanDialog .scan-options{display:grid;gap:8px;margin-top:10px}
 #scanDialog .scan-file{position:relative;overflow:hidden}
 #scanDialog .scan-file input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
-#scanPreview{position:relative;background:#17243a;border-radius:9px;overflow:hidden;margin-top:8px;aspect-ratio:4/3}
-#scanVideo{display:block;width:100%;height:100%;object-fit:contain}
-#scanGuide{position:absolute;inset:25% 9%;border:2px solid #ffe000;border-radius:8px;pointer-events:none}
+/* Live barcode viewfinder: fill the frame, keep the guide on top of the image. */
+#scanPreview{position:relative;isolation:isolate;background:#17243a;border-radius:12px;overflow:hidden;margin-top:10px;aspect-ratio:4/3;max-height:42vh;max-height:42dvh;border:1px solid #17243a}
+#scanVideo{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+#scanGuide{position:absolute;inset:31% 8%;border-radius:12px;box-shadow:0 0 0 600px rgba(9,17,30,.48);pointer-events:none}
+.scan-corner{position:absolute;width:24px;height:24px;border:0 solid var(--bb-yellow);filter:drop-shadow(0 0 2px #0009)}
+.scan-corner.tl{top:0;left:0;border-top-width:3px;border-left-width:3px;border-top-left-radius:10px}
+.scan-corner.tr{top:0;right:0;border-top-width:3px;border-right-width:3px;border-top-right-radius:10px}
+.scan-corner.bl{bottom:0;left:0;border-bottom-width:3px;border-left-width:3px;border-bottom-left-radius:10px}
+.scan-corner.br{bottom:0;right:0;border-bottom-width:3px;border-right-width:3px;border-bottom-right-radius:10px}
+.scan-beam{position:absolute;left:10px;right:10px;top:12%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#ffe000 14%,#fff3a0 50%,#ffe000 86%,transparent);box-shadow:0 0 9px 1px #ffe00080;animation:scanSweep 2.3s ease-in-out infinite;will-change:top}
+@keyframes scanSweep{0%,100%{top:12%}50%{top:86%}}
+.scan-live-badge{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:6px;padding:5px 8px;border:1px solid #ffffff26;border-radius:6px;background:#101c34c9;color:white;font-size:.65rem;font-weight:750;letter-spacing:.08em;pointer-events:none}
+.scan-live-badge::before{content:"";width:6px;height:6px;flex:none;border-radius:50%;background:var(--bb-yellow)}
+.scan-aim{position:absolute;bottom:10px;left:8px;right:8px;margin:0;color:#fff;text-align:center;font-size:.75rem;font-weight:650;text-shadow:0 1px 5px #000;pointer-events:none}
+#scanPreview[hidden] .scan-beam{animation:none}
+@media(max-width:600px) and (orientation:portrait){#scanPreview{aspect-ratio:1/1;max-height:42vh;max-height:42dvh}}
+@media(prefers-reduced-motion:reduce){.scan-beam{animation:none;top:50%;will-change:auto}}
 #scanDialog #scanStatus{margin:8px 0 0;min-height:20px;font-size:.85rem}
 #scanDialog #scanReadout{display:block;width:100%;min-height:44px;padding:8px;font:inherit;box-sizing:border-box;border:1px solid #aebdd1;border-radius:8px}
 #scanDialog .scan-confirm{display:grid;gap:8px;margin-top:10px}
@@ -335,7 +349,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 22</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 23</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -1731,7 +1745,15 @@ sync();
 <dialog id="scanDialog" aria-labelledby="scanTitle">
   <div class="scan-head"><h2 id="scanTitle">Scan product</h2><button id="scanClose" type="button" class="secondary scan-close" aria-label="Close scanner">✕</button></div>
   <p class="help" id="scanHint">Aim at a product barcode or photograph the model number.</p>
-  <div id="scanPreview" hidden><video id="scanVideo" autoplay muted playsinline></video><div id="scanGuide" aria-hidden="true"></div></div>
+  <div id="scanPreview" hidden>
+    <video id="scanVideo" autoplay muted playsinline></video>
+    <div id="scanGuide" aria-hidden="true">
+      <span class="scan-corner tl"></span><span class="scan-corner tr"></span><span class="scan-corner bl"></span><span class="scan-corner br"></span>
+      <span class="scan-beam"></span>
+    </div>
+    <span class="scan-live-badge" aria-hidden="true">LIVE CAMERA</span>
+    <p class="scan-aim" aria-hidden="true">Align the barcode inside the frame</p>
+  </div>
   <p id="scanStatus" role="status" aria-live="polite"></p>
   <div class="scan-options">
     <button id="scanLive" type="button">Start camera scanner</button>
