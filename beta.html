@@ -1585,7 +1585,7 @@ async function lookupModel(scan){
     if(scan&&scan.kind==='barcode'&&total===1&&(buckets[0].length||buckets[1].length||buckets[2].length)){
       var latest=await readSKU(db,results[0].sku);
       if(ticket!==lookupTicket||busy)return;
-      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);return;}
+      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched'}}));return;}
       showMatch('Catalog changed. Scan again.','error');return;
     }
     showMatch(ocr&&!exactOCR?'Possible model matches. Verify and select the correct product.':results.length>1?'Select the correct product.':'Select product.','ok');
@@ -1605,7 +1605,7 @@ async function lookupModel(scan){
           var latest=await readSKU(db,row.sku);
           if(ticket!==lookupTicket||busy)return;
           if(!latest.meta||cacheKey(latest.meta)!==cacheKey(meta)||!latest.row||latest.row.upc!==row.upc){hideChoices();showMatch('Catalog changed. Search again.','error');return;}
-          selectProduct(latest.row);
+          selectProduct(latest.row);if(scan)document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched'}}));
         }catch(e){showMatch('Could not retrieve product. Try again.','error');}
       });choices.appendChild(btn);
     });choices.hidden=false;choices.scrollTop=0;
@@ -1766,7 +1766,7 @@ sync();
   </div>
   <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
 </dialog>
-<script src="scanner.js?v=20" defer></script>
+<script src="scanner-beta23.js?v=23" defer></script>
 </body>
 </html>
 <!-- Beta 20 Pages redeployment; application unchanged. -->
