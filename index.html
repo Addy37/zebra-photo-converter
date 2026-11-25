@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Zebra Converter">
-<title>Zebra Photo &amp; Barcode Converter | iPhone &amp; Android</title>
+<title>Zebra Label Converter | Warehouse Tools</title>
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#eaf0fa;background:#0b1220;line-height:1.45;color-scheme:dark}
 *{box-sizing:border-box}
@@ -109,6 +109,90 @@ footer span{font-size:.75rem}
 #lpnForm input[aria-invalid="true"]{border-color:#c93632}
 #lpnForm button[type="submit"]{background:var(--bb-yellow);color:#152137}
 @media(max-width:360px){.mode-switch button{font-size:.83rem;padding:6px 3px}}
+/* Beta printing controls; stable page is independent. */
+.beta-tag{display:inline-block;background:var(--bb-yellow);color:#17243a;padding:4px 9px;border-radius:6px;font-size:.75rem;font-weight:850;vertical-align:middle}
+.beta-link{color:white;text-decoration:underline;font-size:.85rem}
+.print-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.print-grid button{width:100%}
+#printCopies{width:100%;min-height:46px;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px;padding:8px}
+#printStatus{overflow-wrap:anywhere;color:var(--bb-dark);margin-bottom:0}
+#printerSelect{font-size:16px}
+#directPrint{background:var(--bb-yellow);color:#17243a}
+#printSheet{display:none}
+@media(max-width:440px){.print-grid{grid-template-columns:1fr}}
+@page{size:4in 3in;margin:0}
+@media print{
+  html,body{margin:0!important;padding:0!important;background:white!important;width:4in!important;height:3in!important;min-height:0!important}
+  main{display:none!important}
+  #printSheet{display:block!important;width:4in;height:3in;margin:0;padding:0;overflow:hidden}
+  #printSheet img{display:block;width:4in;height:3in;margin:0;object-fit:fill}
+}
+/* Beta 3: responsive workspace, independent of label and print rendering. */
+.view-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0 4px}
+.view-toolbar label{display:block;font-size:.82rem;margin-bottom:3px}
+.view-toolbar select{width:auto;min-width:160px;min-height:42px}
+.view-toolbar .muted{font-size:.82rem}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.workspace>.panel,.workspace>section.panel,.editor .panel{margin:0}
+.editor{min-width:0}
+.editor .mode-switch{margin:0 0 12px}
+#previewPanel,#printingPanel{min-width:0}
+#printPrimary{display:flex;margin:12px 0}
+#laptopPrint{width:100%;background:var(--bb-yellow);color:#17243a}
+#laptopPrint:disabled{opacity:.45}
+.print-extra{margin-top:14px;border:1px solid var(--line);border-radius:10px;padding:12px}
+.print-extra summary{cursor:pointer;font-weight:700;color:var(--bb-dark);font-size:.9rem}
+.print-extra[open] summary{margin-bottom:12px}
+.print-extra summary:focus-visible{outline:3px solid var(--bb-blue);outline-offset:3px}
+html[data-layout="desktop"] main{max-width:1320px}
+html[data-layout="desktop"] .hero{padding:18px 26px 20px}
+html[data-layout="desktop"] .brand-row{margin-bottom:12px}
+html[data-layout="desktop"] .hero p{margin:6px 0 10px}
+html[data-layout="desktop"] .hero h1{font-size:clamp(1.55rem,3vw,2.1rem)}
+html[data-layout="desktop"] .workspace{grid-template-columns:minmax(0, .88fr) minmax(0, 1.12fr);grid-template-areas:"editor preview" "printing preview";grid-template-rows:auto 1fr;gap:16px;align-items:start}
+html[data-layout="desktop"] .editor{grid-area:editor}
+html[data-layout="desktop"] #previewPanel{grid-area:preview}
+html[data-layout="desktop"] #printingPanel{grid-area:printing}
+html[data-layout="desktop"] #previewWrap{min-height:0;padding:18px}
+html[data-layout="desktop"] .actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+html[data-layout="desktop"] .actions .primary{grid-column:auto;background:#eaf1fc;color:var(--bb-dark);border:1px solid #c9d9f1}
+html[data-layout="desktop"] #previewPanel{position:sticky;top:14px}
+html[data-layout="mobile"] main{max-width:620px}
+html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);border:1px solid #c9d9f1}
+@media screen and (max-width:850px){
+ html[data-layout="desktop"] .workspace{grid-template-columns:minmax(0,1fr);grid-template-areas:"editor" "preview" "printing";grid-template-rows:auto auto auto}
+ html[data-layout="desktop"] #previewPanel{position:static}
+}
+@media screen and (max-width:500px){
+ .view-toolbar{gap:6px}
+ .view-toolbar select{min-width:135px}
+ html[data-layout="desktop"] .actions{grid-template-columns:1fr}
+}
+/* Batch queue: screen previews and a separate multi-page print document. */
+.batch-tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.batch-picker{position:relative;overflow:hidden;cursor:pointer}
+.batch-picker input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.batch-picker:focus-within{outline:3px solid var(--bb-blue);outline-offset:2px}
+.batch-picker:has(input:disabled){opacity:.45;pointer-events:none}
+#batchList{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:10px}
+.batch-card{border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0;display:grid;gap:8px}
+.batch-card img{width:100%;height:auto;aspect-ratio:4/3;object-fit:contain;border:1px solid var(--line);background:#fff;border-radius:5px}
+.batch-name{font-size:.84rem;font-weight:700;overflow-wrap:anywhere}
+.batch-controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.batch-controls input{width:66px;min-height:40px;padding:5px;border:1px solid #aebdd1;border-radius:6px;font:inherit;font-size:16px}
+.batch-controls button{min-height:40px;padding:6px 10px;font-size:.85rem}
+#batchStatus{color:var(--bb-dark);font-size:.9rem;overflow-wrap:anywhere;margin-bottom:0}
+#batchSheet{display:none}
+@media screen and (max-width:440px){.batch-tools{grid-template-columns:1fr}}
+@media print{
+ html,body{box-shadow:none!important}
+ body[data-print-job="batch"]{height:auto!important;min-height:0!important;overflow:visible!important}
+ body[data-print-job="batch"] #printSheet{display:none!important}
+ body[data-print-job="batch"] #batchSheet{display:block!important;width:4in;margin:0;padding:0}
+ .batch-page{width:4in;height:3in;margin:0;padding:0;overflow:hidden;break-inside:avoid;page-break-inside:avoid;break-after:page;page-break-after:always}
+ .batch-page:last-child{break-after:auto;page-break-after:auto}
+ .batch-page img{display:block;width:4in;height:3in;object-fit:fill;margin:0;padding:0}
+}
 </style>
 </head>
 <body>
@@ -119,10 +203,16 @@ footer span{font-size:.75rem}
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <h1>Zebra label converter</h1>
-  <p>Convert a photo, create a UPC barcode or print an order / SKU / LPN label.</p>
+  <p>Convert photos, create UPC or LPN labels, and print individually or in batches.</p>
   <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
 </header>
 <div class="warning" id="needsBrowser"><strong>iPhone setup:</strong> Apple's Files preview does not run this converter. Open it as a webpage in Safari, or in an HTML viewer that supports JavaScript. The buttons will work only in a full browser.</div>
+<div class="view-toolbar">
+  <div><label for="layoutMode">Website layout</label><select id="layoutMode"><option value="auto">Auto (recommended)</option><option value="desktop">Desktop</option><option value="mobile">Mobile</option></select></div>
+  <span class="muted" id="layoutHint" aria-live="polite">Automatic layout</span>
+</div>
+<div class="workspace">
+<div class="editor">
 <div class="mode-switch" role="group" aria-label="Label type">
   <button id="photoMode" type="button" aria-pressed="true">Photo</button>
   <button id="barcodeMode" type="button" aria-pressed="false">UPC Barcode</button>
@@ -131,9 +221,9 @@ footer span{font-size:.75rem}
 <div class="panel" id="photoPanel">
   <div id="pickArea">
     <svg width="37" height="37" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-    <strong>Tap to choose a photo</strong>
+    <strong>Choose one or multiple photos</strong>
     <small>Photo Library, camera or Files • JPG, PNG, HEIC*</small>
-    <input id="picker" type="file" accept="image/*,.heic,.heif" aria-label="Choose a photo from your device">
+    <input id="picker" type="file" multiple accept="image/*,.heic,.heif" aria-label="Choose one or multiple photos from your device">
   </div>
   <div class="controls">
     <div class="control">
@@ -167,7 +257,8 @@ footer span{font-size:.75rem}
     <button type="submit">Generate LPN label</button>
   </form>
 </div>
-<div class="panel">
+</div>
+<div class="panel" id="previewPanel">
   <div class="section-header"><h2>Print preview</h2><span class="muted" id="previewMeta">812 × 609 pixels • no crop</span></div>
   <div id="previewWrap"><canvas id="preview" width="812" height="609" aria-label="Converted black and white label preview"></canvas></div>
   <div class="actions">
@@ -175,11 +266,51 @@ footer span{font-size:.75rem}
     <a id="download" class="action secondary disabled" href="#" download="Zebra_4x3.png" aria-disabled="true">Download PNG</a>
     <a id="view" class="action secondary disabled" href="#" target="_blank" rel="noopener" aria-disabled="true">Open PNG</a>
   </div>
+  <button id="batchAddCurrent" type="button" class="secondary" style="width:100%;margin-top:10px" disabled>Add current label to print queue</button>
   <div id="status" role="status" aria-live="polite">Choose a photo to start.</div>
 </div>
+<section class="panel" id="printingPanel" aria-labelledby="printHeading">
+  <div class="section-header"><h2 id="printHeading">ZQ630 printing</h2><span class="muted">4 × 3 in · 203 DPI</span></div>
+  <p class="help" id="printIntro">Generate a label first. Your existing PNG actions still work.</p>
+  <div id="printPrimary"><button id="laptopPrint" type="button" disabled>Print from laptop</button></div>
+  <p class="help" id="systemPrintHelp">Windows: select your paired Zebra printer (e.g. Mobile Zebra), 4 × 3-inch stock, actual size, no margins or headers. Set copies in the print dialog.</p>
+  <details class="print-extra" id="experimentalPrint"><summary>Other printing options (experimental)</summary>
+  <div class="control"><label for="printCopies">Copies (Bluetooth / ZPL)</label><input id="printCopies" type="number" inputmode="numeric" min="1" max="100" step="1" value="1"></div>
+  <div class="print-grid">
+    <button id="findPrinters" type="button" class="secondary">Find Zebra printers</button>
+    <button id="directPrint" type="button" disabled>Direct Bluetooth print</button>
+  </div>
+  <div class="control" style="margin-top:12px"><label for="printerSelect">Printer (Browser Print)</label><select id="printerSelect" disabled><option value="">No printer selected</option></select></div>
+  <p class="help">Android: install and open <a href="https://www.zebra.com/us/en/support-downloads/software/printer-software/browser-print.html" target="_blank" rel="noopener">Zebra Browser Print</a> with Bluetooth discovery enabled. Pair your printer, then tap Find Zebra printers. Allow local printer access if prompted.</p>
+  <div class="print-grid">
+    <button id="shareZpl" type="button" class="secondary" disabled>Share ZPL as text</button>
+    <button id="saveZpl" type="button" class="secondary" disabled>Download ZPL file</button>
+  </div>
+  <p class="help">Mobile: try Share ZPL as text. If Nucleus is not listed, download the original ZPL file and use Nucleus Connector's file-sending option if available. Direct Safari Bluetooth is not supported.</p>
+  </details>
+  <p id="printStatus" role="status" aria-live="polite">Generate a label to enable printing and ZPL export.</p>
+</section>
+</div>
+<section class="panel" id="batchPanel" aria-labelledby="batchHeading">
+  <div class="section-header"><h2 id="batchHeading">Batch print queue</h2><span class="muted" id="batchCount">0 labels</span></div>
+  <p class="help">Add photos in bulk or add generated Photo, UPC and LPN labels from the preview. Each prints on its own 4 × 3-inch label.</p>
+  <div class="batch-tools">
+    <label class="action secondary batch-picker" for="batchPicker">Add images<input type="file" id="batchPicker" accept="image/*,.heic,.heif" multiple></label>
+    <button id="batchClear" class="secondary" type="button" disabled>Clear queue</button>
+  </div>
+  <div id="batchList"></div>
+  <div class="batch-tools">
+    <button id="batchPrint" type="button" class="primary" disabled>Print queue</button>
+    <button id="batchShare" type="button" class="secondary" disabled>Share queued PNGs</button>
+  </div>
+  <p class="help">For laptop batch printing, select Mobile Zebra and use 4 × 3-inch stock, 100% scale, no margins or headers. Keep copies in the print dialog at 1; quantities in this queue are already included. Mobile sharing sends one PNG per queue entry; set copies in your printing app.</p>
+  <p id="batchStatus" role="status" aria-live="polite">Your queue is empty.</p>
+</section>
 <div class="info"><strong>Print:</strong> In your Zebra printing app, select a 4 × 3-inch label, actual size / 100%, no crop or fill. This PNG is sized for 203-DPI printers.<p class="help">* HEIC is supported only when the browser can open the photo. If not, choose JPG or PNG.</p></div>
 <footer>All conversion happens on your device. No photos, UPCs or label numbers are uploaded.<br><span>Unofficial warehouse utility • Not an official Best Buy application.</span></footer>
 </main>
+<div id="printSheet" aria-hidden="true"><img id="printImage" alt=""></div>
+<div id="batchSheet" aria-hidden="true"></div>
 <script>
 (function(){
 'use strict';
@@ -201,17 +332,42 @@ var upcSkuInput=document.getElementById('upcSkuInput');
 var lpnMode=document.getElementById('lpnMode'),lpnPanel=document.getElementById('lpnPanel');
 var lpnForm=document.getElementById('lpnForm'),orderInput=document.getElementById('orderInput'),skuInput=document.getElementById('skuInput'),lpnInput=document.getElementById('lpnInput');
 var mode='photo';
+var printCopies=document.getElementById('printCopies'),findPrinters=document.getElementById('findPrinters'),directPrint=document.getElementById('directPrint'),printerSelect=document.getElementById('printerSelect');
+var laptopPrint=document.getElementById('laptopPrint'),shareZpl=document.getElementById('shareZpl'),saveZpl=document.getElementById('saveZpl'),printStatus=document.getElementById('printStatus'),printImage=document.getElementById('printImage');
+var printGraphic='',printers=[],bridgeBase='',printBusy=false,discoverBusy=false;
+var batchQueue=[],batchBusy=false;
+var batchAddCurrent=document.getElementById('batchAddCurrent'),batchPicker=document.getElementById('batchPicker'),batchClear=document.getElementById('batchClear'),batchList=document.getElementById('batchList'),batchCount=document.getElementById('batchCount'),batchPrint=document.getElementById('batchPrint'),batchShare=document.getElementById('batchShare'),batchStatus=document.getElementById('batchStatus'),batchSheet=document.getElementById('batchSheet');
 var source=null,sourceUrl='',outputUrl='',outputFile=null,fileName='photo',degrees=0,revision=0;
 var isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 document.getElementById('needsBrowser').hidden=true;
 if(isIOS){document.getElementById('iosNote').style.display='block';}else{share.textContent='Share PNG';}
 ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+var layoutMode=document.getElementById('layoutMode'),layoutHint=document.getElementById('layoutHint'),printIntro=document.getElementById('printIntro'),systemPrintHelp=document.getElementById('systemPrintHelp');
+var desktopQuery=window.matchMedia('(min-width: 1000px) and (pointer: fine)');
+var layoutPreference='auto';
+try{var savedLayout=localStorage.getItem('zebra-beta-layout');if(['auto','desktop','mobile'].indexOf(savedLayout)>=0)layoutPreference=savedLayout;}catch(e){}
+layoutMode.value=layoutPreference;
+function effectiveLayout(preference,wide){return preference==='auto'?(wide?'desktop':'mobile'):preference;}
+function applyLayout(){
+  var actual=effectiveLayout(layoutMode.value,desktopQuery.matches&&!isIOS&&!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
+  document.documentElement.setAttribute('data-layout',actual);
+  layoutHint.textContent=(layoutMode.value==='auto'?'Auto · ':'')+(actual==='desktop'?'Desktop workspace':'Mobile layout');
+  laptopPrint.textContent=actual==='desktop'?'Print label':'System print';
+  printIntro.textContent=actual==='desktop'?'Generate a label and use Print label to open your Windows printer dialog.':'Save or share the PNG with your existing printing app. System print is available if your device supports it.';
+  systemPrintHelp.textContent=actual==='desktop'?'Select your paired Zebra printer (e.g. Mobile Zebra), 4 × 3-inch stock, actual size, no margins or headers. Set copies in the print dialog.':'System print requires a compatible installed printer service. If unavailable, use Share / Save PNG or your existing Zebra utility.';
+}
+layoutMode.addEventListener('change',function(){try{localStorage.setItem('zebra-beta-layout',layoutMode.value);}catch(e){}applyLayout();});
+if(desktopQuery.addEventListener)desktopQuery.addEventListener('change',applyLayout);
+else if(desktopQuery.addListener)desktopQuery.addListener(applyLayout);
+applyLayout();
 function setStatus(msg){status.textContent=msg;}
 function safeName(name){return (name||'photo').replace(/\.[^.]*$/,'').replace(/[^a-z0-9_ -]/gi,'').trim()||'photo';}
 function disableOutput(){
   share.disabled=true;
   [download,view].forEach(function(a){a.classList.add('disabled');a.setAttribute('aria-disabled','true');a.removeAttribute('href');});
   outputFile=null;
+  batchAddCurrent.disabled=true;
+  resetPrintOutput();
   if(outputUrl){URL.revokeObjectURL(outputUrl);outputUrl='';}
 }
 function activateOutput(file,blob){
@@ -221,8 +377,231 @@ function activateOutput(file,blob){
   view.href=outputUrl;
   [download,view].forEach(function(a){a.classList.remove('disabled');a.removeAttribute('aria-disabled');});
   share.disabled=false;
+  batchAddCurrent.disabled=batchBusy||batchQueue.length>=50;
+  preparePrintOutput();
   setStatus('Ready! Choose Share / Save, Download, or Open PNG.');
 }
+function printMessage(message){printStatus.textContent=message;}
+function updatePrintButtons(){
+  var ready=!!outputFile&&!!printGraphic;
+  laptopPrint.disabled=!ready||printBusy;
+  shareZpl.disabled=!ready||printBusy;
+  saveZpl.disabled=!ready||printBusy;
+  directPrint.disabled=!ready||!bridgeBase||printerSelect.value===''||printBusy||discoverBusy;
+  findPrinters.disabled=discoverBusy||printBusy;
+  printerSelect.disabled=!printers.length||discoverBusy||printBusy;
+}
+function resetPrintOutput(){
+  printGraphic='';printImage.removeAttribute('src');
+  updatePrintButtons();
+}
+function rasterGraphic(pixels,width,height){
+  var stride=Math.ceil(width/8),total=stride*height,hex=new Array(total),digits='0123456789ABCDEF';
+  for(var y=0;y<height;y++){
+    for(var b=0;b<stride;b++){
+      var packed=0;
+      for(var bit=0;bit<8;bit++){
+        var x=b*8+bit;
+        if(x>=width)continue;
+        var at=(y*width+x)*4;
+        if(pixels[at+3]>127&&(pixels[at]+pixels[at+1]+pixels[at+2])/3<128)packed|=128>>bit;
+      }
+      hex[y*stride+b]=digits[packed>>4]+digits[packed&15];
+    }
+  }
+  return '^FO0,0^GFA,'+total+','+total+','+stride+','+hex.join('')+'^FS';
+}
+function preparePrintOutput(){
+  try{
+    printGraphic=rasterGraphic(ctx.getImageData(0,0,W,H).data,W,H);
+    printImage.src=outputUrl;
+    printMessage('Label ready for printing or ZPL export.');
+  }catch(err){printGraphic='';printMessage('Could not prepare ZPL. PNG is still available.');}
+  updatePrintButtons();
+}
+function copiesValue(){
+  var n=Number(printCopies.value);
+  if(!Number.isInteger(n)||n<1||n>100)throw new Error('Enter a whole number from 1 to 100.');
+  return n;
+}
+function makeZpl(graphic,copies){
+  return '^XA\n^PW'+W+'\n^LL'+H+'\n^LH0,0\n'+graphic+'\n^PQ'+copies+',0,1,N\n^XZ\n';
+}
+function zplFile(){
+  if(!outputFile||!printGraphic)throw new Error('Generate a label first.');
+  return new File([makeZpl(printGraphic,copiesValue())],outputFile.name.replace(/\.png$/i,'.zpl'),{type:'application/octet-stream'});
+}
+function downloadZpl(file){
+  var url=URL.createObjectURL(file),a=document.createElement('a');
+  a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(url);},60000);
+}
+saveZpl.addEventListener('click',function(){
+  try{downloadZpl(zplFile());printMessage('ZPL file downloaded. Send it with a compatible Zebra utility.');}
+  catch(e){printMessage(e.message);}
+});
+shareZpl.addEventListener('click',function(){
+  try{
+    if(!outputFile||!printGraphic)throw new Error('Generate a label first.');
+    var file=new File([makeZpl(printGraphic,copiesValue())],outputFile.name.replace(/\.png$/i,'_ZPL.txt'),{type:'text/plain'});
+    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+      navigator.share({files:[file]}).then(function(){printMessage('Share sheet closed. Check your printer before sending again.');}).catch(function(e){printMessage(e.name==='AbortError'?'Share canceled.':'Share failed ('+e.name+'). Use Download ZPL file, then import it in Nucleus Connector.');});
+    }else{printMessage('This browser cannot share the text file. Use Download ZPL file, then import it in Nucleus Connector.');}
+  }catch(e){printMessage(e.message);}
+});
+laptopPrint.addEventListener('click',function(){
+  if(!outputFile||!printGraphic)return;
+  printMessage('Select the Bluetooth ZQ630 in the print dialog. Set stock to 4 × 3 inches, actual size, no margins or headers. Set copies there.');
+  if(printImage.complete&&printImage.naturalWidth){document.body.removeAttribute('data-print-job');window.print();}
+  else{printMessage('Print preview is still loading. Try Print from laptop again.');}
+});
+async function bridgeRequest(base,path,options){
+  var ctrl=new AbortController(),timer=setTimeout(function(){ctrl.abort();},path==='write'?30000:6000);
+  try{
+    var response=await fetch(base+path,Object.assign({cache:'no-store',credentials:'omit',signal:ctrl.signal,redirect:'error'},options||{}));
+    if(!response.ok)throw new Error('Browser Print returned '+response.status);
+    return response;
+  }finally{clearTimeout(timer);}
+}
+findPrinters.addEventListener('click',async function(){
+  if(discoverBusy||printBusy)return;
+  discoverBusy=true;printers=[];bridgeBase='';printerSelect.replaceChildren(new Option('No printer selected',''));updatePrintButtons();
+  printMessage('Looking for local Zebra Browser Print. Approve printer access if prompted.');
+  var bases=['http://127.0.0.1:9100/','https://localhost:9101/'];
+  try{
+    for(var i=0;i<bases.length;i++){
+      try{
+        var response=await bridgeRequest(bases[i],'available');
+        var data=await response.json();
+        if(!data||typeof data!=='object')continue;
+        var list=Array.isArray(data.printer)?data.printer:[];
+        printers=list.filter(function(d){return d&&typeof d.uid==='string'&&d.uid.length>0;});
+        bridgeBase=bases[i];
+        if(printers.length)break;
+      }catch(e){}
+    }
+    if(!printers.length){printMessage(bridgeBase?'Browser Print found, but no printers are listed. Enable Bluetooth discovery and pair the ZQ630.':'Could not reach Browser Print. Open the companion app, allow local access if prompted, and try again. ZPL and PNG remain available.');return;}
+    printers.forEach(function(d,i){printerSelect.add(new Option((d.name||d.uid)+(d.connection?' · '+d.connection:''),String(i)));});
+    printMessage('Choose your ZQ630 from the printer list. Nothing is sent until you tap Print.');
+  }finally{discoverBusy=false;updatePrintButtons();}
+});
+printerSelect.addEventListener('change',updatePrintButtons);
+directPrint.addEventListener('click',async function(){
+  if(printBusy||!outputFile||!printGraphic||!bridgeBase||printerSelect.value==='')return;
+  var printer=printers[Number(printerSelect.value)],zpl;
+  if(!printer)return;
+  try{zpl=makeZpl(printGraphic,copiesValue());}catch(e){printMessage(e.message);return;}
+  printBusy=true;updatePrintButtons();printMessage('Sending label to '+(printer.name||printer.uid)+'…');
+  try{
+    await bridgeRequest(bridgeBase,'write',{method:'POST',headers:{'Content-Type':'text/plain;charset=UTF-8'},body:JSON.stringify({device:printer,data:zpl})});
+    printMessage('Browser Print accepted the job. Check the physical printer for the result.');
+  }catch(e){printMessage('Print delivery could not be confirmed. Check the printer before retrying to avoid duplicate labels.');}
+  finally{printBusy=false;updatePrintButtons();}
+});
+function batchMessage(message){batchStatus.textContent=message;}
+function batchTotal(){return batchQueue.reduce(function(n,item){return n+item.copies;},0);}
+function refreshBatchButtons(){
+  var total=batchTotal();
+  batchCount.textContent=batchQueue.length+' entries · '+total+' labels';
+  batchPrint.textContent=total?'Print '+total+' label'+(total===1?'':'s'):'Print queue';
+  batchPrint.disabled=batchBusy||!total||total>100;
+  batchShare.disabled=batchBusy||!batchQueue.length;
+  batchClear.disabled=batchBusy||!batchQueue.length;
+  batchPicker.disabled=batchBusy||batchQueue.length>=50;
+  batchAddCurrent.disabled=batchBusy||!outputFile||batchQueue.length>=50;
+  Array.from(batchList.querySelectorAll('input,button')).forEach(function(el){el.disabled=batchBusy||el.dataset.boundary==='true';});
+}
+function clearBatchSheet(){document.body.removeAttribute('data-print-job');batchSheet.replaceChildren();}
+function makeBatchEntry(file){return {file:file,url:URL.createObjectURL(file),copies:1};}
+function renderBatch(){
+  batchList.replaceChildren();
+  batchQueue.forEach(function(item,index){
+    var card=document.createElement('article');card.className='batch-card';
+    var thumb=document.createElement('img');thumb.src=item.url;thumb.alt='Label '+(index+1);
+    var name=document.createElement('div');name.className='batch-name';name.textContent=(index+1)+'. '+item.file.name;
+    var controls=document.createElement('div');controls.className='batch-controls';
+    var label=document.createElement('label');label.textContent='Copies';label.htmlFor='batchQty'+index;
+    var qty=document.createElement('input');qty.id=label.htmlFor;qty.type='number';qty.min='1';qty.max='100';qty.step='1';qty.value=item.copies;qty.inputMode='numeric';
+    qty.addEventListener('change',function(){var n=Number(qty.value);if(!Number.isInteger(n)||n<1||n>100)n=item.copies;item.copies=n;qty.value=n;refreshBatchButtons();batchMessage(batchTotal()>100?'Queue exceeds 100 labels. Reduce copies before printing.':'Queue updated.');});
+    controls.append(label,qty);
+    function action(title,description,handler,boundary){
+      var btn=document.createElement('button');btn.type='button';btn.className='secondary';btn.textContent=title;btn.setAttribute('aria-label',description);if(boundary)btn.dataset.boundary='true';btn.addEventListener('click',handler);controls.appendChild(btn);
+    }
+    function move(to){if(batchBusy||to<0||to>=batchQueue.length)return;batchQueue.splice(index,1);batchQueue.splice(to,0,item);renderBatch();batchMessage('Queue reordered.');}
+    action('↑','Move label '+(index+1)+' up',function(){move(index-1);},index===0);
+    action('↓','Move label '+(index+1)+' down',function(){move(index+1);},index===batchQueue.length-1);
+    action('Remove','Remove label '+(index+1),function(){if(batchBusy)return;URL.revokeObjectURL(item.url);batchQueue.splice(index,1);renderBatch();batchMessage('Label removed.');});
+    card.append(thumb,name,controls);batchList.appendChild(card);
+  });
+  refreshBatchButtons();
+}
+batchAddCurrent.addEventListener('click',function(){
+  if(batchBusy||!outputFile||batchQueue.length>=50)return;
+  batchQueue.push(makeBatchEntry(outputFile));renderBatch();batchMessage('Current label added. Generate another label or print the queue.');
+});
+batchClear.addEventListener('click',function(){
+  if(batchBusy)return;
+  batchQueue.forEach(function(item){URL.revokeObjectURL(item.url);});batchQueue=[];renderBatch();batchMessage('Queue cleared.');
+});
+function loadBatchPhoto(file){
+  return new Promise(function(resolve,reject){
+    var url=URL.createObjectURL(file),img=new Image();
+    img.onload=function(){URL.revokeObjectURL(url);resolve(img);};
+    img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('Could not open image'));};
+    img.src=url;
+  });
+}
+async function addBatchImages(files){
+  if(batchBusy||!files.length)return;
+  var available=50-batchQueue.length;
+  if(available<=0){batchMessage('Queue is full. Remove labels first.');return;}
+  var selected=files.slice(0,available),added=0,failed=0,shading=quality.value;
+  batchBusy=true;refreshBatchButtons();
+  var scratch=document.createElement('canvas');scratch.width=W;scratch.height=H;
+  var scratchCtx=scratch.getContext('2d');
+  try{
+    for(var i=0;i<selected.length;i++){
+      batchMessage('Converting image '+(i+1)+' of '+selected.length+'…');
+      try{
+        var img=await loadBatchPhoto(selected[i]);
+        paintPhoto(scratchCtx,img,0,shading);
+        var blob=await withPrintDpi(await toPngBlob(scratch));
+        batchQueue.push(makeBatchEntry(new File([blob],safeName(selected[i].name)+'_Zebra_4x3.png',{type:'image/png'})));added++;
+      }catch(e){failed++;}
+    }
+    batchMessage(added+' images added.'+(failed?' '+failed+' could not be converted. Try JPG or PNG.':'')+(files.length>selected.length?' Queue limited to 50 entries.':'')+(batchTotal()>100?' Reduce copies to 100 labels or fewer before printing.':''));
+  }finally{scratch.width=0;scratch.height=0;batchBusy=false;renderBatch();}
+}
+batchPicker.addEventListener('change',function(){var files=Array.from(batchPicker.files||[]);batchPicker.value='';addBatchImages(files);});
+function printPage(url){
+  var page=document.createElement('div');page.className='batch-page';var img=document.createElement('img');img.alt='';
+  var ready=new Promise(function(resolve,reject){img.onload=resolve;img.onerror=function(){reject(new Error('Label image failed to load.'));};});
+  page.appendChild(img);img.src=url;return {element:page,ready:ready};
+}
+batchPrint.addEventListener('click',async function(){
+  var total=batchTotal();if(batchBusy||!total||total>100)return;
+  batchBusy=true;refreshBatchButtons();batchMessage('Preparing '+total+' separate labels…');clearBatchSheet();
+  try{
+    var loads=[];
+    batchQueue.forEach(function(item){for(var i=0;i<item.copies;i++){var page=printPage(item.url);batchSheet.appendChild(page.element);loads.push(page.ready);}});
+    await Promise.all(loads);
+    document.body.setAttribute('data-print-job','batch');
+    batchMessage('Select Mobile Zebra, actual size, no margins or headers and 1 copy in the print dialog.');
+    window.print();
+  }catch(e){clearBatchSheet();batchMessage('Could not prepare the batch print. Try again.');}
+  finally{batchBusy=false;refreshBatchButtons();}
+});
+window.addEventListener('afterprint',clearBatchSheet);
+batchShare.addEventListener('click',function(){
+  if(batchBusy||!batchQueue.length)return;
+  var files=batchQueue.map(function(item){return item.file;});
+  try{
+    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:files}))){
+      navigator.share({files:files}).then(function(){batchMessage('Share sheet closed. Confirm printing in your app.');}).catch(function(e){batchMessage(e.name==='AbortError'?'Sharing canceled.':'Multiple PNG sharing unavailable. Share individual labels instead.');});
+    }else{batchMessage('This browser cannot share multiple PNGs. Use system printing or share individual labels.');}
+  }catch(e){batchMessage('Multiple PNG sharing unavailable.');}
+});
+renderBatch();
 function chooseFile(file){
   if(!file||mode!=='photo')return;
   if(!(file.type.indexOf('image/')===0||/\.(jpe?g|png|webp|heic|heif|gif|bmp)$/i.test(file.name||''))){setStatus('Choose a photo, JPG or PNG.');return;}
@@ -241,10 +620,10 @@ function chooseFile(file){
   image.onerror=function(){if(requested===revision)setStatus('This photo could not open. Try a JPG or PNG instead.');};
   image.src=sourceUrl;
 }
-input.addEventListener('change',function(){chooseFile(input.files&&input.files[0]);});
+input.addEventListener('change',function(){var files=Array.from(input.files||[]);input.value='';if(files.length>1)addBatchImages(files);else chooseFile(files[0]);});
 ['dragenter','dragover'].forEach(function(evt){area.addEventListener(evt,function(e){e.preventDefault();area.classList.add('drag');});});
 ['dragleave','drop'].forEach(function(evt){area.addEventListener(evt,function(e){e.preventDefault();area.classList.remove('drag');});});
-area.addEventListener('drop',function(e){if(e.dataTransfer&&e.dataTransfer.files)chooseFile(e.dataTransfer.files[0]);});
+area.addEventListener('drop',function(e){if(e.dataTransfer&&e.dataTransfer.files){var files=Array.from(e.dataTransfer.files);if(files.length>1)addBatchImages(files);else chooseFile(files[0]);}});
 quality.addEventListener('change',convert);
 rotate.addEventListener('click',function(){if(!source)return;degrees=(degrees+90)%360;convert();});
 function upcCheck(body){
@@ -408,7 +787,7 @@ lpnForm.addEventListener('submit',async function(e){
     activateOutput(file,blob);setStatus('LPN '+lpn+' ready. Share, download or open the PNG.');
   }catch(err){if(mine===revision)setStatus('Could not export this label. Try again.');}
 });
-function paint(){
+function paintPhoto(ctx,source,degrees,shading){
   ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
   var sw=source.naturalWidth||source.width,sh=source.naturalHeight||source.height;
   if(!sw||!sh)throw new Error('Invalid photo dimensions');
@@ -417,7 +796,7 @@ function paint(){
   var x=Math.floor((W-boxW*scale)/2),y=Math.floor((H-boxH*scale)/2);
   var x1=Math.min(W,Math.ceil((W+boxW*scale)/2)),y1=Math.min(H,Math.ceil((H+boxH*scale)/2));
   ctx.save();ctx.translate(W/2,H/2);ctx.rotate(degrees*Math.PI/180);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,-sw*scale/2,-sh*scale/2,sw*scale,sh*scale);ctx.restore();
-  var pixels=ctx.getImageData(0,0,W,H),p=pixels.data,levels=new Float32Array(W*H),mode=quality.value;
+  var pixels=ctx.getImageData(0,0,W,H),p=pixels.data,levels=new Float32Array(W*H),mode=shading;
   var light=mode==='light'?19:mode==='dark'?-17:mode==='bold'?-4:0;
   var contrast=mode==='bold'?1.43:1.14;
   var yy,xx,i,at,gray,old,bw,err;
@@ -470,12 +849,13 @@ async function withPrintDpi(blob){
   if(!inserted)throw new Error('Invalid PNG');
   return new Blob(parts,{type:'image/png'});
 }
-function toPngBlob(){
+function toPngBlob(target){
+  target=target||canvas;
   return new Promise(function(resolve,reject){
-    if(canvas.toBlob){canvas.toBlob(function(b){if(b)resolve(b);else reject(new Error('PNG export failed'));},'image/png');}
+    if(target.toBlob){target.toBlob(function(b){if(b)resolve(b);else reject(new Error('PNG export failed'));},'image/png');}
     else{
       try{
-        var uri=canvas.toDataURL('image/png'),base64=atob(uri.split(',')[1]),bytes=new Uint8Array(base64.length);
+        var uri=target.toDataURL('image/png'),base64=atob(uri.split(',')[1]),bytes=new Uint8Array(base64.length);
         for(var i=0;i<base64.length;i++)bytes[i]=base64.charCodeAt(i);
         resolve(new Blob([bytes],{type:'image/png'}));
       }catch(e){reject(e);}
@@ -487,7 +867,7 @@ async function convert(){
   var mine=++revision;
   disableOutput();setStatus('Converting photo…');
   try{
-    paint();
+    paintPhoto(ctx,source,degrees,quality.value);
     var blob=await withPrintDpi(await toPngBlob());
     if(mine!==revision)return;
     var name=fileName+'_Zebra_4x3.png';
