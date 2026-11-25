@@ -332,7 +332,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 19</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 20</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -1493,17 +1493,57 @@ function rankProduct(entry,raw,key,numeric){
 }
 function ocrModelKeys(text){
   var lines=String(text||'').toUpperCase().split(/\r?\n/),keys=new Set();
-  function add(value){var k=modelKey(value);if(k.length>=4&&k.length<=64&&/[A-Z]/.test(k)&&/\d/.test(k))keys.add(k);}
-  lines.forEach(function(line){
-    var match=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD(?:EL)?\.)\s*[:#-]?\s*([A-Z0-9][A-Z0-9./_-]*(?:\s+[A-Z0-9./_-]+){0,2})/);
-    if(match){var parts=match[1].trim().split(/\s+/);for(var j=1;j<=parts.length;j++)add(parts.slice(0,j).join(''));}
-    (line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(add);
+  function add(value,explicit){var k=modelKey(value);if(k.length>=4&&k.length<=64&&/\d/.test(k)&&(/[A-Z]/.test(k)||explicit))keys.add(k);}
+  lines.forEach(function(line,i){
+    var match=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD(?:EL)?\.)\s*[:#-]?\s*(.*)$/);
+    if(match){var tail=match[1].trim()||(lines[i+1]||'').trim();var parts=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
+      for(var j=1;j<=Math.min(parts.length,3);j++)add(parts.slice(0,j).join(''),true);}
+    (line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(function(token){add(token,false);});
   });
   return keys;
 }
+function ocrFold(value){
+  return value.replace(/[OQ0]/g,'0').replace(/[IL1]/g,'1').replace(/[S5]/g,'5').replace(/[Z2]/g,'2').replace(/[B8]/g,'8').replace(/[G6]/g,'6');
+}
+function oneEdit(a,b){
+  if(Math.abs(a.length-b.length)>1)return false;
+  if(a.length===b.length){
+    var first=-1,second=-1;
+    for(var i=0;i<a.length;i++)if(a[i]!==b[i]){if(first<0)first=i;else if(second<0)second=i;else return false;}
+    return second<0||(second===first+1&&a[first]===b[second]&&a[second]===b[first]);
+  }
+  if(a.length>b.length){var swap=a;a=b;b=swap;}
+  var p=0,q=0,miss=0;
+  while(p<a.length&&q<b.length){if(a[p]===b[q]){p++;q++;}else{if(++miss>1)return false;q++;}}
+  return true;
+}
+function ocrRanker(text,preferred){
+  var keys=ocrModelKeys(text),primary=modelKey(preferred);
+  if(primary.length>=4&&primary.length<=64)keys.add(primary);
+  var list=Array.from(keys),approx=list.filter(function(k){return k.length>=6&&/[A-Z]/.test(k)&&/\d/.test(k);});
+  approx.sort(function(a,b){return (b===primary?1:0)-(a===primary?1:0)||b.length-a.length;});
+  approx=approx.slice(0,16).map(function(k){return {key:k,fold:ocrFold(k)};});
+  return function(model){
+    if(!model)return -1;
+    if(model===primary&&primary.length>=4)return 0;
+    if(keys.has(model))return 1;
+    if(model.length<6)return -1;
+    var fold=null,best=7;
+    for(var i=0;i<approx.length;i++){
+      var a=approx[i],k=a.key,delta=Math.abs(model.length-k.length);
+      if(delta<=1){
+        if(fold===null)fold=ocrFold(model);
+        if(delta===0&&fold===a.fold){best=Math.min(best,2);continue;}
+        if(k.length>=7&&oneEdit(k,model))best=Math.min(best,4);
+      }
+      if(delta<=6&&(model.startsWith(k)||(model.length>=7&&k.startsWith(model))))best=Math.min(best,3);
+    }
+    return best===7?-1:best;
+  };
+}
 async function lookupModel(scan){
   var raw=modelInput.value.trim().toUpperCase(),key=modelKey(raw),numeric=/^\d+$/.test(raw),ticket=++lookupTicket;
-  var ocr=scan&&scan.kind==='ocr'?ocrModelKeys(scan.value):null;
+  var ocr=scan&&scan.kind==='ocr'?ocrRanker(scan.value,scan.preferred):null;
   if((!ocr&&(numeric?raw.length:key.length)<3)||busy)return;
   if(!active){showMatch('Import a catalog or enter product details manually.','error');return;}
   modelSearching=true;hideChoices();showMatch('Searching…','');
@@ -1516,13 +1556,14 @@ async function lookupModel(scan){
     var exactUPC=catalogUPC(raw);
     if(ticket!==lookupTicket||busy)return;
     for(var i=0;i<rows.length;i++){
-      var rank=ocr?(ocr.has(rows[i].model)?0:-1):rankProduct(rows[i],raw,key,numeric);
+      var rank=ocr?ocr(rows[i].model):rankProduct(rows[i],raw,key,numeric);
       if(scan&&scan.kind==='barcode'&&exactUPC&&rank!==0)rank=-1;
       if(rank>=0){total++;if(buckets[rank].length<10)buckets[rank].push(rows[i].row);}
       if(i>0&&i%20000===0){await new Promise(function(resolve){setTimeout(resolve,0);});if(ticket!==lookupTicket||busy)return;}
     }
     if(ticket!==lookupTicket||busy)return;
-    var results=[].concat.apply([],buckets).slice(0,10);
+    var exactOCR=ocr&&(buckets[0].length||buckets[1].length);
+    var results=[].concat.apply([],ocr&&exactOCR?buckets.slice(0,2):buckets).slice(0,10);
     if(!results.length){showMatch(ocr?'No catalog model matched the photo. Try a closer picture or enter the model.':'No matching SKU, model or UPC found.','error');return;}
     if(scan&&scan.kind==='barcode'&&total===1&&(buckets[0].length||buckets[1].length||buckets[2].length)){
       var latest=await readSKU(db,results[0].sku);
@@ -1530,7 +1571,7 @@ async function lookupModel(scan){
       if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);return;}
       showMatch('Catalog changed. Scan again.','error');return;
     }
-    showMatch(total>1?'Select the correct product.':'Select product.','ok');
+    showMatch(ocr&&!exactOCR?'Possible model matches. Verify and select the correct product.':results.length>1?'Select the correct product.':'Select product.','ok');
     results.forEach(function(row){
       var btn=document.createElement('button');btn.type='button';btn.className='catalog-result';
       var body=document.createElement('span');body.className='catalog-result-body';
@@ -1560,7 +1601,7 @@ document.addEventListener('addy-product-scan',function(e){
   if(!scan||!['ocr','barcode'].includes(scan.kind))return;
   resetSearch();selectingModel=true;sku.value='';sku.dispatchEvent(new Event('input',{bubbles:true}));selectingModel=false;
   modelInput.value=scan.kind==='ocr'?'':String(scan.value||'').trim();
-  if(scan.kind==='ocr'&&!ocrModelKeys(scan.value).size){showMatch('No model number read. Try a closer photo.','error');return;}
+  if(scan.kind==='ocr'&&!ocrModelKeys(scan.value).size&&modelKey(scan.preferred).length<4){showMatch('No model number read. Try a closer photo.','error');return;}
   lookupModel(scan);
 });
 sku.addEventListener('input',schedule);
@@ -1700,6 +1741,6 @@ sync();
   </div>
   <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
 </dialog>
-<script src="scanner.js?v=19" defer></script>
+<script src="scanner.js?v=20" defer></script>
 </body>
 </html>
