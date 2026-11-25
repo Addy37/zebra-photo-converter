@@ -259,6 +259,17 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
  html[data-layout="desktop"] #batchPanel{grid-template-columns:1fr 1fr;grid-template-areas:"heading heading" "import output" "intro intro" "list list" "help help" "status status"}
  html[data-layout="desktop"] .batch-tools{flex-wrap:wrap}
 }
+/* Local catalog lookup */
+.catalog-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.catalog-actions>*{flex:1;min-width:128px}
+.catalog-picker{position:relative;overflow:hidden;cursor:pointer}
+.catalog-picker input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.catalog-picker:focus-within{outline:3px solid var(--bb-blue);outline-offset:2px}
+.catalog-picker:has(input:disabled){opacity:.45;pointer-events:none}
+#catalogProgress{width:100%;accent-color:var(--bb-blue)}
+.catalog-match{padding:10px 12px;background:#edf5ff;border:1px solid #b6cee9;border-radius:8px;color:var(--ink);overflow-wrap:anywhere;font-size:.9rem}
+.catalog-match[data-state="error"]{background:#fff8e2;border-color:#e7cb75}
+#catalogBadge{font-weight:500}
 </style>
 </head>
 <body>
@@ -269,7 +280,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 6</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 7</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert a photo, create a UPC barcode or print an order / SKU / LPN label.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -307,12 +318,25 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
   <form id="upcForm">
     <label for="upcSkuInput">SKU (optional)</label>
     <input id="upcSkuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU" aria-describedby="upcSkuHelp">
-    <span class="help" id="upcSkuHelp">Printed as readable text above the UPC barcode. Leave blank for a UPC-only label.</span>
+    <span class="help" id="upcSkuHelp">Enter a SKU to find its UPC in your imported catalog, or enter a UPC manually.</span>
+    <button id="catalogFind" type="button" class="secondary" disabled>Find UPC</button>
+    <div id="catalogMatch" class="catalog-match" hidden role="status"></div>
     <label for="upcInput">UPC number</label>
     <input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp">
     <span class="help" id="upcHelp">Enter 12 digits, or 11 to calculate the final check digit. Keep any leading zeros.</span>
     <button type="submit">Generate barcode</button>
   </form>
+  <details class="print-extra" id="catalogPanel">
+    <summary>Local product catalog <span id="catalogBadge" class="muted">· Not loaded</span></summary>
+    <p class="help">Import an authorized CSV with columns SKU, Product, UPC. The file is processed and stored in this browser, not sent to a server. Use only on approved devices. Each browser profile needs its own import.</p>
+    <div class="catalog-actions">
+      <label class="action secondary catalog-picker" for="catalogFile">Import / update CSV<input id="catalogFile" type="file" accept=".csv,text/csv"></label>
+      <button id="catalogCancel" type="button" class="secondary" hidden>Cancel import</button>
+      <button id="catalogClear" type="button" class="secondary" disabled>Remove catalog</button>
+    </div>
+    <progress id="catalogProgress" value="0" max="100" hidden></progress>
+    <p id="catalogStatus" role="status" aria-live="polite" class="help">No catalog imported. Manual UPC entry is still available.</p>
+  </details>
 </div>
 <div class="panel" id="lpnPanel" hidden>
   <form id="lpnForm">
@@ -962,6 +986,211 @@ share.addEventListener('click',function(){
 view.addEventListener('click',function(){setStatus('In the new image view, use Share > Save Image (or long-press the image).');});
 download.addEventListener('click',function(){setStatus('If Safari opens the image instead of downloading, use Share > Save Image or Save to Files.');});
 })();
+</script>
+<script>
+
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+var sku=$('upcSkuInput'),upc=$('upcInput'),find=$('catalogFind'),match=$('catalogMatch'),fileInput=$('catalogFile'),cancel=$('catalogCancel'),clear=$('catalogClear'),badge=$('catalogBadge'),status=$('catalogStatus'),progress=$('catalogProgress'),panel=$('catalogPanel');
+var dbPromise=null,active=null,busy=false,cancelled=false,lookupTicket=0,lookupTimer=null,autoValue='',settingUPC=false;
+var DB='addy-buy-product-catalog-v1',LOCK='addy-buy-catalog-write-v1',SLOTS=['productsA','productsB'];
+function skuKey(s){s=String(s).trim();return /^[0-9]{1,12}$/.test(s)?s.replace(/^0+(?=\d)/,''):'';}
+function validUPC(s){
+  if(!/^[0-9]{12}$/.test(s)||s==='000000000000')return false;
+  var n=0;for(var i=0;i<12;i++)n+=Number(s[i])*(i%2===0?3:1);
+  return n%10===0;
+}
+function openDB(){
+  if(dbPromise)return dbPromise;
+  dbPromise=new Promise(function(resolve,reject){
+    if(!window.indexedDB){reject(new Error('Local browser storage is unavailable.'));return;}
+    var req=indexedDB.open(DB,1);
+    req.onupgradeneeded=function(){
+      var db=req.result;SLOTS.forEach(function(name){db.createObjectStore(name,{keyPath:'sku'});});db.createObjectStore('meta');
+    };
+    req.onsuccess=function(){var db=req.result;db.onversionchange=function(){db.close();dbPromise=null;};resolve(db);};
+    req.onerror=function(){reject(req.error||new Error('Could not open local storage.'));};
+    req.onblocked=function(){reject(new Error('Close other ADDY BUY tabs and try again.'));};
+  }).catch(function(e){dbPromise=null;throw e;});
+  return dbPromise;
+}
+function done(tx){
+  return new Promise(function(resolve,reject){
+    tx.oncomplete=resolve;tx.onabort=function(){reject(tx.error||new Error('Storage transaction failed.'));};
+    tx.onerror=function(){};
+  });
+}
+function getMeta(db){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction('meta','readonly'),r=tx.objectStore('meta').get('active');
+    r.onsuccess=function(){resolve(r.result||null);};r.onerror=function(){reject(r.error);};
+  });
+}
+function clearSlot(db,slot){
+  var tx=db.transaction(slot,'readwrite'),finished=done(tx);tx.objectStore(slot).clear();return finished;
+}
+function writeRows(db,slot,rows){
+  var tx=db.transaction(slot,'readwrite'),finished=done(tx),store=tx.objectStore(slot);
+  rows.forEach(function(row){store.add(row);});return finished;
+}
+function activate(db,metadata){
+  var tx=db.transaction('meta','readwrite'),finished=done(tx);
+  tx.objectStore('meta').put(metadata,'active');return finished;
+}
+function readSKU(db,key){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(['meta'].concat(SLOTS),'readonly'),r=tx.objectStore('meta').get('active');
+    tx.onabort=function(){reject(tx.error||new Error('Lookup failed.'));};
+    r.onerror=function(){reject(r.error);};
+    r.onsuccess=function(){
+      var m=r.result;if(!m||SLOTS.indexOf(m.slot)<0){resolve({meta:null,row:null});return;}
+      var q=tx.objectStore(m.slot).get(key);
+      q.onsuccess=function(){resolve({meta:m,row:q.result||null});};q.onerror=function(){reject(q.error);};
+    };
+  });
+}
+function csvParser(){
+  var row=[],field='',quoted=false,closed=false,skipLF=false;
+  return function(chunk,final){
+    var out=[];
+    function endField(){row.push(field);field='';closed=false;}
+    function endRow(){endField();if(row.length>1||row[0]!=='')out.push(row);row=[];}
+    for(var i=0;i<chunk.length;i++){
+      var c=chunk[i];
+      if(skipLF){skipLF=false;if(c==='\n')continue;}
+      if(quoted){if(c==='"'){quoted=false;closed=true;}else field+=c;continue;}
+      if(closed){
+        if(c==='"'){field+='"';quoted=true;closed=false;continue;}
+        if(c!==','&&c!=='\r'&&c!=='\n')throw new Error('Invalid character after quoted CSV field.');
+      }
+      if(c===','){endField();}
+      else if(c==='\r'||c==='\n'){endRow();skipLF=c==='\r';}
+      else if(c==='"'){if(field!=='')throw new Error('Unexpected quote in CSV field.');quoted=true;}
+      else{field+=c;}
+      if(field.length>65536||row.length>100)throw new Error('Unexpected CSV field size.');
+    }
+    if(final){
+      if(quoted)throw new Error('CSV ended inside a quoted field.');
+      if(field!==''||row.length||closed)endRow();
+    }
+    return out;
+  };
+}
+function getColumns(header){
+  var cols=header.map(function(v){return v.replace(/^\uFEFF/,'').trim().toLowerCase();});
+  var indexes=['sku','product','upc'].map(function(n){return cols.indexOf(n);});
+  if(indexes.some(function(i){return i<0;}))throw new Error('CSV must include SKU, Product and UPC headers.');
+  return indexes;
+}
+function rowRecord(row,cols){
+  if(row.length<=Math.max.apply(null,cols))throw new Error('Malformed CSV row.');
+  var key=skuKey(row[cols[0]]),code=row[cols[2]].trim();
+  if(!key||!validUPC(code))return null;
+  return {sku:key,product:row[cols[1]].trim(),upc:code};
+}
+function say(text){status.textContent=text;}
+function showMatch(text,state){match.hidden=!text;match.textContent=text;match.dataset.state=state||'';}
+function sync(){
+  badge.textContent=active?'· '+Number(active.count).toLocaleString()+' products':'· Not loaded';
+  find.disabled=busy||!active||!skuKey(sku.value);
+  clear.disabled=busy||!active;
+  fileInput.disabled=busy;cancel.hidden=!busy;
+}
+function clearAuto(){
+  if(autoValue&&upc.value===autoValue){settingUPC=true;upc.value='';upc.dispatchEvent(new Event('input',{bubbles:true}));settingUPC=false;}
+  autoValue='';showMatch('');
+}
+async function lookup(){
+  var key=skuKey(sku.value),ticket=++lookupTicket;
+  if(!key||busy)return;
+  try{
+    var result=await readSKU(await openDB(),key);
+    if(ticket!==lookupTicket||key!==skuKey(sku.value)||busy)return;
+    active=result.meta;sync();
+    if(!result.meta){showMatch('Import the product catalog first, or enter the UPC manually.','error');return;}
+    if(!result.row){clearAuto();showMatch('SKU not found in this catalog. Enter the verified UPC manually.','error');return;}
+    autoValue=result.row.upc;
+    settingUPC=true;upc.value=autoValue;upc.dispatchEvent(new Event('input',{bubbles:true}));settingUPC=false;
+    showMatch('Found: '+(result.row.product||'Product description unavailable')+' | UPC '+result.row.upc+' | Verify the product before printing.','ok');
+  }catch(e){if(ticket===lookupTicket)showMatch('Local lookup failed. Manual UPC entry is available.','error');}
+}
+function schedule(){
+  clearTimeout(lookupTimer);++lookupTicket;clearAuto();sync();
+  if(active&&!busy&&skuKey(sku.value))lookupTimer=setTimeout(lookup,220);
+}
+sku.addEventListener('input',schedule);
+upc.addEventListener('input',function(){if(!settingUPC){clearTimeout(lookupTimer);++lookupTicket;autoValue='';showMatch('');}});
+find.addEventListener('click',function(){clearTimeout(lookupTimer);lookup();});
+function withLock(task){
+  if(!navigator.locks)return Promise.reject(new Error('This browser does not support safe catalog updates. Use an up-to-date Chrome or Safari browser.'));
+  return navigator.locks.request(LOCK,{ifAvailable:true},function(lock){if(!lock)throw new Error('Another ADDY BUY tab is updating the catalog. Close it or try again.');return task();});
+}
+function checkCancel(){if(cancelled){var e=new Error('Import canceled.');e.name='AbortError';throw e;}}
+async function importFile(file){
+  if(busy||!file)return;
+  if(!file.size){say('The CSV is empty.');return;}
+  busy=true;cancelled=false;clearTimeout(lookupTimer);++lookupTicket;progress.hidden=false;progress.value=0;sync();say('Preparing local storage…');
+  try{
+    if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});
+    await withLock(async function(){
+      var db=await openDB(),previous=await getMeta(db),slot=previous&&previous.slot===SLOTS[0]?SLOTS[1]:SLOTS[0];
+      var activated=false,count=0,skipped=0,rows=[],cols=null,parser=csvParser(),decoder=new TextDecoder('utf-8',{fatal:true}),offset=0;
+      try{
+        await clearSlot(db,slot);
+        var batchSize=4000,chunkSize=512*1024;
+        while(offset<file.size){
+          checkCancel();
+          var end=Math.min(file.size,offset+chunkSize),bytes=await file.slice(offset,end).arrayBuffer();
+          offset=end;
+          var parsed=parser(decoder.decode(bytes,{stream:offset<file.size}),offset===file.size);
+          for(var i=0;i<parsed.length;i++){
+            if(!cols){cols=getColumns(parsed[i]);continue;}
+            var rec=rowRecord(parsed[i],cols);
+            if(rec)rows.push(rec);else skipped++;
+            if(rows.length>=batchSize){checkCancel();await writeRows(db,slot,rows);count+=rows.length;rows=[];}
+          }
+          progress.value=Math.floor(offset/file.size*100);
+          say('Importing… '+count.toLocaleString()+' saved · '+progress.value+'%');
+          await new Promise(function(resolve){setTimeout(resolve,0);});
+        }
+        checkCancel();
+        if(rows.length){await writeRows(db,slot,rows);count+=rows.length;rows=[];}
+        checkCancel();
+        if(!cols||!count)throw new Error('No usable SKU/UPC records found.');
+        var metadata={slot:slot,count:count,importedAt:new Date().toISOString(),skipped:skipped};
+        await activate(db,metadata);activated=true;active=metadata;
+        if(previous&&previous.slot!==slot){try{await clearSlot(db,previous.slot);}catch(e){}}
+        say('Catalog ready: '+count.toLocaleString()+' products.'+(skipped?' '+skipped.toLocaleString()+' invalid or placeholder rows skipped.':''));
+      }catch(e){
+        if(!activated){try{await clearSlot(db,slot);}catch(ignore){}}
+        throw e;
+      }
+    });
+  }catch(e){
+    var message=e.name==='ConstraintError'?'Duplicate SKU found. Import rejected to avoid ambiguous UPCs.':e.name==='QuotaExceededError'?'Not enough browser storage. Free space or import a smaller authorized catalog.':e.message||'Catalog import failed.';
+    say(message+' Existing catalog, if any, was kept.');
+  }finally{
+    busy=false;cancel.hidden=true;progress.hidden=true;
+    try{active=await getMeta(await openDB());}catch(e){}
+    sync();if(active&&skuKey(sku.value))schedule();
+  }
+}
+fileInput.addEventListener('change',function(){var file=fileInput.files&&fileInput.files[0];fileInput.value='';importFile(file);});
+cancel.addEventListener('click',function(){cancelled=true;say('Canceling import after the current storage batch…');});
+clear.addEventListener('click',async function(){
+  if(busy||!active||!window.confirm('Remove the imported product catalog from this browser?'))return;
+  busy=true;clearTimeout(lookupTimer);++lookupTicket;sync();
+  try{await withLock(async function(){
+    var db=await openDB(),tx=db.transaction(['meta'].concat(SLOTS),'readwrite'),finished=done(tx);
+    tx.objectStore('meta').delete('active');SLOTS.forEach(function(slot){tx.objectStore(slot).clear();});await finished;
+    active=null;clearAuto();say('Catalog removed. Manual UPC entry is available.');
+  });}catch(e){say(e.message||'Could not remove catalog.');}finally{busy=false;sync();}
+});
+openDB().then(getMeta).then(function(m){active=m;sync();if(m){say('Catalog ready: '+Number(m.count).toLocaleString()+' products.');if(skuKey(sku.value))schedule();}}).catch(function(){say('Local storage unavailable. Manual UPC entry is available.');});
+sync();
+})();
+
 </script>
 </body>
 </html>
