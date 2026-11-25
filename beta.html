@@ -880,9 +880,37 @@ function dispositionText(value,x,y,maxWidth,size,align){
   }
   ctx.fillText(value,x,y);
 }
+// Choose Code 128 B/C runs to keep mixed letter/numeric LPNs compact.
+function compactCode128(value){
+  if(!/^[\x20-\x7e]+$/.test(value))throw new Error('Invalid Code 128 data.');
+  var memo={};
+  function pair(i){return /^\d{2}$/.test(value.slice(i,i+2));}
+  function best(i,mode){
+    if(i===value.length)return [];
+    var k=i+':'+mode;if(memo[k])return memo[k];
+    var options=[];
+    if(mode==='B'){
+      options.push([value.charCodeAt(i)-32].concat(best(i+1,'B')));
+      if(pair(i))options.push([99,Number(value.slice(i,i+2))].concat(best(i+2,'C')));
+    }else{
+      if(pair(i))options.push([Number(value.slice(i,i+2))].concat(best(i+2,'C')));
+      options.push([100,value.charCodeAt(i)-32].concat(best(i+1,'B')));
+    }
+    options.sort(function(a,b){return a.length-b.length;});
+    return memo[k]=options[0];
+  }
+  var words=[104].concat(best(0,'B'));
+  if(pair(0)){
+    var c=[105].concat(best(0,'C'));
+    if(c.length<words.length)words=c;
+  }
+  var checksum=words[0];
+  for(var i=1;i<words.length;i++)checksum+=i*words[i];
+  words.push(checksum%103,106);return words;
+}
 function disp128(value,width,label){
   var pattern;
-  try{pattern=code128(value).map(function(w){return CODE128_PATTERNS[w];}).join('');}
+  try{pattern=compactCode128(value).map(function(w){return CODE128_PATTERNS[w];}).join('');}
   catch(e){throw new Error(label+' must contain standard letters, digits or punctuation.');}
   var modules=0;for(var i=0;i<pattern.length;i++)modules+=Number(pattern[i]);
   var module=Math.min(4,Math.floor(width/(modules+20)));
