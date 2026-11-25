@@ -108,6 +108,8 @@ footer span{font-size:.75rem}
 @media(max-width:440px){body{padding-top:0}.hero{margin:0 -10px;padding:22px 16px 24px}.brand-row{margin-bottom:19px}}
 @media(prefers-reduced-motion:reduce){button,.action{transition:none}}
 #lpnForm{display:grid;gap:10px}
+.label-form-actions{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:8px}
+.label-form-actions button{width:100%;min-width:0;min-height:44px;white-space:normal}
 #lpnForm input,#upcSkuInput{width:100%;min-height:48px;padding:9px 12px;color:var(--ink);background:#fff;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
 #lpnForm input:focus-visible,#upcSkuInput:focus-visible{outline:3px solid var(--bb-blue);outline-offset:2px}
 #lpnForm input[aria-invalid="true"]{border-color:#c93632}
@@ -129,7 +131,7 @@ footer span{font-size:.75rem}
   html,body{margin:0!important;padding:0!important;background:white!important;width:4in!important;height:3in!important;min-height:0!important}
   main{display:none!important}
   #printSheet{display:block!important;width:4in;height:3in;margin:0;padding:0;overflow:hidden}
-  #printSheet img{display:block;width:4in;height:3in;margin:0;object-fit:fill}
+  #printSheet img{display:block;width:4in;height:3in;margin:0;object-fit:fill;image-rendering:pixelated}
 }
 /* Beta 3: responsive workspace, independent of label and print rendering. */
 .view-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:16px 0 4px}
@@ -259,6 +261,70 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
  html[data-layout="desktop"] #batchPanel{grid-template-columns:1fr 1fr;grid-template-areas:"heading heading" "import output" "intro intro" "list list" "help help" "status status"}
  html[data-layout="desktop"] .batch-tools{flex-wrap:wrap}
 }
+#productSearchGroup,#manualFields{display:grid;gap:6px;min-width:0}
+#standardModelSlot:empty{display:none}
+#standardModelSlot #dispModel{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:9px 12px;color:var(--ink);background:#fff;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
+#standardModelSlot #dispModel:focus-visible{outline:3px solid var(--bb-blue);outline-offset:2px}
+#productSummary{display:grid;gap:6px;padding:10px 12px;background:#edf5ff;border:1px solid #c5d5e9;border-radius:9px;overflow-wrap:anywhere}
+#productSummary dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:.85rem}
+#productSummary dt{color:#465771}#productSummary dd{margin:0;font-weight:650}
+#productSummary button{justify-self:start;min-height:36px;padding:5px 10px;font-size:.8rem}
+/* Search results are non-shrinking list rows, not fixed-height action buttons. */
+#catalogChoices{display:flex;flex-direction:column;gap:0;min-width:0;max-height:320px;max-height:min(320px,42dvh);overflow:auto;overscroll-behavior:contain;border:1px solid #d4dce9;border-radius:10px;background:#fff;scrollbar-width:thin}
+#catalogChoices button.catalog-result{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr) 12px;align-items:center;gap:8px;width:100%;min-width:0;min-height:56px;height:auto;padding:9px 10px;border:0;border-radius:0;background:#fff;color:var(--ink);text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.3;font-weight:400;transform:none}
+#catalogChoices button.catalog-result+button{border-top:1px solid #e4e9f0}
+#catalogChoices button.catalog-result:hover,#catalogChoices button.catalog-result:focus-visible{background:#edf4ff}
+#catalogChoices button.catalog-result:focus-visible{outline-offset:-3px}
+#catalogChoices button.catalog-result:active{background:#dceaff;transform:none}
+.catalog-result-body{display:grid;gap:4px;min-width:0}
+.catalog-result-title{display:block;font-size:.875rem;font-weight:700;line-height:1.3;color:var(--ink);overflow-wrap:anywhere}
+.catalog-result-meta{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:.75rem;line-height:1.4;color:var(--muted);font-weight:500;min-width:0}
+.catalog-result-meta span{min-width:0;overflow-wrap:anywhere}
+.catalog-result-sku{color:var(--bb-blue);font-weight:700}
+.catalog-result-arrow{justify-self:center;width:7px;height:7px;border-top:1.5px solid #718095;border-right:1.5px solid #718095;transform:rotate(45deg)}
+#catalogMatch[data-state="ok"]{background:transparent;border:0;padding:2px 1px;font-size:.78rem;color:var(--muted)}
+@media screen and (min-width:851px){html[data-layout="desktop"] #catalogChoices button.catalog-result{min-height:48px;padding:7px 10px}}
+#dispMore .disposition-grid,#dispMore #manualFields{margin-top:10px}
+#dispositionFields{gap:8px}
+/* Local catalog lookup */
+.catalog-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.catalog-actions>*{flex:1;min-width:128px}
+.catalog-picker{position:relative;overflow:hidden;cursor:pointer}
+.catalog-picker input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.catalog-picker:focus-within{outline:3px solid var(--bb-blue);outline-offset:2px}
+.catalog-picker:has(input:disabled){opacity:.45;pointer-events:none}
+#catalogProgress{width:100%;accent-color:var(--bb-blue)}
+.catalog-match{padding:10px 12px;background:#edf5ff;border:1px solid #b6cee9;border-radius:8px;color:var(--ink);overflow-wrap:anywhere;font-size:.9rem}
+.catalog-match[data-state="error"]{background:#fff8e2;border-color:#e7cb75}
+#catalogBadge{font-weight:500}
+.mode-switch{grid-template-columns:repeat(2,minmax(0,1fr))}
+#dispositionFields{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px;min-width:0}
+.disposition-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#dispositionFields .control{min-width:0}
+#dispositionFields input:not([type="checkbox"]){box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:9px 12px;color:var(--ink);background:#fff;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
+.disposition-check{display:flex;align-items:center;gap:8px;cursor:pointer}
+#dispositionFields input[type="checkbox"]{width:20px;height:20px;flex:0 0 20px;accent-color:var(--bb-blue)}
+@media(max-width:380px){.disposition-grid{grid-template-columns:1fr}}
+#catalogModel,#dispType{box-sizing:border-box;width:100%;min-height:44px;min-width:0;padding:9px 12px;color:var(--ink);background:white;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px}
+/* Keep result rows at their natural height on every viewport. */
+.scan-field{display:grid;grid-template-columns:minmax(0,1fr) 46px;gap:6px;align-items:stretch;min-width:0}
+.scan-field input{width:100%;min-width:0}
+.scan-field .scan-button{display:grid;place-items:center;min-width:0;width:46px;min-height:44px;padding:0;border-radius:9px;background:var(--bb-blue);color:white}
+.scan-button svg{width:23px;height:23px;pointer-events:none}
+#scanDialog{width:min(440px,calc(100% - 24px));max-height:90vh;max-height:90dvh;overflow:auto;margin:auto;padding:16px;border:1px solid var(--line);border-radius:14px;color:var(--ink);background:white;box-shadow:0 16px 48px #0005}
+#scanDialog::backdrop{background:#101c34aa}
+.scan-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
+#scanDialog .scan-close{min-width:40px;min-height:40px;padding:4px 10px}
+#scanDialog .scan-options{display:grid;gap:8px;margin-top:10px}
+#scanDialog .scan-file{position:relative;overflow:hidden}
+#scanDialog .scan-file input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+#scanPreview{position:relative;background:#17243a;border-radius:9px;overflow:hidden;margin-top:8px;aspect-ratio:4/3}
+#scanVideo{display:block;width:100%;height:100%;object-fit:contain}
+#scanGuide{position:absolute;inset:25% 9%;border:2px solid #ffe000;border-radius:8px;pointer-events:none}
+#scanDialog #scanStatus{margin:8px 0 0;min-height:20px;font-size:.85rem}
+#scanDialog #scanReadout{display:block;width:100%;min-height:44px;padding:8px;font:inherit;box-sizing:border-box;border:1px solid #aebdd1;border-radius:8px}
+#scanDialog .scan-confirm{display:grid;gap:8px;margin-top:10px}
+
 </style>
 </head>
 <body>
@@ -270,7 +336,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
   </div>
   <div class="hero-copy">
     <h1>Zebra label converter</h1>
-    <p>Convert photos, create UPC or LPN labels, and print individually or in batches.</p>
+    <p>Convert photos or create standard UPC, disposition and order / SKU / LPN labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
   </div>
 </header>
@@ -283,9 +349,9 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 <div class="editor">
 <div class="mode-switch" role="group" aria-label="Label type">
   <button id="photoMode" type="button" aria-pressed="true">Photo</button>
-  <button id="barcodeMode" type="button" aria-pressed="false">UPC Barcode</button>
-  <button id="lpnMode" type="button" aria-pressed="false">LPN Barcode</button>
+  <button id="barcodeMode" type="button" aria-pressed="false">Barcode labels</button>
 </div>
+<div class="control" id="formatPanel" hidden style="margin-bottom:12px"><label for="labelFormat">Label format</label><select id="labelFormat"><option value="standard">Standard UPC</option><option value="disposition" selected>Disposition label</option><option value="lpn">Standalone LPN / order label</option></select></div>
 <div class="panel" id="photoPanel">
   <div id="pickArea">
     <svg width="37" height="37" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
@@ -304,25 +370,67 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 </div>
 <div class="panel" id="barcodePanel" hidden>
   <form id="upcForm">
-    <label for="upcSkuInput">SKU (optional)</label>
-    <input id="upcSkuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU" aria-describedby="upcSkuHelp">
-    <span class="help" id="upcSkuHelp">Printed as readable text above the UPC barcode. Leave blank for a UPC-only label.</span>
-    <label for="upcInput">UPC number</label>
-    <input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp">
-    <span class="help" id="upcHelp">Enter 12 digits, or 11 to calculate the final check digit. Keep any leading zeros.</span>
-    <button type="submit">Generate barcode</button>
+    <div id="productSearchGroup">
+      <label for="catalogModel">Find product</label>
+      <div class="scan-field"><input id="catalogModel" type="search" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="SKU, model or UPC" aria-controls="catalogChoices"><button type="button" class="scan-button" data-scan-target="product" aria-label="Scan product barcode or model" title="Scan product barcode or model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
+      <div id="catalogMatch" class="catalog-match" hidden role="status" aria-live="polite"></div>
+      <div id="catalogChoices" hidden aria-label="Matching products"></div>
+      <section id="productSummary" hidden aria-label="Selected product">
+        <strong id="summaryProduct"></strong>
+        <dl><dt>Model</dt><dd id="summaryModel"></dd><dt>SKU</dt><dd id="summarySku"></dd><dt>UPC</dt><dd id="summaryUpc"></dd><dt>Dept</dt><dd id="summaryDept"></dd><dt>Brand</dt><dd id="summaryBrand"></dd></dl>
+        <button id="editProductDetails" type="button" class="secondary">Edit details</button>
+      </section>
+    </div>
+    <div id="standardManualSlot"><div id="manualFields">
+      <label for="upcSkuInput">SKU (optional)</label><input id="upcSkuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU">
+      <div id="standardModelSlot"></div>
+      <label for="upcInput">UPC number</label><div class="scan-field"><input id="upcInput" type="text" inputmode="numeric" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="e.g. 036000241457" aria-describedby="upcHelp"><button type="button" class="scan-button" data-scan-target="upcInput" aria-label="Scan UPC" title="Scan UPC"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
+      <span class="help" id="upcHelp">Enter 12 digits, or 11 to calculate the check digit. Keep leading zeros.</span>
+    </div></div>
+    <div id="dispositionFields" hidden>
+      <div class="control"><label for="dispType">Disposition</label><select id="dispType"><option value="" disabled selected hidden>Choose disposition</option><option>BULK</option><option>SERVICE</option><option>OPEN BOX</option><option>OBHD</option><option>JUNK OUT</option><option>RTV</option><option>LIQUIDATION</option></select></div>
+      <div class="control"><label for="dispLpn">LPN</label><div class="scan-field"><input id="dispLpn" maxlength="64" autocomplete="off" placeholder="Scan or enter LPN"><button type="button" class="scan-button" data-scan-target="dispLpn" aria-label="Scan LPN" title="Scan LPN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div></div>
+      <div class="control"><label for="dispOrder">Order number (optional)</label><div class="scan-field"><input id="dispOrder" maxlength="40" autocomplete="off" placeholder="Enter order number"><button type="button" class="scan-button" data-scan-target="dispOrder" aria-label="Scan order number" title="Scan order number"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div></div>
+      <label class="disposition-check"><input id="dispOrderBarcode" type="checkbox"> Include order barcode</label>
+      <details id="dispMore" class="print-extra"><summary>More options</summary>
+        <div class="disposition-grid">
+          <div class="control"><label for="dispCategory">Category / reason</label><input id="dispCategory" maxlength="24" placeholder="e.g. SVC LIQ"></div>
+          <div class="control"><label for="dispChannel">Channel</label><input id="dispChannel" maxlength="20" placeholder="e.g. DEL"></div>
+          <div class="control"><label for="dispBrand">Brand override</label><input id="dispBrand" maxlength="40"></div>
+          <div id="dispositionModelSlot" style="display:contents"><div class="control" id="sharedModelControl"><label for="dispModel" id="sharedModelLabel">Model override</label><input id="dispModel" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter model number"></div></div>
+          <div class="control"><label for="dispDept">Dept override</label><input id="dispDept" maxlength="20"></div>
+          <div class="control"><label for="dispDate">Date override</label><input id="dispDate" type="date"></div>
+        </div>
+        <div class="control"><label for="dispProduct">Product override</label><input id="dispProduct" maxlength="120"></div>
+        <div id="dispositionManualSlot"></div>
+        <p class="help">Verify identifiers and disposition before printing. This tool does not update inventory or orders.</p>
+      </details>
+    </div>
+    <div class="label-form-actions"><button id="upcGenerate" type="submit">Generate label</button><button id="clearBarcodeForm" type="button" class="secondary">Clear form</button></div>
   </form>
+  <details class="print-extra" id="catalogPanel">
+    <summary>Local product catalog <span id="catalogBadge" class="muted">· Not loaded</span></summary>
+    <p class="help">The built-in catalog downloads once and is saved on this device. Manual CSV import is still available as a fallback.</p>
+    <div class="catalog-actions">
+      <button id="loadHostedCatalog" type="button" class="secondary">Load built-in catalog</button>
+      <label class="action secondary catalog-picker" for="catalogFile">Import / update CSV<input id="catalogFile" type="file" accept=".csv,text/csv"></label>
+      <button id="catalogCancel" type="button" class="secondary" hidden>Cancel import</button>
+      <button id="catalogClear" type="button" class="secondary" disabled>Remove catalog</button>
+    </div>
+    <progress id="catalogProgress" value="0" max="100" hidden></progress>
+    <p id="catalogStatus" role="status" aria-live="polite" class="help">Preparing product catalog…</p>
+  </details>
 </div>
 <div class="panel" id="lpnPanel" hidden>
   <form id="lpnForm">
     <label for="orderInput">Order number (optional)</label>
-    <input id="orderInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter order number">
+    <div class="scan-field"><input id="orderInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter order number"><button type="button" class="scan-button" data-scan-target="orderInput" aria-label="Scan order number" title="Scan order number"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
     <label for="skuInput">SKU (optional)</label>
-    <input id="skuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU">
+    <div class="scan-field"><input id="skuInput" type="text" inputmode="numeric" maxlength="40" autocomplete="off" placeholder="Enter SKU"><button type="button" class="scan-button" data-scan-target="skuInput" aria-label="Scan SKU" title="Scan SKU"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
     <label for="lpnInput">LPN</label>
-    <input id="lpnInput" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter LPN" aria-describedby="lpnHelp">
+    <div class="scan-field"><input id="lpnInput" type="text" maxlength="64" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Enter LPN" aria-describedby="lpnHelp"><button type="button" class="scan-button" data-scan-target="lpnInput" aria-label="Scan LPN" title="Scan LPN"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
     <span class="help" id="lpnHelp">Only the LPN is a scannable Code 128 barcode. Leading zeros are preserved.</span>
-    <button type="submit">Generate LPN label</button>
+    <div class="label-form-actions"><button type="submit">Generate LPN label</button><button id="clearLpnForm" type="button" class="secondary">Clear form</button></div>
   </form>
 </div>
 </div>
@@ -338,7 +446,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
   <div id="status" role="status" aria-live="polite">Choose a photo to start.</div>
 </div>
 <section class="panel" id="printingPanel" aria-labelledby="printHeading">
-  <div class="section-header"><h2 id="printHeading">ZQ630 printing</h2><span class="muted">4 × 3 in · 203 DPI</span></div>
+  <div class="section-header"><h2 id="printHeading">ZQ630 printing</h2><span class="muted">Experimental · 4 × 3 in · 203 DPI</span></div>
   <p class="help" id="printIntro">Generate a label first. Your existing PNG actions still work.</p>
   <div id="printPrimary"><button id="laptopPrint" type="button" disabled>Print from laptop</button></div>
   <p class="help" id="systemPrintHelp">Windows: select your paired Zebra printer (e.g. Mobile Zebra), 4 × 3-inch stock, actual size, no margins or headers. Set copies in the print dialog.</p>
@@ -361,7 +469,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 </div>
 <section class="panel" id="batchPanel" aria-labelledby="batchHeading">
   <div class="section-header"><h2 id="batchHeading">Batch print queue</h2><span class="muted" id="batchCount">0 labels</span></div>
-  <p class="help">Add photos in bulk or add generated Photo, UPC and LPN labels from the preview. Each prints on its own 4 × 3-inch label.</p>
+  <p class="help">Add photos in bulk or add generated Photo, UPC, disposition and LPN labels from the preview. Each prints on its own 4 × 3-inch label.</p>
   <div class="batch-tools batch-import">
     <label class="action secondary batch-picker" for="batchPicker">Add images<input type="file" id="batchPicker" accept="image/*,.heic,.heif" multiple></label>
     <button id="batchClear" class="secondary" type="button" disabled>Clear queue</button>
@@ -397,7 +505,12 @@ var photoMode=document.getElementById('photoMode'),barcodeMode=document.getEleme
 var photoPanel=document.getElementById('photoPanel'),barcodePanel=document.getElementById('barcodePanel');
 var upcInput=document.getElementById('upcInput'),upcForm=document.getElementById('upcForm'),previewMeta=document.getElementById('previewMeta');
 var upcSkuInput=document.getElementById('upcSkuInput');
-var lpnMode=document.getElementById('lpnMode'),lpnPanel=document.getElementById('lpnPanel');
+var lpnPanel=document.getElementById('lpnPanel'),formatPanel=document.getElementById('formatPanel'),labelFormat=document.getElementById('labelFormat'),dispositionFields=document.getElementById('dispositionFields'),upcGenerate=document.getElementById('upcGenerate');
+var disp={},catalogFilled={},selectedProduct=null,brandEdited=false;
+var more=document.getElementById('dispMore'),manualFields=document.getElementById('manualFields'),editDetails=document.getElementById('editProductDetails');
+['Type','Category','Channel','Dept','Brand','Model','Product','Lpn','Order','OrderBarcode','Date'].forEach(function(k){disp[k]=document.getElementById('disp'+k);});
+function resetLabelDate(){var now=new Date();disp.Date.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');}
+resetLabelDate();
 var lpnForm=document.getElementById('lpnForm'),orderInput=document.getElementById('orderInput'),skuInput=document.getElementById('skuInput'),lpnInput=document.getElementById('lpnInput');
 var mode='photo';
 var printCopies=document.getElementById('printCopies'),findPrinters=document.getElementById('findPrinters'),directPrint=document.getElementById('directPrint'),printerSelect=document.getElementById('printerSelect');
@@ -720,24 +833,20 @@ function upcBits(value){
 function clearPreview(){
   ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
 }
-function drawUPC(value,sku){
-  clearPreview();
-  var bits=upcBits(value),module=4,x=Math.floor((W-bits.length*module)/2),y=155,height=277;
-  ctx.fillStyle='#000';
+function drawUPC(value,sku,model){
+  clearPreview();ctx.fillStyle='#000';
+  // Same condensed thermal lettering as disposition, with only the product identifiers.
+  var left=68,width=676,module=6,bits=upcBits(value);
+  var y=220,height=215;
+  thermalText(sku?'SKU: '+sku:'',left,64,width,52);
+  thermalText(model?'MODEL: '+model:'',left,137,width,48);
+  thermalText('UPC',left,192,width,32);
   for(var i=0;i<bits.length;i++){
-    if(bits.charAt(i)!=='1')continue;
+    if(bits[i]!=='1')continue;
     var guard=i<3||(i>=45&&i<50)||i>=92;
-    ctx.fillRect(x+i*module,y,module,height+(guard?20:0));
+    ctx.fillRect(left+i*module,y,module,height+(guard?16:0));
   }
-  ctx.font='29px monospace';ctx.textAlign='center';ctx.textBaseline='alphabetic';
-  ctx.fillText(value.charAt(0),x-20,y+height+28);
-  ctx.fillText(value.slice(1,6),x+24*module,y+height+28);
-  ctx.fillText(value.slice(6,11),x+71*module,y+height+28);
-  ctx.fillText(value.charAt(11),x+95*module+20,y+height+28);
-  if(sku){
-    ctx.textBaseline='middle';
-    fittedText('SKU: '+sku,78,58);
-  }
+  thermalText(value,left,486,width,41);
 }
 // Code 128 symbol widths, including start, checksum and stop patterns.
 var CODE128_PATTERNS=["212222","222122","222221","121223","121322","131222","122213","122312","132212","221213","221312","231212","112232","122132","122231","113222","123122","123221","223211","221132","221231","213212","223112","312131","311222","321122","321221","312212","322112","322211","212123","212321","232121","111323","131123","131321","112313","132113","132311","211313","231113","231311","112133","112331","132131","113123","113321","133121","313121","211331","231131","213113","213311","213131","311123","311321","331121","312113","312311","332111","314111","221411","431111","111224","111422","121124","121421","141122","141221","112214","112412","122114","122411","142112","142211","241211","221114","413111","241112","134111","111242","121142","121241","114212","124112","124211","411212","421112","421211","212141","214121","412121","111143","111341","131141","114113","114311","411113","411311","113141","114131","311141","411131","211412","211214","211232","2331112"];
@@ -791,48 +900,256 @@ function drawLPN(order,sku,lpn,geometry){
   }
   fittedText(lpn,563,43);
 }
-function switchMode(next){
-  if(next===mode)return;
+
+function dispositionText(value,x,y,maxWidth,size,align){
+  if(!value)return;
+  ctx.textAlign=align||'left';ctx.textBaseline='middle';
+  ctx.font='bold '+size+'px Arial, sans-serif';
+  while(ctx.measureText(value).width>maxWidth&&size>17){size--;ctx.font='bold '+size+'px Arial, sans-serif';}
+  if(ctx.measureText(value).width>maxWidth){
+    while(value.length>1&&ctx.measureText(value+'…').width>maxWidth)value=value.slice(0,-1);
+    value+='…';
+  }
+  ctx.fillText(value,x,y);
+}
+// Choose Code 128 B/C runs to keep mixed letter/numeric LPNs compact.
+function compactCode128(value){
+  if(!/^[\x20-\x7e]+$/.test(value))throw new Error('Invalid Code 128 data.');
+  var memo={};
+  function pair(i){return /^\d{2}$/.test(value.slice(i,i+2));}
+  function best(i,mode){
+    if(i===value.length)return [];
+    var k=i+':'+mode;if(memo[k])return memo[k];
+    var options=[];
+    if(mode==='B'){
+      options.push([value.charCodeAt(i)-32].concat(best(i+1,'B')));
+      if(pair(i))options.push([99,Number(value.slice(i,i+2))].concat(best(i+2,'C')));
+    }else{
+      if(pair(i))options.push([Number(value.slice(i,i+2))].concat(best(i+2,'C')));
+      options.push([100,value.charCodeAt(i)-32].concat(best(i+1,'B')));
+    }
+    options.sort(function(a,b){return a.length-b.length;});
+    return memo[k]=options[0];
+  }
+  var words=[104].concat(best(0,'B'));
+  if(pair(0)){
+    var c=[105].concat(best(0,'C'));
+    if(c.length<words.length)words=c;
+  }
+  var checksum=words[0];
+  for(var i=1;i<words.length;i++)checksum+=i*words[i];
+  words.push(checksum%103,106);return words;
+}
+function disp128(value,width,label){
+  var pattern;
+  try{pattern=compactCode128(value).map(function(w){return CODE128_PATTERNS[w];}).join('');}
+  catch(e){throw new Error(label+' must contain standard letters, digits or punctuation.');}
+  var modules=0;for(var i=0;i<pattern.length;i++)modules+=Number(pattern[i]);
+  var module=Math.min(4,Math.floor(width/(modules+20)));
+  if(module<2)throw new Error(label+' is too long for a readable barcode in this layout. Use a shorter value or the standalone LPN label.');
+  return {pattern:pattern,modules:modules,module:module};
+}
+function drawDisp128(g,left,width,y,height){
+  var x=left+Math.floor((width-g.modules*g.module)/2);
+  for(var i=0;i<g.pattern.length;i++){
+    var n=Number(g.pattern[i])*g.module;
+    if(i%2===0)ctx.fillRect(x,y,n,height);
+    x+=n;
+  }
+}
+// Match the photographed warehouse label: condensed, left aligned, staggered bars.
+function thermalText(value,x,y,maxWidth,size,align,clip){
+  if(!value)return;
+  value=String(value);
+  ctx.save();
+  // Condensed bold lettering with explicit character separation, like the reference.
+  var sx=.73, sy=1.06, tracking=(size<=29?.9:.6)/sx;
+  ctx.translate(x,y);ctx.scale(sx,sy);
+  ctx.textAlign='left';ctx.textBaseline='middle';
+  function setFont(){ctx.font='bold '+size+'px Arial, sans-serif';}
+  function width(text){
+    var chars=Array.from(text),w=0;
+    chars.forEach(function(ch,i){w+=ctx.measureText(ch).width+(i?tracking:0);});
+    return w;
+  }
+  setFont();
+  if(clip){
+    while(value.length>1&&width(value)*sx>maxWidth)value=value.slice(0,-1);
+  }else{
+    while(width(value)*sx>maxWidth&&size>16){size--;setFont();}
+  }
+  var total=width(value),pos=align==='right'?-total:align==='center'?-total/2:0;
+  // A restrained outline restores the reference weight without closing small counters.
+  ctx.strokeStyle='#000';ctx.lineWidth=size<=29?.55:.75;ctx.lineJoin='round';
+  Array.from(value).forEach(function(ch){
+    if(ch!==' ')ctx.strokeText(ch,pos,0);
+    ctx.fillText(ch,pos,0);
+    pos+=ctx.measureText(ch).width+tracking;
+  });
+  ctx.restore();
+}
+function drawDisposition(value,sku){
+  var d={};Object.keys(disp).forEach(function(k){d[k]=k==='OrderBarcode'?disp[k].checked:disp[k].value.trim();});
+  if(!d.Type)throw new Error('Choose a disposition.');
+  if(!d.Lpn)throw new Error('Enter an LPN.');
+  var order=d.Order;
+  if(/^(?:N\/?A|NONE|-)$/i.test(order))order='';
+  if(d.OrderBarcode&&!order)throw new Error('Enter an order number or turn off the order barcode.');
+  if(value==='000000000000')throw new Error('An all-zero UPC is not a product barcode.');
+  var left=68, lpnLeft=320, lpnWidth=470;
+  var lpnGeometry=disp128(d.Lpn,lpnWidth,'LPN');
+  // The reference barcode is about half the label width. Keep integer printer dots and quiet zones.
+  var lpnStart=lpnLeft;
+  var lpnBarX=lpnStart+10*lpnGeometry.module;
+  var orderGeometry=order&&d.OrderBarcode?disp128(order,690,'Order number'):null;
+  clearPreview();ctx.fillStyle='#000';
+  thermalText(d.Type==='LIQUIDATION'?'LIQ':d.Type,left,30,325,32);
+  thermalText(d.Category,420,30,340,30);
+  thermalText(d.Channel,523,61,245,29);
+  thermalText(d.Brand,left,63,330,33);
+  thermalText(d.Model,left,98,680,37);
+  thermalText(d.Product,left,143,350,37,'left',true);
+  thermalText(sku?'SKU: '+sku:'',left,188,330,38);
+  thermalText(d.Dept?'Dept: '+d.Dept:'',400,188,355,36);
+  thermalText('UPC',left,224,220,27);
+  var bits=upcBits(value),module=3,y=246,h=54;
+  for(var i=0;i<bits.length;i++)if(bits[i]==='1')ctx.fillRect(left+i*module,y,module,h);
+  thermalText(value,left,319,325,27);
+  thermalText('LPN',lpnBarX,340,230,27);
+  drawDisp128(lpnGeometry,lpnStart,(lpnGeometry.modules+20)*lpnGeometry.module,360,57);
+  thermalText(d.Lpn,lpnBarX,438,Math.max(50,778-lpnBarX),29);
+  // The original has no order strip. Print the optional extension only when a real order exists.
+  if(orderGeometry){
+    thermalText('ORDER',left,464,220,23);
+    drawDisp128(orderGeometry,left,690,481,50);
+    thermalText(order,413,548,690,25,'center');
+  }else if(order){
+    thermalText('Order: '+order,left,485,690,30);
+  }
+  if(d.Date){var p=d.Date.split('-');thermalText(p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d.Date,770,581,350,36,'right');}
+}
+// Generated disposition labels are line art, not photographs. Convert antialiased
+// text to solid printer dots without applying photo dithering or changing bar widths.
+function solidThermalPixels(pixels){
+  for(var i=0;i<pixels.length;i+=4){
+    var gray=(pixels[i]+pixels[i+1]+pixels[i+2])/3;
+    var bw=pixels[i+3]>127&&gray<150?0:255;
+    pixels[i]=pixels[i+1]=pixels[i+2]=bw;pixels[i+3]=255;
+  }
+  return pixels;
+}
+function sharpenDisposition(){
+  var image=ctx.getImageData(0,0,W,H);
+  solidThermalPixels(image.data);
+  ctx.putImageData(image,0,0);
+}
+function switchMode(next,force){
+  if(next===mode&&!force)return;
   mode=next;++revision;disableOutput();clearPreview();
   var barcode=mode==='barcode',lpn=mode==='lpn',photo=mode==='photo';
   photoMode.setAttribute('aria-pressed',String(photo));
-  barcodeMode.setAttribute('aria-pressed',String(barcode));
-  lpnMode.setAttribute('aria-pressed',String(lpn));
+  barcodeMode.setAttribute('aria-pressed',String(barcode||lpn));
+  formatPanel.hidden=photo;
+  var advanced=barcode&&labelFormat.value==='disposition';
+  dispositionFields.hidden=!advanced;
+  upcGenerate.textContent='Generate label';
+  document.getElementById(advanced?'dispositionManualSlot':'standardManualSlot').appendChild(manualFields);
+  document.getElementById('standardManualSlot').hidden=advanced;
+  editDetails.hidden=!advanced;
+  document.getElementById(advanced?'dispositionModelSlot':'standardModelSlot').appendChild(document.getElementById('sharedModelControl'));
+  document.getElementById('sharedModelLabel').textContent=advanced?'Model override':'Model (optional)';
+  updateSummary();
+  if(advanced)more.open=false;
   photoPanel.hidden=!photo;barcodePanel.hidden=!barcode;lpnPanel.hidden=!lpn;
-  previewMeta.textContent=barcode?'812 × 609 pixels • UPC-A':lpn?'812 × 609 pixels • Code 128':'812 × 609 pixels • no crop';
+  previewMeta.textContent=advanced?'812 × 609 pixels • disposition':barcode?'812 × 609 pixels • UPC-A':lpn?'812 × 609 pixels • Code 128':'812 × 609 pixels • no crop';
   canvas.setAttribute('aria-label',barcode?'UPC barcode label preview':lpn?'Order, SKU and LPN label preview':'Converted black and white label preview');
   upcInput.removeAttribute('aria-invalid');lpnInput.removeAttribute('aria-invalid');
-  if(barcode){setStatus('Enter a UPC to start.');}
+  if(barcode){setStatus(advanced?'Find a product to start.':'Find a product or enter the SKU, model and UPC.');}
   else if(lpn){setStatus('Enter the order, SKU and LPN to start.');}
   else if(source){rotate.disabled=false;convert();}
   else{input.value='';setStatus('Choose a photo to start.');}
 }
 photoMode.addEventListener('click',function(){switchMode('photo');});
-barcodeMode.addEventListener('click',function(){switchMode('barcode');});
+barcodeMode.addEventListener('click',function(){switchMode(labelFormat.value==='lpn'?'lpn':'barcode');});
+labelFormat.addEventListener('change',function(){switchMode(labelFormat.value==='lpn'?'lpn':'barcode',true);});
+function invalidateDisposition(field){
+  if(mode!=='barcode'||(labelFormat.value!=='disposition'&&field!=='Model'))return;
+  ++revision;disableOutput();clearPreview();setStatus(labelFormat.value==='disposition'?'Tap Generate disposition label when ready.':'Tap Generate label when ready.');
+}
+function updateSummary(){
+  var card=document.getElementById('productSummary');card.hidden=!selectedProduct||labelFormat.value!=='disposition';
+  if(!selectedProduct)return;
+  var values={Product:disp.Product.value,Model:disp.Model.value,Sku:upcSkuInput.value,Upc:upcInput.value,Dept:disp.Dept.value,Brand:disp.Brand.value};
+  Object.keys(values).forEach(function(k){document.getElementById('summary'+k).textContent=values[k]||'Not available';});
+}
+editDetails.addEventListener('click',function(){more.open=true;more.querySelector('summary').focus();});
+Object.keys(disp).forEach(function(k){
+  disp[k].addEventListener('input',function(){if(k==='Brand')brandEdited=true;updateSummary();invalidateDisposition(k);});
+  disp[k].addEventListener('change',function(){updateSummary();invalidateDisposition(k);});
+});
+function clearCatalogFields(){
+  Object.keys(catalogFilled).forEach(function(k){if(disp[k].value===catalogFilled[k]&&!(k==='Brand'&&brandEdited))disp[k].value='';});
+  catalogFilled={};selectedProduct=null;updateSummary();invalidateDisposition();
+}
+upcSkuInput.addEventListener('input',clearCatalogFields);
+document.addEventListener('addy-catalog-match',function(e){
+  clearCatalogFields();var row=e.detail;if(!row)return;selectedProduct=row;
+  var mapping={Product:'product',Brand:'brand',Model:'model',Dept:'dept',Category:'category',Channel:'channel'};
+  Object.keys(mapping).forEach(function(k){
+    if(k==='Brand'&&brandEdited)return;
+    var v=row[mapping[k]];
+    if(v!=null&&String(v)!==''){disp[k].value=String(v);catalogFilled[k]=disp[k].value;}
+    else if(['Product','Model','Dept','Brand'].indexOf(k)>=0)disp[k].value='';
+  });
+  updateSummary();invalidateDisposition('Model');
+});
 [upcInput,upcSkuInput].forEach(function(field){
   field.addEventListener('input',function(){
     if(mode!=='barcode')return;
-    ++revision;disableOutput();clearPreview();upcInput.removeAttribute('aria-invalid');
-    setStatus('Tap Generate barcode when ready.');
+    updateSummary();++revision;disableOutput();clearPreview();upcInput.removeAttribute('aria-invalid');
+    setStatus(labelFormat.value==='disposition'?'Tap Generate disposition label when ready.':'Tap Generate label when ready.');
   });
 });
+function clearBarcodeForm(){
+  if(mode!=='barcode')return;
+  // Reuse the search input reset path to cancel in-flight lookups and hide suggestions.
+  var search=document.getElementById('catalogModel');
+  search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));
+  upcForm.reset();
+  search.value='';upcSkuInput.value='';upcInput.value='';
+  catalogFilled={};selectedProduct=null;brandEdited=false;
+  resetLabelDate();more.open=false;updateSummary();
+  upcInput.removeAttribute('aria-invalid');
+  ++revision;disableOutput();clearPreview();
+  setStatus('Form cleared.');
+  if(!search.disabled)search.focus();
+}
+function clearLpnForm(){
+  if(mode!=='lpn')return;
+  lpnForm.reset();lpnInput.removeAttribute('aria-invalid');
+  ++revision;disableOutput();clearPreview();
+  setStatus('Form cleared.');orderInput.focus();
+}
+document.getElementById('clearBarcodeForm').addEventListener('click',clearBarcodeForm);
+document.getElementById('clearLpnForm').addEventListener('click',clearLpnForm);
 upcForm.addEventListener('submit',async function(e){
   e.preventDefault();if(mode!=='barcode')return;
   var mine=++revision,value;
   disableOutput();clearPreview();upcInput.removeAttribute('aria-invalid');
   try{value=normalizeUPC(upcInput.value);}
-  catch(err){upcInput.setAttribute('aria-invalid','true');setStatus(err.message);return;}
+  catch(err){upcInput.setAttribute('aria-invalid','true');if(labelFormat.value==='disposition')more.open=true;setStatus(err.message);return;}
   upcInput.value=value;
   try{
-    drawUPC(value,upcSkuInput.value.trim());setStatus('Generating barcode…');
+    var advanced=labelFormat.value==='disposition';
+    if(advanced){drawDisposition(value,upcSkuInput.value.trim());}else{drawUPC(value,upcSkuInput.value.trim(),disp.Model.value.trim());}sharpenDisposition();
+    setStatus('Generating label…');
     var blob=await withPrintDpi(await toPngBlob());
     if(mine!==revision||mode!=='barcode')return;
-    var file=new File([blob],'UPC_'+value+'_Zebra_4x3.png',{type:'image/png'});
+    var file=new File([blob],(advanced?'Disposition_':'UPC_')+value+'_Zebra_4x3.png',{type:'image/png'});
     activateOutput(file,blob);
-    setStatus('UPC '+value+' ready. Share, download or open the PNG.');
-  }catch(err){if(mine===revision)setStatus('Could not export this barcode. Try again.');}
+    setStatus((advanced?'Label':'UPC '+value)+' ready.');
+  }catch(err){if(mine===revision){clearPreview();setStatus(err.message||'Could not export this barcode. Try again.');}}
 });
-lpnMode.addEventListener('click',function(){switchMode('lpn');});
 [orderInput,skuInput,lpnInput].forEach(function(field){
   field.addEventListener('input',function(){
     if(mode!=='lpn')return;
@@ -960,6 +1277,665 @@ share.addEventListener('click',function(){
 });
 view.addEventListener('click',function(){setStatus('In the new image view, use Share > Save Image (or long-press the image).');});
 download.addEventListener('click',function(){setStatus('If Safari opens the image instead of downloading, use Share > Save Image or Save to Files.');});
+})();
+</script>
+<script>
+
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+var sku=$('upcSkuInput'),upc=$('upcInput'),match=$('catalogMatch'),fileInput=$('catalogFile'),cancel=$('catalogCancel'),clear=$('catalogClear'),badge=$('catalogBadge'),status=$('catalogStatus'),progress=$('catalogProgress'),panel=$('catalogPanel');
+var dbPromise=null,active=null,busy=false,cancelled=false,lookupTicket=0,lookupTimer=null,autoValue='',settingUPC=false;
+var modelInput=$('catalogModel'),choices=$('catalogChoices'),selectingModel=false,modelSearching=false;
+var searchCache=null,cacheBuild=null,cacheEpoch=0;
+var DB='addy-buy-product-catalog-v1',LOCK='addy-buy-catalog-write-v1',SLOTS=['productsA','productsB'];
+function skuKey(s){s=String(s).trim();return /^[0-9]{1,12}$/.test(s)?s.replace(/^0+(?=\d)/,''):'';}
+function validUPC(s){
+  if(!/^[0-9]{12}$/.test(s)||s==='000000000000')return false;
+  var n=0;for(var i=0;i<12;i++)n+=Number(s[i])*(i%2===0?3:1);
+  return n%10===0;
+}
+function openDB(){
+  if(dbPromise)return dbPromise;
+  dbPromise=new Promise(function(resolve,reject){
+    if(!window.indexedDB){reject(new Error('Local browser storage is unavailable.'));return;}
+    var req=indexedDB.open(DB,1);
+    req.onupgradeneeded=function(){
+      var db=req.result;SLOTS.forEach(function(name){db.createObjectStore(name,{keyPath:'sku'});});db.createObjectStore('meta');
+    };
+    req.onsuccess=function(){var db=req.result;db.onversionchange=function(){db.close();dbPromise=null;};resolve(db);};
+    req.onerror=function(){reject(req.error||new Error('Could not open local storage.'));};
+    req.onblocked=function(){reject(new Error('Close other ADDY BUY tabs and try again.'));};
+  }).catch(function(e){dbPromise=null;throw e;});
+  return dbPromise;
+}
+function done(tx){
+  return new Promise(function(resolve,reject){
+    tx.oncomplete=resolve;tx.onabort=function(){reject(tx.error||new Error('Storage transaction failed.'));};
+    tx.onerror=function(){};
+  });
+}
+function getMeta(db){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction('meta','readonly'),r=tx.objectStore('meta').get('active');
+    r.onsuccess=function(){resolve(r.result||null);};r.onerror=function(){reject(r.error);};
+  });
+}
+function clearSlot(db,slot){
+  var tx=db.transaction(slot,'readwrite'),finished=done(tx);tx.objectStore(slot).clear();return finished;
+}
+function writeRows(db,slot,rows){
+  var tx=db.transaction(slot,'readwrite'),finished=done(tx),store=tx.objectStore(slot);
+  rows.forEach(function(row){store.add(row);});return finished;
+}
+function activate(db,metadata){
+  var tx=db.transaction('meta','readwrite'),finished=done(tx);
+  tx.objectStore('meta').put(metadata,'active');return finished;
+}
+function readSKU(db,key){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(['meta'].concat(SLOTS),'readonly'),r=tx.objectStore('meta').get('active');
+    tx.onabort=function(){reject(tx.error||new Error('Lookup failed.'));};
+    r.onerror=function(){reject(r.error);};
+    r.onsuccess=function(){
+      var m=r.result;if(!m||SLOTS.indexOf(m.slot)<0){resolve({meta:null,row:null});return;}
+      var q=tx.objectStore(m.slot).get(key);
+      q.onsuccess=function(){resolve({meta:m,row:q.result||null});};q.onerror=function(){reject(q.error);};
+    };
+  });
+}
+function csvParser(){
+  var row=[],field='',quoted=false,closed=false,skipLF=false;
+  return function(chunk,final){
+    var out=[];
+    function endField(){row.push(field);field='';closed=false;}
+    function endRow(){endField();if(row.length>1||row[0]!=='')out.push(row);row=[];}
+    for(var i=0;i<chunk.length;i++){
+      var c=chunk[i];
+      if(skipLF){skipLF=false;if(c==='\n')continue;}
+      if(quoted){if(c==='"'){quoted=false;closed=true;}else field+=c;continue;}
+      if(closed){
+        if(c==='"'){field+='"';quoted=true;closed=false;continue;}
+        if(c!==','&&c!=='\r'&&c!=='\n')throw new Error('Invalid character after quoted CSV field.');
+      }
+      if(c===','){endField();}
+      else if(c==='\r'||c==='\n'){endRow();skipLF=c==='\r';}
+      else if(c==='"'){if(field!=='')throw new Error('Unexpected quote in CSV field.');quoted=true;}
+      else{field+=c;}
+      if(field.length>65536||row.length>100)throw new Error('Unexpected CSV field size.');
+    }
+    if(final){
+      if(quoted)throw new Error('CSV ended inside a quoted field.');
+      if(field!==''||row.length||closed)endRow();
+    }
+    return out;
+  };
+}
+function getColumns(header){
+  var cols=header.map(function(v){return v.replace(/^\uFEFF/,'').trim().toLowerCase();});
+  var indexes=['sku','product','upc'].map(function(n){return cols.indexOf(n);});
+  if(indexes.some(function(i){return i<0;}))throw new Error('CSV must include SKU, Product and UPC headers.');
+  return indexes.concat(['brand','model','dept'].map(function(n){return cols.indexOf(n);}));
+}
+function rowRecord(row,cols){
+  if(row.length<=Math.max.apply(null,cols))throw new Error('Malformed CSV row.');
+  var key=skuKey(row[cols[0]]),code=row[cols[2]].trim();
+  if(!key||!validUPC(code))return null;
+  var record={sku:key,product:row[cols[1]].trim(),upc:code};
+  ['brand','model','dept'].forEach(function(k,i){var col=cols[i+3];if(col>=0&&row[col])record[k]=row[col].trim();});
+  return record;
+}
+var hostedLoading=false,hostedController=null,hostedButton=$('loadHostedCatalog');
+function say(text){status.textContent=text;if(hostedLoading&&!active)showMatch(text,'');}
+function showMatch(text,state){match.hidden=!text;match.textContent=text;match.dataset.state=state||'';}
+function sync(){
+  badge.textContent=active?'· '+Number(active.count).toLocaleString()+' products':'· Not loaded';
+  modelInput.disabled=busy;
+  hostedButton.disabled=busy;
+  clear.disabled=busy||!active;
+  fileInput.disabled=busy;cancel.hidden=!busy;
+}
+function hideChoices(){choices.replaceChildren();choices.hidden=true;}
+function clearAuto(){
+  hideChoices();
+  if(autoValue&&upc.value===autoValue){settingUPC=true;upc.value='';upc.dispatchEvent(new Event('input',{bubbles:true}));settingUPC=false;}
+  autoValue='';showMatch('');document.dispatchEvent(new CustomEvent('addy-catalog-match',{detail:null}));
+}
+async function lookup(){
+  var key=skuKey(sku.value),ticket=++lookupTicket;
+  if(!key||busy)return;
+  try{
+    var result=await readSKU(await openDB(),key);
+    if(ticket!==lookupTicket||key!==skuKey(sku.value)||busy)return;
+    active=result.meta;sync();
+    if(!result.meta){showMatch('Import the product catalog first, or enter the UPC manually.','error');return;}
+    if(!result.row){clearAuto();showMatch('SKU not found in this catalog. Enter the verified UPC manually.','error');return;}
+    applyRow(result.row,'');
+  }catch(e){if(ticket===lookupTicket)showMatch('Local lookup failed. Manual UPC entry is available.','error');}
+}
+function modelKey(value){return String(value||'').toUpperCase().trim().replace(/[^A-Z0-9]/g,'');}
+function details(row,matchedModel){
+  var out=Object.assign({},row),notes=[];
+  if(!out.brand){
+    var product=String(out.product||'').toUpperCase().trim();
+    var brands=['FISHER & PAYKEL','GENERAL ELECTRIC','HISENSE','SAMSUNG','WHIRLPOOL','KITCHENAID','FRIGIDAIRE','MAYTAG','BOSCH','INSIGNIA','LG','GE','SONY','TCL','VIZIO','PANASONIC','SHARP','ELECTROLUX','AMANA','HAIER','MIDEA','DANBY','CAFE','MONOGRAM','THERMADOR','JENNAIR','DACOR','HITACHI','TOSHIBA','PHILIPS','DYSON','SHARK','BISSELL','NINJA','HISENSE','ROKU','APPLE','DELL','HP','LENOVO','ASUS','ACER','MSI','HARMAN KARDON','JBL','BOSE','PIONEER'];
+    var brand=brands.find(function(b){return product===b||product.startsWith(b+' ')||product.startsWith(b+'-');});
+    if(brand){out.brand=brand;notes.push('brand inferred from description');}
+  }
+  return {row:out,notes:notes};
+}
+function applyRow(row,matchedModel){
+  var info=details(row,matchedModel);
+  autoValue=row.upc;
+  settingUPC=true;upc.value=autoValue;upc.dispatchEvent(new Event('input',{bubbles:true}));settingUPC=false;
+  showMatch('');
+  document.dispatchEvent(new CustomEvent('addy-catalog-match',{detail:info.row}));
+}
+function resetSearch(){
+  clearTimeout(lookupTimer);++lookupTicket;modelSearching=false;clearAuto();
+  if(upc.value){settingUPC=true;upc.value='';upc.dispatchEvent(new Event('input',{bubbles:true}));settingUPC=false;}
+}
+function schedule(){
+  if(selectingModel)return;
+  resetSearch();modelInput.value='';sync();
+  if(active&&!busy&&skuKey(sku.value))lookupTimer=setTimeout(lookup,150);
+}
+function readBatch(db,slot,last){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(slot,'readonly'),store=tx.objectStore(slot),range=last===null?undefined:IDBKeyRange.lowerBound(last,true),req=store.getAll(range,4000);
+    req.onsuccess=function(){resolve(req.result);};req.onerror=function(){reject(req.error);};tx.onabort=function(){reject(tx.error||new Error('Read interrupted.'));};
+  });
+}
+function cacheKey(meta){return meta.slot+'|'+meta.importedAt;}
+function invalidateCache(){++cacheEpoch;searchCache=null;cacheBuild=null;}
+async function warmCache(meta){
+  if(!meta)return [];
+  var key=cacheKey(meta),epoch=cacheEpoch;
+  if(searchCache&&searchCache.key===key)return searchCache.rows;
+  if(cacheBuild&&cacheBuild.key===key)return cacheBuild.promise;
+  var promise=(async function(){
+    var db=await openDB(),last=null,batch,rows=[];
+    do{
+      if(epoch!==cacheEpoch)throw new Error('Catalog changed.');
+      batch=await readBatch(db,meta.slot,last);
+      if(epoch!==cacheEpoch)throw new Error('Catalog changed.');
+      for(var i=0;i<batch.length;i++){
+        var row=batch[i];rows.push({row:row,model:modelKey(row.model),product:String(row.product||'').toUpperCase()});
+      }
+      if(batch.length)last=batch[batch.length-1].sku;
+      await new Promise(function(resolve){setTimeout(resolve,0);});
+    }while(batch.length===4000);
+    var current=await getMeta(db);
+    if(epoch!==cacheEpoch||!current||cacheKey(current)!==key)throw new Error('Catalog changed. Search again.');
+    searchCache={key:key,rows:rows};return rows;
+  })();
+  cacheBuild={key:key,promise:promise};
+  try{return await promise;}finally{if(cacheBuild&&cacheBuild.promise===promise)cacheBuild=null;}
+}
+function selectProduct(row){
+  selectingModel=true;sku.value=row.sku;sku.dispatchEvent(new Event('input',{bubbles:true}));
+  selectingModel=false;modelInput.value=row.sku;hideChoices();applyRow(row,'');sync();
+}
+function catalogUPC(value){
+  var v=String(value||'').trim();
+  if(/^0\d{12}$/.test(v))v=v.slice(1);
+  return /^\d{12}$/.test(v)&&validUPC(v)?v:'';
+}
+function rankProduct(entry,raw,key,numeric){
+  var sku=entry.row.sku,model=entry.model;
+  var upc=numeric?catalogUPC(raw):'';
+  if(upc&&entry.row.upc===upc)return 0;
+  if(numeric&&sku===raw)return 1;
+  if(key&&model===key)return 2;
+  if(numeric&&sku.startsWith(raw))return 3;
+  if(key&&model.startsWith(key))return 4;
+  if(entry.product.includes(raw))return 5;
+  if((numeric&&sku.includes(raw))||(key&&model.includes(key)))return 6;
+  return -1;
+}
+function ocrModelKeys(text){
+  var lines=String(text||'').toUpperCase().split(/\r?\n/),keys=new Set();
+  function add(value,explicit){var k=modelKey(value);if(k.length>=4&&k.length<=64&&/\d/.test(k)&&(/[A-Z]/.test(k)||explicit))keys.add(k);}
+  lines.forEach(function(line,i){
+    var match=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD(?:EL)?\.)\s*[:#-]?\s*(.*)$/);
+    if(match){var tail=match[1].trim()||(lines[i+1]||'').trim();var parts=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
+      for(var j=1;j<=Math.min(parts.length,3);j++)add(parts.slice(0,j).join(''),true);}
+    (line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(function(token){add(token,false);});
+  });
+  return keys;
+}
+function ocrFold(value){
+  return value.replace(/[OQ0]/g,'0').replace(/[IL1]/g,'1').replace(/[S5]/g,'5').replace(/[Z2]/g,'2').replace(/[B8]/g,'8').replace(/[G6]/g,'6');
+}
+function oneEdit(a,b){
+  if(Math.abs(a.length-b.length)>1)return false;
+  if(a.length===b.length){
+    var first=-1,second=-1;
+    for(var i=0;i<a.length;i++)if(a[i]!==b[i]){if(first<0)first=i;else if(second<0)second=i;else return false;}
+    return second<0||(second===first+1&&a[first]===b[second]&&a[second]===b[first]);
+  }
+  if(a.length>b.length){var swap=a;a=b;b=swap;}
+  var p=0,q=0,miss=0;
+  while(p<a.length&&q<b.length){if(a[p]===b[q]){p++;q++;}else{if(++miss>1)return false;q++;}}
+  return true;
+}
+function ocrRanker(text,preferred){
+  var keys=ocrModelKeys(text),primary=modelKey(preferred);
+  if(primary.length>=4&&primary.length<=64)keys.add(primary);
+  var list=Array.from(keys),approx=list.filter(function(k){return k.length>=6&&/[A-Z]/.test(k)&&/\d/.test(k);});
+  approx.sort(function(a,b){return (b===primary?1:0)-(a===primary?1:0)||b.length-a.length;});
+  approx=approx.slice(0,16).map(function(k){return {key:k,fold:ocrFold(k)};});
+  return function(model){
+    if(!model)return -1;
+    if(model===primary&&primary.length>=4)return 0;
+    if(keys.has(model))return 1;
+    if(model.length<6)return -1;
+    var fold=null,best=7;
+    for(var i=0;i<approx.length;i++){
+      var a=approx[i],k=a.key,delta=Math.abs(model.length-k.length);
+      if(delta<=1){
+        if(fold===null)fold=ocrFold(model);
+        if(delta===0&&fold===a.fold){best=Math.min(best,2);continue;}
+        if(k.length>=7&&oneEdit(k,model))best=Math.min(best,4);
+      }
+      if(delta<=6&&(model.startsWith(k)||(model.length>=7&&k.startsWith(model))))best=Math.min(best,3);
+    }
+    return best===7?-1:best;
+  };
+}
+async function lookupModel(scan){
+  var raw=modelInput.value.trim().toUpperCase(),key=modelKey(raw),numeric=/^\d+$/.test(raw),ticket=++lookupTicket;
+  var ocr=scan&&scan.kind==='ocr'?ocrRanker(scan.value,scan.preferred):null;
+  if((!ocr&&(numeric?raw.length:key.length)<3)||busy)return;
+  if(!active){showMatch('Import a catalog or enter product details manually.','error');return;}
+  modelSearching=true;hideChoices();showMatch('Searching…','');
+  try{
+    var db=await openDB(),meta=await getMeta(db);
+    if(ticket!==lookupTicket||busy)return;
+    if(!meta)throw new Error('Import a catalog first.');
+    active=meta;
+    var rows=await warmCache(meta),buckets=[[],[],[],[],[],[],[]],total=0;
+    var exactUPC=catalogUPC(raw);
+    if(ticket!==lookupTicket||busy)return;
+    for(var i=0;i<rows.length;i++){
+      var rank=ocr?ocr(rows[i].model):rankProduct(rows[i],raw,key,numeric);
+      if(scan&&scan.kind==='barcode'&&exactUPC&&rank!==0)rank=-1;
+      if(rank>=0){total++;if(buckets[rank].length<10)buckets[rank].push(rows[i].row);}
+      if(i>0&&i%20000===0){await new Promise(function(resolve){setTimeout(resolve,0);});if(ticket!==lookupTicket||busy)return;}
+    }
+    if(ticket!==lookupTicket||busy)return;
+    var exactOCR=ocr&&(buckets[0].length||buckets[1].length);
+    var results=[].concat.apply([],ocr&&exactOCR?buckets.slice(0,2):buckets).slice(0,10);
+    if(!results.length){showMatch(ocr?'No catalog model matched the photo. Try a closer picture or enter the model.':'No matching SKU, model or UPC found.','error');return;}
+    if(scan&&scan.kind==='barcode'&&total===1&&(buckets[0].length||buckets[1].length||buckets[2].length)){
+      var latest=await readSKU(db,results[0].sku);
+      if(ticket!==lookupTicket||busy)return;
+      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);return;}
+      showMatch('Catalog changed. Scan again.','error');return;
+    }
+    showMatch(ocr&&!exactOCR?'Possible model matches. Verify and select the correct product.':results.length>1?'Select the correct product.':'Select product.','ok');
+    results.forEach(function(row){
+      var btn=document.createElement('button');btn.type='button';btn.className='catalog-result';
+      var body=document.createElement('span');body.className='catalog-result-body';
+      var title=document.createElement('strong');title.className='catalog-result-title';title.textContent=row.product||'Product';
+      var resultMeta=document.createElement('span');resultMeta.className='catalog-result-meta';
+      var skuLabel=document.createElement('span');skuLabel.className='catalog-result-sku';skuLabel.textContent='SKU '+row.sku;
+      var modelLabel=document.createElement('span');modelLabel.textContent=row.model||'No model';
+      var upcLabel=document.createElement('span');upcLabel.textContent='UPC '+row.upc;
+      resultMeta.append(skuLabel,modelLabel,upcLabel);body.append(title,resultMeta);
+      var arrow=document.createElement('span');arrow.className='catalog-result-arrow';arrow.setAttribute('aria-hidden','true');
+      btn.append(body,arrow);
+      btn.addEventListener('click',async function(){
+        try{
+          var latest=await readSKU(db,row.sku);
+          if(ticket!==lookupTicket||busy)return;
+          if(!latest.meta||cacheKey(latest.meta)!==cacheKey(meta)||!latest.row||latest.row.upc!==row.upc){hideChoices();showMatch('Catalog changed. Search again.','error');return;}
+          selectProduct(latest.row);
+        }catch(e){showMatch('Could not retrieve product. Try again.','error');}
+      });choices.appendChild(btn);
+    });choices.hidden=false;choices.scrollTop=0;
+  }catch(e){if(ticket===lookupTicket)showMatch(e.message||'Local search failed.','error');}
+  finally{if(ticket===lookupTicket){modelSearching=false;sync();}}
+}
+document.addEventListener('addy-product-scan',function(e){
+  if(busy){showMatch('Catalog is still loading. Try again when ready.','error');return;}
+  var scan=e.detail;
+  if(!scan||!['ocr','barcode'].includes(scan.kind))return;
+  resetSearch();selectingModel=true;sku.value='';sku.dispatchEvent(new Event('input',{bubbles:true}));selectingModel=false;
+  modelInput.value=scan.kind==='ocr'?'':String(scan.value||'').trim();
+  if(scan.kind==='ocr'&&!ocrModelKeys(scan.value).size&&modelKey(scan.preferred).length<4){showMatch('No model number read. Try a closer photo.','error');return;}
+  lookupModel(scan);
+});
+sku.addEventListener('input',schedule);
+modelInput.addEventListener('input',function(){
+  resetSearch();selectingModel=true;sku.value='';sku.dispatchEvent(new Event('input',{bubbles:true}));selectingModel=false;sync();
+  if(modelInput.value.trim().length>=3)lookupTimer=setTimeout(lookupModel,120);
+});
+modelInput.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){e.preventDefault();clearTimeout(lookupTimer);lookupModel();}
+  if(e.key==='ArrowDown'&&!choices.hidden){e.preventDefault();choices.querySelector('button')?.focus();}
+  if(e.key==='Escape'){++lookupTicket;hideChoices();showMatch('');}
+});
+upc.addEventListener('input',function(){if(!settingUPC){clearTimeout(lookupTimer);++lookupTicket;modelSearching=false;autoValue='';hideChoices();showMatch('');sync();}});
+function withLock(task){
+  if(!navigator.locks)return Promise.reject(new Error('This browser does not support safe catalog updates. Use an up-to-date Chrome or Safari browser.'));
+  return navigator.locks.request(LOCK,{ifAvailable:true},function(lock){if(!lock)throw new Error('Another ADDY BUY tab is updating the catalog. Close it or try again.');return task();});
+}
+function checkCancel(){if(cancelled){var e=new Error('Import canceled.');e.name='AbortError';throw e;}}
+async function importFile(file,builtIn){
+  if(busy||!file)return;
+  if(!file.size){say('The CSV is empty.');return;}
+  busy=true;cancelled=false;invalidateCache();clearTimeout(lookupTimer);++lookupTicket;modelSearching=false;hideChoices();progress.hidden=false;progress.value=0;sync();say('Preparing local storage…');
+  try{
+    if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});
+    await withLock(async function(){
+      var db=await openDB(),previous=await getMeta(db),slot=previous&&previous.slot===SLOTS[0]?SLOTS[1]:SLOTS[0];
+      var activated=false,count=0,skipped=0,rows=[],cols=null,parser=csvParser(),decoder=new TextDecoder('utf-8',{fatal:true}),offset=0;
+      try{
+        say('Preparing replacement catalog storage…');await clearSlot(db,slot);checkCancel();say('Reading CSV…');
+        var batchSize=4000,chunkSize=512*1024;
+        while(offset<file.size){
+          checkCancel();
+          var end=Math.min(file.size,offset+chunkSize),bytes=await file.slice(offset,end).arrayBuffer();
+          offset=end;
+          var parsed=parser(decoder.decode(bytes,{stream:offset<file.size}),offset===file.size);
+          for(var i=0;i<parsed.length;i++){
+            if(!cols){cols=getColumns(parsed[i]);continue;}
+            var rec=rowRecord(parsed[i],cols);
+            if(rec)rows.push(rec);else skipped++;
+            if(rows.length>=batchSize){checkCancel();await writeRows(db,slot,rows);count+=rows.length;rows=[];}
+          }
+          progress.value=Math.floor(offset/file.size*100);
+          say('Importing… '+count.toLocaleString()+' saved · '+progress.value+'%');
+          await new Promise(function(resolve){setTimeout(resolve,0);});
+        }
+        checkCancel();
+        if(rows.length){await writeRows(db,slot,rows);count+=rows.length;rows=[];}
+        checkCancel();
+        if(!cols||!count)throw new Error('No usable SKU/UPC records found.');
+        if(builtIn&&(count!==361872||skipped!==0))throw new Error('Built-in catalog is incomplete. Try again.');
+        var metadata={slot:slot,count:count,importedAt:new Date().toISOString(),skipped:skipped,source:builtIn?'built-in-v2':'manual'};
+        await activate(db,metadata);activated=true;active=metadata;
+        if(previous&&previous.slot!==slot){say('New catalog saved. Cleaning up old catalog…');try{await clearSlot(db,previous.slot);}catch(e){}}
+        say('Catalog ready: '+count.toLocaleString()+' products.'+(skipped?' '+skipped.toLocaleString()+' invalid or placeholder rows skipped.':''));
+      }catch(e){
+        if(!activated){try{await clearSlot(db,slot);}catch(ignore){}}
+        throw e;
+      }
+    });
+  }catch(e){
+    var message=e.name==='ConstraintError'?'Duplicate SKU found. Import rejected to avoid ambiguous UPCs.':e.name==='QuotaExceededError'?'Not enough browser storage. Free space or import a smaller authorized catalog.':e.message||'Catalog import failed.';
+    say(message+' Existing catalog, if any, was kept.');
+  }finally{
+    busy=false;cancel.hidden=true;progress.hidden=true;
+    try{active=await getMeta(await openDB());}catch(e){}
+    sync();if(active){warmCache(active).catch(function(){});if(modelKey(modelInput.value).length>=3)lookupModel();else if(skuKey(sku.value))schedule();}
+  }
+}
+async function loadHostedCatalog(){
+  if(busy||hostedLoading)return;
+  hostedLoading=true;busy=true;cancelled=false;hostedController=new AbortController();
+  var controller=hostedController;
+  clearTimeout(lookupTimer);++lookupTicket;modelSearching=false;hideChoices();
+  progress.hidden=false;progress.removeAttribute('value');sync();
+  say('Downloading product catalog…');
+  try{
+    var response=await fetch(new URL('addy-buy-catalog-v2.csv.gz',location.href),{signal:controller.signal,cache:'default'});
+    if(!response.ok)throw new Error('Built-in catalog unavailable.');
+    var blob=await response.blob();
+    checkCancel();
+    var magic=new Uint8Array(await blob.slice(0,2).arrayBuffer());
+    if(magic[0]===31&&magic[1]===139){
+      if(typeof DecompressionStream!=='function')throw new Error('Update your browser to load the built-in catalog.');
+      say('Preparing product catalog…');
+      blob=await new Response(blob.stream().pipeThrough(new DecompressionStream('gzip'))).blob();
+    }
+    checkCancel();
+    var headerText=await blob.slice(0,4096).text();
+    var firstLine=headerText.split(/\r\n|\n|\r/,1)[0].replace(/^\uFEFF/,'');
+    // Accept standard quoted CSV headers as well as unquoted ones.
+    var headerRows=csvParser()(firstLine,true);
+    if(headerRows.length!==1)throw new Error('Built-in catalog has an unexpected format.');
+    var columns=getColumns(headerRows[0]);
+    if(columns[4]<0||columns[5]<0)throw new Error('Built-in catalog is missing Model or Dept.');
+    // Hand off to the existing atomic CSV importer, with validation before activation.
+    busy=false;await importFile(blob,true);
+    if(active){showMatch('');}
+    else{showMatch('Catalog setup failed. Tap Load built-in catalog to retry.','error');}
+  }catch(e){
+    var message=cancelled||e.name==='AbortError'?'Catalog setup canceled.':(e.message||'Built-in catalog unavailable.');
+    status.textContent=message;
+    if(!active)showMatch(message+' Open Local product catalog to retry or import manually.','error');
+  }finally{
+    hostedLoading=false;hostedController=null;busy=false;progress.hidden=true;sync();
+  }
+}
+hostedButton.addEventListener('click',loadHostedCatalog);
+fileInput.addEventListener('change',function(){var file=fileInput.files&&fileInput.files[0];fileInput.value='';importFile(file);});
+cancel.addEventListener('click',function(){cancelled=true;if(hostedController)hostedController.abort();say('Canceling catalog setup…');});
+clear.addEventListener('click',async function(){
+  if(busy||!active||!window.confirm('Remove the imported product catalog from this browser?'))return;
+  busy=true;invalidateCache();clearTimeout(lookupTimer);++lookupTicket;modelSearching=false;hideChoices();sync();
+  try{await withLock(async function(){
+    var db=await openDB(),tx=db.transaction(['meta'].concat(SLOTS),'readwrite'),finished=done(tx);
+    tx.objectStore('meta').delete('active');SLOTS.forEach(function(slot){tx.objectStore(slot).clear();});await finished;
+    active=null;clearAuto();say('Catalog removed. Manual UPC entry is available.');
+  });}catch(e){say(e.message||'Could not remove catalog.');}finally{busy=false;sync();}
+});
+openDB().then(getMeta).then(function(m){active=m;sync();if(m){say('Catalog ready: '+Number(m.count).toLocaleString()+' products.');warmCache(m).catch(function(){});if(modelKey(modelInput.value).length>=3)lookupModel();else if(skuKey(sku.value))schedule();}else{loadHostedCatalog();}}).catch(function(){say('Local storage unavailable. Manual UPC entry is available.');});
+sync();
+})();
+
+</script>
+<dialog id="scanDialog" aria-labelledby="scanTitle">
+  <div class="scan-head"><h2 id="scanTitle">Scan product</h2><button id="scanClose" type="button" class="secondary scan-close" aria-label="Close scanner">✕</button></div>
+  <p class="help" id="scanHint">Aim at a product barcode or photograph the model number.</p>
+  <div id="scanPreview" hidden><video id="scanVideo" autoplay muted playsinline></video><div id="scanGuide" aria-hidden="true"></div></div>
+  <p id="scanStatus" role="status" aria-live="polite"></p>
+  <div class="scan-options">
+    <button id="scanLive" type="button">Start camera scanner</button>
+    <label id="scanBarcodePhotoLabel" class="action secondary scan-file">Scan barcode from photo<input id="scanBarcodePhoto" type="file" accept="image/*" capture="environment" aria-label="Scan barcode from photo"></label>
+    <label id="scanModelPhotoLabel" class="action secondary scan-file">Photograph model number<input id="scanModelPhoto" type="file" accept="image/*" capture="environment" aria-label="Photograph model number"></label>
+  </div>
+  <div id="scanConfirm" class="scan-confirm" hidden>
+    <label for="scanReadout" id="scanReadoutLabel">Detected value</label><input id="scanReadout" type="text" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button id="scanUse" type="button">Use scanned value</button>
+  </div>
+  <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
+</dialog>
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id);};
+var dialog=$('scanDialog'),video=$('scanVideo'),preview=$('scanPreview'),status=$('scanStatus'),live=$('scanLive'),barcodePhoto=$('scanBarcodePhoto'),modelPhoto=$('scanModelPhoto'),confirm=$('scanConfirm'),readout=$('scanReadout'),use=$('scanUse');
+if(!dialog||!video)return;
+var target='',session=0,stream=null,controls=null,worker=null,loaded={},pending=false,returnFocus=null,kind='barcode';
+function say(s){status.textContent=s;}
+function stopVideo(){
+  if(controls){try{var stopped=controls.stop();if(stopped&&stopped.catch)stopped.catch(function(){});}catch(e){}controls=null;}
+  if(stream){stream.getTracks().forEach(function(t){t.stop();});stream=null;}
+  video.pause();video.srcObject=null;preview.hidden=true;
+}
+function stopWorker(){var w=worker;worker=null;if(w){try{Promise.resolve(w.terminate()).catch(function(){});}catch(e){}}}
+function setBusy(value){pending=value;live.disabled=value;barcodePhoto.disabled=value;modelPhoto.disabled=value;use.disabled=value;}
+function cancelWork(){++session;stopVideo();stopWorker();setBusy(false);}
+function isCurrent(ticket){return dialog.open&&ticket===session;}
+function closeScanner(){
+  cancelWork();if(dialog.open)dialog.close();
+}
+dialog.addEventListener('close',function(){if(!dialog.open){cancelWork();if(returnFocus&&document.contains(returnFocus))returnFocus.focus({preventScroll:true});}});
+dialog.addEventListener('cancel',function(e){e.preventDefault();closeScanner();});
+$('scanClose').addEventListener('click',closeScanner);
+window.addEventListener('pagehide',closeScanner);
+document.addEventListener('visibilitychange',function(){if(document.hidden&&stream){cancelWork();say('Camera stopped. Tap Start camera scanner to resume.');}});
+function loadScript(name,url,globalName){
+  if(window[globalName])return Promise.resolve(window[globalName]);
+  if(loaded[name])return loaded[name];
+  loaded[name]=new Promise(function(resolve,reject){
+    var script=document.createElement('script');script.src=url;script.async=true;
+    script.onload=function(){if(window[globalName])resolve(window[globalName]);else reject(new Error('Scanner library unavailable.'));};
+    script.onerror=function(){script.remove();reject(new Error('Could not load scanner. Check your internet connection.'));};
+    document.head.appendChild(script);
+  }).catch(function(e){delete loaded[name];throw e;});
+  return loaded[name];
+}
+function zxing(){return loadScript('zxing','https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js','ZXingBrowser');}
+function tesseract(){return loadScript('tesseract','https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js','Tesseract');}
+function openScanner(button){
+  if(!dialog.showModal){alert('Open this page in an up-to-date Chrome or Safari browser to scan.');return;}
+  cancelWork();target=button.dataset.scanTarget;returnFocus=button;kind='barcode';confirm.hidden=true;readout.value='';
+  barcodePhoto.value='';modelPhoto.value='';
+  $('scanTitle').textContent=target==='product'?'Scan product':button.getAttribute('aria-label');
+  $('scanHint').textContent=target==='product'?'Scan the UPC barcode or photograph the model number on the product sticker.':'Aim at the barcode for this field.';
+  $('scanModelPhotoLabel').hidden=target!=='product';
+  $('scanReadoutLabel').textContent='Detected value';use.textContent='Use scanned value';
+  say('');if(!dialog.open)dialog.showModal();
+}
+document.querySelectorAll('[data-scan-target]').forEach(function(button){button.addEventListener('click',function(){openScanner(button);});});
+function showValue(ticket,value,source){
+  if(!isCurrent(ticket))return;
+  stopVideo();setBusy(false);kind=source;readout.value=String(value||'').trim();
+  if(!readout.value){say('Nothing recognized. Try another photo.');return;}
+  confirm.hidden=false;$('scanReadoutLabel').textContent='Detected barcode';
+  use.textContent='Use scanned value';
+  say('Verify the scanned value.');
+}
+async function liveScan(){
+  cancelWork();var ticket=session;confirm.hidden=true;setBusy(true);
+  say('Opening camera…');
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Live camera unavailable. Use Scan barcode from photo.');
+    var media=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+    if(!isCurrent(ticket)){media.getTracks().forEach(function(t){t.stop();});return;}
+    stream=media;preview.hidden=false;video.srcObject=media;await video.play();
+    if(!isCurrent(ticket))return;
+    say('Hold the barcode inside the guide.');
+    // Native detector when available; fall back to ZXing on unsupported browsers.
+    var formats=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf','qr_code','data_matrix'];
+    var native=null;
+    if(window.BarcodeDetector){
+      try{var supported=await BarcodeDetector.getSupportedFormats();var selected=formats.filter(function(f){return supported.includes(f);});if(selected.includes('code_128')&&selected.includes('ean_13'))native=new BarcodeDetector({formats:selected});}catch(e){}
+    }
+    if(!isCurrent(ticket))return;
+    if(native){
+      var tick=async function(){
+        if(!isCurrent(ticket)||!stream)return;
+        try{var hits=await native.detect(video);if(!isCurrent(ticket)||!stream)return;if(hits.length){showValue(ticket,hits[0].rawValue,'barcode');return;}}
+        catch(e){if(isCurrent(ticket)){try{await startZXing(ticket);}catch(err){if(isCurrent(ticket)){stopVideo();setBusy(false);say(err.message||'Camera scan failed. Try a photo.');}}}return;}
+        setTimeout(tick,160);
+      };tick();
+    }else await startZXing(ticket);
+  }catch(e){if(isCurrent(ticket)){stopVideo();setBusy(false);say(e.name==='NotAllowedError'?'Camera permission denied. Allow camera access or use a photo.':(e.message||'Could not open camera. Try a photo.'));}}
+}
+async function startZXing(ticket){
+  var api=await zxing();if(!isCurrent(ticket)||!stream)return;
+  var reader=new api.BrowserMultiFormatReader();
+  var c=await reader.decodeFromStream(stream,video,function(result,error,localControls){
+    if(result&&isCurrent(ticket)&&stream){
+      if(localControls){try{localControls.stop();}catch(e){}}
+      showValue(ticket,result.getText(),'barcode');
+    }
+  });
+  if(!isCurrent(ticket)||!stream){try{c.stop();}catch(e){}}else controls=c;
+}
+live.addEventListener('click',liveScan);
+async function photoBarcode(file){
+  cancelWork();var ticket=session;confirm.hidden=true;setBusy(true);say('Reading barcode…');
+  var url=URL.createObjectURL(file);
+  try{
+    var api=await zxing();if(!isCurrent(ticket))return;
+    var reader=new api.BrowserMultiFormatReader(),result=await reader.decodeFromImageUrl(url);
+    showValue(ticket,result.getText(),'barcode');
+  }catch(e){if(isCurrent(ticket)){setBusy(false);say('No readable barcode found. Try a closer, well-lit photo.');}}
+  finally{URL.revokeObjectURL(url);}
+}
+function modelCandidates(text){
+  var lines=String(text||'').toUpperCase().split(/\r?\n/),out=[];
+  function add(v,explicit){
+    v=v.trim();var k=v.replace(/[^A-Z0-9]/g,'');
+    if(k.length>=4&&k.length<=64&&(/\d/.test(k)&&(/[A-Z]/.test(k)||explicit))&&!out.includes(v))out.push(v);
+  }
+  lines.forEach(function(line,i){
+    var m=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD\.)\s*[:#-]?\s*(.*)$/);
+    if(m){var tail=m[1].trim()||(lines[i+1]||'').trim();var parts=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
+      if(parts.length){add(parts[0],true);if(parts.length>1)add(parts.slice(0,2).join(''),true);}
+    }
+  });
+  lines.forEach(function(line){(line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(function(v){add(v,false);});});
+  return out;
+}
+async function resizePhoto(file){
+  var url=URL.createObjectURL(file),image=new Image();
+  try{
+    await new Promise(function(resolve,reject){image.onload=resolve;image.onerror=function(){reject(new Error('Could not open this photo. Try JPEG or PNG.'));};image.src=url;});
+    var scale=Math.min(1.5,2400/Math.max(image.naturalWidth,image.naturalHeight));
+    var canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.naturalWidth*scale));canvas.height=Math.max(1,Math.round(image.naturalHeight*scale));
+    var ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);
+    return canvas;
+  }finally{URL.revokeObjectURL(url);}
+}
+function contrastPhoto(source){
+  var copy=document.createElement('canvas');copy.width=source.width;copy.height=source.height;
+  var ctx=copy.getContext('2d',{willReadFrequently:true});ctx.drawImage(source,0,0);
+  var img=ctx.getImageData(0,0,copy.width,copy.height),data=img.data,hist=new Uint32Array(256),n=data.length/4;
+  for(var i=0;i<data.length;i+=4){var v=Math.round(.299*data[i]+.587*data[i+1]+.114*data[i+2]);hist[v]++;data[i]=data[i+1]=data[i+2]=v;}
+  var low=0,high=255,sum=0;
+  while(low<254&&sum+hist[low]<n*.015){sum+=hist[low++];}
+  sum=0;while(high>1&&sum+hist[high]<n*.015){sum+=hist[high--];}
+  var span=Math.max(35,high-low);
+  for(var j=0;j<data.length;j+=4){var g=Math.max(0,Math.min(255,Math.round((data[j]-low)*255/span)));data[j]=data[j+1]=data[j+2]=g;}
+  ctx.putImageData(img,0,0);return copy;
+}
+var recognizedText='';
+async function photoModel(file){
+  cancelWork();var ticket=session;confirm.hidden=true;setBusy(true);recognizedText='';say('Loading model reader…');
+  var localWorker=null,canvas=null,enhanced=null,pass=1;
+  try{
+    var api=await tesseract();if(!isCurrent(ticket))return;
+    canvas=await resizePhoto(file);if(!isCurrent(ticket))return;
+    localWorker=await api.createWorker('eng',1,{logger:function(m){if(isCurrent(ticket)&&m.status==='recognizing text')say('Reading label ('+pass+'/2)… '+Math.round((m.progress||0)*100)+'%');}});
+    if(!isCurrent(ticket)){await localWorker.terminate();localWorker=null;return;}
+    worker=localWorker;
+    await localWorker.setParameters({tessedit_pageseg_mode:'11',preserve_interword_spaces:'1'});
+    var first=await localWorker.recognize(canvas);
+    if(!isCurrent(ticket))return;
+    recognizedText=String(first.data.text||'');
+    // A second pass uses a contrast-normalized copy and a different text layout mode.
+    pass=2;say('Checking a sharper copy…');enhanced=contrastPhoto(canvas);
+    try{
+      await localWorker.setParameters({tessedit_pageseg_mode:'6'});
+      var second=await localWorker.recognize(enhanced);
+      if(!isCurrent(ticket))return;
+      recognizedText+='\n'+String(second.data.text||'');
+    }catch(e){if(!isCurrent(ticket))return;}
+    var candidates=modelCandidates(recognizedText);
+    kind='ocr';readout.value=candidates[0]||'';confirm.hidden=false;$('scanReadoutLabel').textContent='Possible model (editable)';
+    use.textContent='Find matching product';
+    say(candidates.length?'Check the detected model or edit it. ADDY BUY will look for exact and close catalog matches.':'No clear model detected. Enter any visible part of the model or try another photo.');
+  }catch(e){if(isCurrent(ticket))say(e.message||'Could not read model number. Try a clearer photo.');}
+  finally{
+    if(localWorker&&worker===localWorker){worker=null;try{await localWorker.terminate();}catch(e){}}
+    if(canvas){canvas.width=0;canvas.height=0;}if(enhanced){enhanced.width=0;enhanced.height=0;}
+    if(isCurrent(ticket))setBusy(false);
+  }
+}
+barcodePhoto.addEventListener('change',function(){var file=this.files&&this.files[0];this.value='';if(file)photoBarcode(file);});
+modelPhoto.addEventListener('change',function(){var file=this.files&&this.files[0];this.value='';if(file)photoModel(file);});
+use.addEventListener('click',function(){
+  if(pending)return;
+  var value=readout.value.trim(),dest=target,source=kind;
+  if(!value&&!(dest==='product'&&source==='ocr'&&recognizedText.trim())){say('Enter or scan a value.');return;}
+  if(dest==='product'){
+    if(source==='barcode'&&!/^[A-Za-z0-9._/ -]{3,120}$/.test(value)){say('This is not a supported product identifier. Scan a UPC or SKU.');return;}
+    var payload=source==='ocr'?'MODEL: '+value+'\n'+recognizedText:value;
+    closeScanner();document.dispatchEvent(new CustomEvent('addy-product-scan',{detail:{kind:source,value:payload,preferred:source==='ocr'?value:''}}));return;
+  }
+  var field=$(dest);if(!field)return;
+  if(dest==='upcInput'&&/^0\d{12}$/.test(value))value=value.slice(1);
+  if(dest==='upcInput'&&!/^\d{11,12}$/.test(value)){say('Scan a UPC-A product barcode.');return;}
+  if(!/^[\x20-\x7e]+$/.test(value)||value.length>(field.maxLength>0?field.maxLength:120)){say('The scanned value is too long or contains unsupported characters.');return;}
+  field.value=value;field.dispatchEvent(new Event('input',{bubbles:true}));closeScanner();
+});
 })();
 </script>
 </body>
