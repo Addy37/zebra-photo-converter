@@ -12,6 +12,43 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/addy-buy-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/addy-buy-180.png">
 <title>Zebra Label Converter | Direct Print Beta</title>
+<style id="addy-splash-style">
+#addySplash{display:none}
+html.addy-starting,html.addy-starting body{background:#0046be}
+html.addy-starting #addySplash,html.addy-starting.addy-leaving #addySplash{display:grid;position:fixed;inset:0;z-index:2147483647;place-items:center;background:#0046be;color:#fff;overflow:hidden;isolation:isolate}
+#addySplash .addy-splash-lockup{display:flex;flex-direction:column;align-items:center;gap:19px;width:min(56vw,216px);transform-origin:center;animation:addyLogoIn 300ms cubic-bezier(.2,.75,.25,1) both}
+#addySplash svg{display:block;width:100%;height:auto}
+#addySplash .addy-splash-caption{font:650 clamp(9px,2.35vw,11px)/1.3 system-ui,-apple-system,sans-serif;letter-spacing:.21em;white-space:nowrap;text-align:center;color:#fff}
+#addySplash .addy-splash-accent{width:32px;height:3px;background:#ffe000;border-radius:3px;transform-origin:left;animation:addyAccentIn 260ms 70ms cubic-bezier(.2,.75,.25,1) both}
+html.addy-starting.addy-leaving #addySplash{opacity:0;pointer-events:none;transition:opacity 240ms cubic-bezier(.2,.65,.25,1)}
+html.addy-starting.addy-leaving #addySplash .addy-splash-lockup{animation:none;transform:scale(1.025) translateY(-3px);transition:transform 240ms cubic-bezier(.2,.65,.25,1)}
+@keyframes addyLogoIn{from{opacity:0;transform:translateY(5px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes addyAccentIn{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){#addySplash .addy-splash-lockup,#addySplash .addy-splash-accent{animation:none!important}html.addy-starting.addy-leaving #addySplash{transition:none!important}}
+@media print{#addySplash{display:none!important}}
+</style>
+<script id="addy-splash-script">
+(function(){
+  var root=document.documentElement;
+  var standalone=navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches||window.matchMedia('(display-mode: minimal-ui)').matches||window.matchMedia('(display-mode: fullscreen)').matches;
+  var preview=new URLSearchParams(location.search).get('splash')==='1';
+  if(!standalone&&!preview)return;
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced)return;
+  var start=performance.now(),finishing=false;
+  root.classList.add('addy-starting');
+  function cleanup(){root.classList.remove('addy-starting','addy-leaving');var splash=document.getElementById('addySplash');if(splash)splash.remove();}
+  function finish(){
+    if(finishing)return;finishing=true;
+    var remaining=Math.max(0,330-(performance.now()-start));
+    window.setTimeout(function(){root.classList.add('addy-leaving');window.setTimeout(cleanup,270);},remaining);
+  }
+  document.addEventListener('DOMContentLoaded',finish,{once:true});
+  window.addEventListener('pageshow',function(e){if(e.persisted)cleanup();});
+  window.setTimeout(finish,1400);
+  window.setTimeout(cleanup,1800);
+})();
+</script>
 <style>
 :root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:#eaf0fa;background:#0b1220;line-height:1.45;color-scheme:dark}
 *{box-sizing:border-box}
@@ -413,6 +450,13 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 </script>
 </head>
 <body>
+<div id="addySplash" aria-hidden="true">
+  <div class="addy-splash-lockup">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="16 29 71 40" aria-hidden="true" focusable="false"><polygon fill="#ffffff" points="18,47 22.7,31 27.3,31 32,47 28,47 27,43 23,43 22,47"/><polygon fill="#0046be" points="24,39.5 25,35 26,39.5"/><polygon fill="#ffffff" points="34.5,31 42.5,31 46.5,33 48.5,37 48.5,41 46.5,45 42.5,47 34.5,47"/><polygon fill="#0046be" points="38.5,35 42,35 44.5,37 44.5,41 42,43 38.5,43"/><polygon fill="#ffffff" points="51,31 59,31 63,33 65,37 65,41 63,45 59,47 51,47"/><polygon fill="#0046be" points="55,35 58.5,35 61,37 61,41 58.5,43 55,43"/><polygon fill="#ffffff" points="67.5,31 72,31 74.5,37 77,31 81.5,31 76.5,41 76.5,47 72.5,47 72.5,41"/><polygon fill="#ffffff" points="18,50 27,50 31,52 32,55 30,58 32,60 32,63 29,66 18,66"/><polygon fill="#0046be" points="22,53.5 26.5,53.5 28,55 26.5,56.5 22,56.5"/><polygon fill="#0046be" points="22,60 27,60 28.5,61.5 27,63 22,63"/><polygon fill="#ffffff" points="34.5,50 38.5,50 38.5,61 40,62.5 43,62.5 44.5,61 44.5,50 48.5,50 48.5,62 46.5,65 43.5,66 39.5,66 36.5,65 34.5,62"/><polygon fill="#ffffff" points="51,50 55.5,50 58,56 60.5,50 65,50 60,60 60,66 56,66 56,60"/><polygon fill="#ffe000" points="68,55 80,53 85,58 81,65 70,67"/><polygon fill="#0046be" points="79,57 81,56.7 82,58 81,59.5 79,59"/></svg>
+    <div class="addy-splash-caption">WAREHOUSE TOOLS</div>
+    <div class="addy-splash-accent"></div>
+  </div>
+</div>
 <main>
 <header class="hero">
   <div class="brand-row">
@@ -421,7 +465,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <button id="addyInstall" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg> Install app</button>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 33</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 34</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
