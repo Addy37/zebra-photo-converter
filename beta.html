@@ -355,7 +355,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 29</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 30</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -1741,7 +1741,7 @@ sync();
   </div>
   <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
 </dialog>
-<script id="beta29-scanner">
+<script id="beta30-scanner">
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id);};
@@ -1786,7 +1786,7 @@ function showScanToast(title,detail){
   toast.querySelector('strong').textContent=title;
   toast.querySelector('.scan-toast-copy span').textContent=detail;
   clearTimeout(toastTimer);clearTimeout(toastExitTimer);toast.classList.remove('toast-pop','toast-out');toast.hidden=false;void toast.offsetWidth;toast.classList.add('toast-pop');
-  toastTimer=setTimeout(fadeScanToast,3300);
+  toastTimer=setTimeout(fadeScanToast,2500);
 }
 function detected(message,title,detail){scanVibrate();say('✓ '+message);showScanToast(title,detail);}
 document.addEventListener('addy-scan-success',function(e){
@@ -2018,4 +2018,4 @@ use.addEventListener('click',function(){
 </script>
 </body>
 </html>
-<!-- Beta 29: centered scan confirmation with softer motion and a short aiming window. -->
+<!-- Beta 30: reduce scan confirmation hold to 2.5 seconds. -->
