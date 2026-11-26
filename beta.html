@@ -355,7 +355,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 28</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 29</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -1741,7 +1741,7 @@ sync();
   </div>
   <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
 </dialog>
-<script id="beta28-scanner">
+<script id="beta29-scanner">
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id);};
@@ -1754,23 +1754,26 @@ var css=document.createElement('style');
 css.textContent=`#scanPreview.model-camera #scanGuide{inset:36% 6%}
 #scanPreview.still-camera .scan-beam{display:none}
 #scanPreview.model-camera{touch-action:manipulation}
-.scan-success-toast{position:fixed;left:50%;top:max(18px,calc(env(safe-area-inset-top) + 8px));transform:translateX(-50%);z-index:99999;width:max-content;max-width:calc(100vw - 28px);box-sizing:border-box;display:flex;align-items:center;gap:11px;padding:10px 16px 10px 10px;border:1px solid #d6e2f2;border-radius:18px;background:#fff;color:#12325b;box-shadow:0 8px 28px #10274738;pointer-events:none;font:600 14px system-ui,sans-serif}
+.scan-success-toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:99999;width:min(310px,calc(100vw - 36px));box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:16px;padding:28px 22px 26px;border:1px solid #d6e2f2;border-radius:26px;background:#fff;color:#12325b;box-shadow:0 16px 60px #10274755;pointer-events:none;font:600 17px system-ui,sans-serif;text-align:center}
 .scan-success-toast[hidden]{display:none!important}
-.scan-toast-mark{position:relative;display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:50%;background:#0046be;color:#fff}
-.scan-toast-mark svg{width:25px;height:25px;overflow:visible}
-.scan-toast-spark{position:absolute;right:-5px;top:-6px;width:13px;height:13px;display:grid;place-items:center;border-radius:50%;background:#ffe000;color:#12325b;font-size:11px;line-height:1}
-.scan-toast-copy{min-width:0;display:grid;gap:2px}
-.scan-toast-copy strong{font-size:15px;line-height:1.25;color:#003b9c}
-.scan-toast-copy span{font-size:12px;font-weight:500;line-height:1.3;overflow-wrap:anywhere}
-.scan-success-toast.toast-pop{animation:scanToastPop .28s cubic-bezier(.2,.75,.3,1.35) both}
-.scan-success-toast.toast-pop .scan-toast-mark svg{animation:scanCheckPop .35s .07s both}
-@keyframes scanToastPop{from{opacity:0;transform:translate(-50%,-10px) scale(.92)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
-@keyframes scanCheckPop{from{opacity:0;transform:scale(.65)}to{opacity:1;transform:scale(1)}}
-@media(prefers-reduced-motion:reduce){.scan-success-toast.toast-pop,.scan-success-toast.toast-pop .scan-toast-mark svg{animation:none}}`;
+.scan-toast-mark{position:relative;display:grid;place-items:center;width:76px;height:76px;flex:0 0 76px;border-radius:50%;background:#0046be;color:#fff}
+.scan-toast-mark svg{width:44px;height:44px;overflow:visible}
+.scan-toast-spark{position:absolute;right:-7px;top:-6px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#ffe000;color:#12325b;font-size:20px;line-height:1}
+.scan-toast-copy{min-width:0;display:grid;gap:6px}
+.scan-toast-copy strong{font-size:26px;line-height:1.2;color:#003b9c}
+.scan-toast-copy span{font-size:16px;font-weight:500;line-height:1.4;overflow-wrap:anywhere}
+.scan-success-toast.toast-pop{animation:scanToastPop .45s cubic-bezier(.22,.75,.3,1) both}
+.scan-success-toast.toast-pop .scan-toast-mark svg{animation:scanCheckPop .5s .12s both}
+.scan-success-toast.toast-out{animation:scanToastOut .4s ease-in-out both}
+@keyframes scanToastPop{from{opacity:0;transform:translate(-50%,-46%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes scanCheckPop{from{opacity:0;transform:scale(.75)}to{opacity:1;transform:scale(1)}}
+@keyframes scanToastOut{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-52%) scale(.98)}}
+@media(prefers-reduced-motion:reduce){.scan-success-toast.toast-pop,.scan-success-toast.toast-pop .scan-toast-mark svg,.scan-success-toast.toast-out{animation:none}}`;
 document.head.appendChild(css);
-var toastTimer,toast=null,lastVibration=0;
+var toastTimer,toastExitTimer,toast=null,lastVibration=0;
 function scanVibrate(){var now=Date.now();if(now-lastVibration<650)return;lastVibration=now;if(navigator.vibrate){try{navigator.vibrate(300);}catch(err){}}}
-function hideScanToast(){clearTimeout(toastTimer);if(toast){toast.hidden=true;toast.classList.remove('toast-pop');}}
+function hideScanToast(){clearTimeout(toastTimer);clearTimeout(toastExitTimer);if(toast){toast.hidden=true;toast.classList.remove('toast-pop','toast-out');}}
+function fadeScanToast(){if(!toast||toast.hidden)return;toast.classList.remove('toast-pop');toast.classList.add('toast-out');toastExitTimer=setTimeout(hideScanToast,400);}
 function showScanToast(title,detail){
   var parent=dialog.open?dialog:document.body;
   if(!toast){
@@ -1782,8 +1785,8 @@ function showScanToast(title,detail){
   else{toast.removeAttribute('aria-hidden');toast.setAttribute('role','status');}
   toast.querySelector('strong').textContent=title;
   toast.querySelector('.scan-toast-copy span').textContent=detail;
-  clearTimeout(toastTimer);toast.classList.remove('toast-pop');toast.hidden=false;void toast.offsetWidth;toast.classList.add('toast-pop');
-  toastTimer=setTimeout(hideScanToast,2300);
+  clearTimeout(toastTimer);clearTimeout(toastExitTimer);toast.classList.remove('toast-pop','toast-out');toast.hidden=false;void toast.offsetWidth;toast.classList.add('toast-pop');
+  toastTimer=setTimeout(fadeScanToast,3300);
 }
 function detected(message,title,detail){scanVibrate();say('✓ '+message);showScanToast(title,detail);}
 document.addEventListener('addy-scan-success',function(e){
@@ -1828,7 +1831,7 @@ function stopVideo(){
 }
 function stopWorker(){var w=worker;worker=null;if(w){try{Promise.resolve(w.terminate()).catch(function(){});}catch(e){}}}
 function setBusy(value){pending=value;live.disabled=value&&!modelMode;modelLive.disabled=value&&modelMode;barcodePhoto.disabled=value;modelPhoto.disabled=value;use.disabled=value;}
-function cancelWork(){++session;hideScanToast();stopVideo();stopWorker();setBusy(false);}
+function cancelWork(){++session;if(toast&&toast.parentNode===dialog)hideScanToast();stopVideo();stopWorker();setBusy(false);}
 function isCurrent(ticket){return dialog.open&&ticket===session;}
 function closeScanner(){
   cancelWork();if(dialog.open)dialog.close();
@@ -1852,6 +1855,7 @@ function loadScript(name,url,globalName){
 function zxing(){return loadScript('zxing','https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js','ZXingBrowser');}
 function tesseract(){return loadScript('tesseract','https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js','Tesseract');}
 function openScanner(button){
+  hideScanToast();
   if(!dialog.showModal){alert('Open this page in an up-to-date Chrome or Safari browser to scan.');return;}
   cancelWork();target=button.dataset.scanTarget;returnFocus=button;kind='barcode';confirm.hidden=true;readout.value='';
   barcodePhoto.value='';modelPhoto.value='';$('scanUploadOptions').open=false;
@@ -1879,6 +1883,10 @@ async function liveScan(){
     if(!isCurrent(ticket)){media.getTracks().forEach(function(t){t.stop();});return;}
     stream=media;preview.hidden=false;video.srcObject=media;await video.play();
     if(!isCurrent(ticket))return;
+    say('Get the barcode inside the guide…');
+    // Let the viewfinder settle before accepting an automatic scan.
+    await new Promise(function(resolve){setTimeout(resolve,1100);});
+    if(!isCurrent(ticket)||!stream)return;
     say('Hold the barcode inside the guide.');
     // Native detector when available; fall back to ZXing on unsupported browsers.
     var formats=['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf','qr_code','data_matrix'];
@@ -2010,4 +2018,4 @@ use.addEventListener('click',function(){
 </script>
 </body>
 </html>
-<!-- Beta 28: animated scan feedback inside the scanner dialog and on product selection. -->
+<!-- Beta 29: centered scan confirmation with softer motion and a short aiming window. -->
