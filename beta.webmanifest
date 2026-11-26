@@ -6,7 +6,7 @@
   "start_url": "./beta.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#eef2f7",
+  "background_color": "#0046be",
   "theme_color": "#0046be",
   "icons": [
     {
