@@ -122,6 +122,24 @@ footer span{font-size:.75rem}
 .print-grid button{width:100%}
 #printCopies{width:100%;min-height:46px;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px;padding:8px}
 #printStatus{overflow-wrap:anywhere;color:var(--bb-dark);margin-bottom:0}
+#iosPrintSetupLink{width:100%;margin-top:8px}
+#iosPrintDialog{width:min(430px,calc(100% - 28px));max-height:88vh;max-height:88dvh;overflow:auto;margin:auto;padding:22px;border:1px solid #d6e2f2;border-radius:22px;background:#fff;color:#173358;box-shadow:0 16px 60px #10274755;color-scheme:light}
+#iosPrintDialog::backdrop{background:#101c34a8}
+#iosPrintDialog h2{font-size:1.35rem;color:#0046be;line-height:1.2}
+#iosPrintDialog p{color:#52647b;margin:8px 0 12px}
+#iosPrintDialog .ios-print-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+#iosPrintDialog .ios-print-icon{display:grid;place-items:center;width:62px;height:62px;background:#0046be;color:#fff;border-radius:18px;margin:0 auto 14px}
+#iosPrintDialog .ios-print-icon svg{width:33px;height:33px}
+#iosPrintDialog .ios-print-step{display:flex;gap:12px;padding:13px 0;border-top:1px solid #e4eaf3;align-items:flex-start}
+#iosPrintDialog .ios-print-num{display:grid;place-items:center;background:#eaf1fc;color:#0046be;width:32px;height:32px;flex:0 0 32px;border-radius:10px;font-weight:800}
+#iosPrintDialog .ios-print-step p{margin:4px 0;font-size:.88rem}
+#iosPrintDialog .ios-print-actions{display:grid;gap:9px;margin-top:14px}
+#iosPrintDialog .ios-print-actions button,#iosPrintDialog .ios-print-actions a{width:100%;min-height:44px}
+#iosPrintDialog .ios-print-primary{background:var(--bb-yellow);color:#17243a}
+#iosPrintDialog .ios-print-info{border:1px solid #d7e2f2;background:#f3f7fc;border-radius:12px;padding:12px;margin:12px 0}
+#iosPrintDialog #iosPrintCopies{width:100%;min-height:44px;font:inherit;border:1px solid #aebdd1;border-radius:9px;padding:8px;color:#173358;background:#fff}
+#iosPrintDialog #iosPrintMessage{font-size:.85rem;margin-top:12px;overflow-wrap:anywhere}
+@media print{#iosPrintDialog,#iosPrintSetupLink{display:none!important}}
 #printerSelect{font-size:16px}
 #directPrint{background:var(--bb-yellow);color:#17243a}
 #printSheet{display:none}
@@ -355,7 +373,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <span class="brand-caption">WAREHOUSE TOOLS</span>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 30</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 31</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -464,6 +482,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
   <div class="section-header"><h2 id="printHeading">ZQ630 printing</h2><span class="muted">Experimental · 4 × 3 in · 203 DPI</span></div>
   <p class="help" id="printIntro">Generate a label first. Your existing PNG actions still work.</p>
   <div id="printPrimary"><button id="laptopPrint" type="button" disabled>Print from laptop</button></div>
+  <button id="iosPrintSetupLink" type="button" class="secondary" hidden>iPhone printer setup / troubleshooting</button>
   <p class="help" id="systemPrintHelp">Windows: select your paired Zebra printer (e.g. Mobile Zebra), 4 × 3-inch stock, actual size, no margins or headers. Set copies in the print dialog.</p>
   <details class="print-extra" id="experimentalPrint"><summary>Other printing options (experimental)</summary>
   <div class="control"><label for="printCopies">Copies (Bluetooth / ZPL)</label><input id="printCopies" type="number" inputmode="numeric" min="1" max="100" step="1" value="1"></div>
@@ -502,6 +521,29 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 </main>
 <div id="printSheet" aria-hidden="true"><img id="printImage" alt=""></div>
 <div id="batchSheet" aria-hidden="true"></div>
+<dialog id="iosPrintDialog" aria-labelledby="iosPrintTitle">
+  <div class="ios-print-head"><h2 id="iosPrintTitle">Let’s get you printing!</h2><button type="button" id="iosPrintClose" class="secondary" aria-label="Close printer setup">✕</button></div>
+  <div id="iosPrintWelcome">
+    <div class="ios-print-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6zM17 12h1"/></svg></div>
+    <p style="text-align:center">You’re on an iPhone or iPad. Your Zebra printer needs a quick one-time setup.</p>
+    <div class="ios-print-actions"><button type="button" class="ios-print-primary" id="iosStartSetup">Set up my printer</button><button type="button" class="secondary" id="iosAlreadySetup">I’ve already connected my printer</button><button type="button" class="secondary" id="iosMaybeLater">Maybe later</button></div>
+  </div>
+  <div id="iosPrintSteps" hidden>
+    <div class="ios-print-info"><strong>Zebra ZQ630</strong><p style="margin:4px 0 0">Bluetooth Classic · 4 × 3-inch labels · 203 DPI</p></div>
+    <div class="ios-print-step"><span class="ios-print-num">1</span><div><strong>Install Zebra Printer Setup Utility</strong><p>Get the free official Zebra app.</p><a href="https://apps.apple.com/us/app/zebra-printer-setup-utility/id1454308745" target="_blank" rel="noopener">Get the app from the App Store</a></div></div>
+    <div class="ios-print-step"><span class="ios-print-num">2</span><div><strong>Connect your printer</strong><p>Turn on the printer and Bluetooth. Use the Zebra app to find your printer and select its Bluetooth Classic connection, accepting any pairing prompts. If it is not listed, check iOS Bluetooth settings and the printer’s discoverability.</p></div></div>
+    <div class="ios-print-step"><span class="ios-print-num">3</span><div><strong>Check label settings</strong><p>Use 4 × 3-inch stock and Black Mark for our warehouse labels. Print a test label in the Zebra app before continuing.</p></div></div>
+    <div class="ios-print-actions"><button type="button" class="ios-print-primary" id="iosSetupDone">I’ve completed setup</button><button type="button" class="secondary" id="iosSetupBack">Back</button></div>
+  </div>
+  <div id="iosPrintReady" hidden>
+    <div class="ios-print-info"><strong>Zebra ZQ630</strong><p style="margin:4px 0 0">Setup marked complete on this device. Connection is managed by the Zebra app.</p></div>
+    <label for="iosPrintCopies">Copies</label><input id="iosPrintCopies" type="number" inputmode="numeric" min="1" max="100" step="1" value="1">
+    <div class="ios-print-actions"><button type="button" class="ios-print-primary" id="iosSendLabel">Share label to Zebra</button><button type="button" class="secondary" id="iosSaveLabel">Save ZPL file instead</button><button type="button" class="secondary" id="iosAirPrint">Use iOS system print</button></div>
+    <p>Choose Zebra Setup in the share sheet if available. Otherwise save the ZPL to Files, open Zebra Setup, choose Available Files, select or import the saved file, then send it to the connected printer.</p>
+    <button type="button" class="secondary" id="iosRepeatSetup">Printer setup / troubleshooting</button>
+  </div>
+  <p id="iosPrintMessage" role="status" aria-live="polite"></p>
+</dialog>
 <script>
 (function(){
 'use strict';
@@ -535,6 +577,9 @@ var batchQueue=[],batchBusy=false;
 var batchAddCurrent=document.getElementById('batchAddCurrent'),batchPicker=document.getElementById('batchPicker'),batchClear=document.getElementById('batchClear'),batchList=document.getElementById('batchList'),batchCount=document.getElementById('batchCount'),batchPrint=document.getElementById('batchPrint'),batchShare=document.getElementById('batchShare'),batchStatus=document.getElementById('batchStatus'),batchSheet=document.getElementById('batchSheet');
 var source=null,sourceUrl='',outputUrl='',outputFile=null,fileName='photo',degrees=0,revision=0;
 var isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+var iosSetupKey='addy-buy-ios-zebra-setup-v1',iosSetupComplete=false,iosDialog=document.getElementById('iosPrintDialog'),iosSetupLink=document.getElementById('iosPrintSetupLink'),iosCopies=document.getElementById('iosPrintCopies'),iosMessage=document.getElementById('iosPrintMessage');
+if(isIOS){try{iosSetupComplete=localStorage.getItem(iosSetupKey)==='1';}catch(e){}}
+iosSetupLink.hidden=!isIOS;
 document.getElementById('needsBrowser').hidden=true;
 if(isIOS){document.getElementById('iosNote').style.display='block';}else{share.textContent='Share PNG';}
 ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
@@ -551,6 +596,7 @@ function applyLayout(){
   laptopPrint.textContent=actual==='desktop'?'Print label':'System print';
   printIntro.textContent=actual==='desktop'?'Generate a label and use Print label to open your Windows printer dialog.':'Save or share the PNG with your existing printing app. System print is available if your device supports it.';
   systemPrintHelp.textContent=actual==='desktop'?'Select your paired Zebra printer (e.g. Mobile Zebra), 4 × 3-inch stock, actual size, no margins or headers. Set copies in the print dialog.':'System print requires a compatible installed printer service. If unavailable, use Share / Save PNG or your existing Zebra utility.';
+  if(isIOS){laptopPrint.textContent='Print label';printIntro.textContent='Print with your Zebra printer using the iPhone setup guide.';systemPrintHelp.textContent='One-time setup with the Zebra app. Safari shares the label file; the Zebra app sends it to the printer.';}
 }
 layoutMode.addEventListener('change',function(){try{localStorage.setItem('zebra-beta-layout',layoutMode.value);}catch(e){}applyLayout();});
 if(desktopQuery.addEventListener)desktopQuery.addEventListener('change',applyLayout);
@@ -647,10 +693,64 @@ shareZpl.addEventListener('click',function(){
 });
 laptopPrint.addEventListener('click',function(){
   if(!outputFile||!printGraphic)return;
+  if(isIOS&&iosDialog.showModal){openIOSPrint(false);return;}
+  systemPrintLabel();
+});
+function systemPrintLabel(){
+  if(!outputFile||!printGraphic)return;
   printMessage('Select the Bluetooth ZQ630 in the print dialog. Set stock to 4 × 3 inches, actual size, no margins or headers. Set copies there.');
   if(printImage.complete&&printImage.naturalWidth){document.body.removeAttribute('data-print-job');window.print();}
-  else{printMessage('Print preview is still loading. Try Print from laptop again.');}
-});
+  else{printMessage('Print preview is still loading. Try Print label again.');}
+}
+function iosPrintScreen(screen){
+  var titles={welcome:'Let’s get you printing!',steps:'Connect your Zebra printer',ready:'Print your label'};
+  document.getElementById('iosPrintTitle').textContent=titles[screen];
+  ['Welcome','Steps','Ready'].forEach(function(s){document.getElementById('iosPrint'+s).hidden=s.toLowerCase()!==screen;});
+  iosMessage.textContent='';
+  var ready=!!outputFile&&!!printGraphic&&!printBusy;
+  ['iosSendLabel','iosSaveLabel','iosAirPrint'].forEach(function(id){document.getElementById(id).disabled=!ready;});
+  if(screen==='ready'&&!ready)iosMessage.textContent='Setup saved. Generate a label to print.';
+}
+function openIOSPrint(setup){
+  if(!isIOS||!iosDialog.showModal)return;
+  iosCopies.value=printCopies.value;
+  iosPrintScreen(setup?'steps':iosSetupComplete?'ready':'welcome');
+  if(!iosDialog.open)iosDialog.showModal();
+}
+function completeIOSSetup(){
+  iosSetupComplete=true;try{localStorage.setItem(iosSetupKey,'1');}catch(e){}
+  iosPrintScreen('ready');
+}
+function iosLabelFile(){
+  if(!outputFile||!printGraphic)throw new Error('Generate a label first.');
+  var n=Number(iosCopies.value);
+  if(!Number.isInteger(n)||n<1||n>100)throw new Error('Enter a whole number from 1 to 100.');
+  printCopies.value=String(n);
+  return zplFile();
+}
+function iosSaveFile(){
+  try{downloadZpl(iosLabelFile());iosMessage.textContent='Save the ZPL to Files if prompted. Open Zebra Setup → Available Files → select or import the file → Send to Printer. Check that it printed before sending again.';}
+  catch(e){iosMessage.textContent=e.message;}
+}
+function iosShareFile(){
+  try{
+    var file=iosLabelFile();
+    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+      navigator.share({files:[file]}).then(function(){iosMessage.textContent='Share sheet closed. Check the Zebra app and printer before sending again.';}).catch(function(e){iosMessage.textContent=e.name==='AbortError'?'Sharing canceled. Your label is still ready.':'Sharing unavailable. Use Save ZPL file instead, then open Available Files in Zebra Setup.';});
+    }else{iosMessage.textContent='This browser cannot share this ZPL file. Use Save ZPL file instead, then open Available Files in Zebra Setup.';}
+  }catch(e){iosMessage.textContent=e.message;}
+}
+iosSetupLink.addEventListener('click',function(){openIOSPrint(true);});
+document.getElementById('iosPrintClose').addEventListener('click',function(){iosDialog.close();});
+document.getElementById('iosMaybeLater').addEventListener('click',function(){iosDialog.close();});
+document.getElementById('iosStartSetup').addEventListener('click',function(){iosPrintScreen('steps');});
+document.getElementById('iosSetupBack').addEventListener('click',function(){iosPrintScreen(iosSetupComplete?'ready':'welcome');});
+document.getElementById('iosSetupDone').addEventListener('click',completeIOSSetup);
+document.getElementById('iosAlreadySetup').addEventListener('click',completeIOSSetup);
+document.getElementById('iosRepeatSetup').addEventListener('click',function(){iosPrintScreen('steps');});
+document.getElementById('iosSaveLabel').addEventListener('click',iosSaveFile);
+document.getElementById('iosSendLabel').addEventListener('click',iosShareFile);
+document.getElementById('iosAirPrint').addEventListener('click',function(){iosDialog.close();systemPrintLabel();});
 async function bridgeRequest(base,path,options){
   var ctrl=new AbortController(),timer=setTimeout(function(){ctrl.abort();},path==='write'?30000:6000);
   try{
@@ -1741,7 +1841,7 @@ sync();
   </div>
   <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
 </dialog>
-<script id="beta30-scanner">
+<script id="beta31-scanner">
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id);};
@@ -2018,4 +2118,4 @@ use.addEventListener('click',function(){
 </script>
 </body>
 </html>
-<!-- Beta 30: reduce scan confirmation hold to 2.5 seconds. -->
+<!-- Beta 31: iOS first-print wizard and Zebra ZPL sharing with file fallback. -->
