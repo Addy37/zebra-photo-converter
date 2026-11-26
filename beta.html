@@ -465,7 +465,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <button id="addyInstall" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg> Install app</button>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 35</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 36</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -2052,10 +2052,11 @@ function openScanner(button){
   cancelWork();target=button.dataset.scanTarget;returnFocus=button;kind='barcode';confirm.hidden=true;readout.value='';
   barcodePhoto.value='';modelPhoto.value='';$('scanUploadOptions').open=false;
   $('scanTitle').textContent=target==='product'?'Scan product':button.getAttribute('aria-label');
-  $('scanHint').textContent=target==='product'?'Choose the barcode scanner or model number camera.':'Aim at the barcode for this field.';
+  $('scanHint').textContent=target==='product'?'Aim at the barcode, or switch to the model number camera.':'Aim at the barcode for this field.';
   $('scanModelPhotoLabel').hidden=target!=='product';modelLive.hidden=target!=='product';setCameraMode(false);
   $('scanReadoutLabel').textContent='Detected value';use.textContent='Use scanned value';
-  say('');if(!dialog.open)dialog.showModal();
+  if(!dialog.open)dialog.showModal();
+  liveScan();
 }
 document.querySelectorAll('[data-scan-target]').forEach(function(button){button.addEventListener('click',function(){openScanner(button);});});
 function showValue(ticket,value,source){
