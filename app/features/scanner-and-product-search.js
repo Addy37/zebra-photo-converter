@@ -149,7 +149,32 @@ function notifySuccess(){document.dispatchEvent(new CustomEvent('addy-scan-succe
 function setCameraMode(model,still){modelMode=model;stillMode=!!still;live.setAttribute('aria-pressed',String(!model));modelLive.setAttribute('aria-pressed',String(model));preview.classList.toggle('model-camera',model);preview.classList.toggle('still-camera',stillMode);preview.querySelector('.scan-aim').textContent=model?'Align model number inside the frame':'Align the barcode inside the frame';capture.textContent='Capture model number';cameraTools.hidden=true;torch.hidden=true;torch.setAttribute('aria-pressed','false');torch.textContent='Flashlight';}
 function track(){return stream&&stream.getVideoTracks()[0];}
 function caps(t){try{return t&&t.getCapabilities?t.getCapabilities():{};}catch(e){return {};}}
-function freshVideo(){var next=video.cloneNode(false);video.replaceWith(next);video=next;}
+// Keep Safari's inline video and dialog aligned to its visible viewport.
+var iosScanner=/iPad|iPhone|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function syncScannerViewport(){
+  if(!iosScanner||!dialog.open)return;
+  var vv=window.visualViewport,root=document.documentElement;
+  var w=vv?vv.width:root.clientWidth,h=vv?vv.height:root.clientHeight;
+  var left=vv?vv.offsetLeft:0,top=vv?vv.offsetTop:0;
+  var layoutW=root.clientWidth,layoutH=root.clientHeight;
+  var values={'--scan-vw':w,'--scan-vh':h,'--scan-left':left,'--scan-top':top,'--scan-right':Math.max(0,layoutW-w-left),'--scan-bottom':Math.max(0,layoutH-h-top)};
+  Object.keys(values).forEach(function(key){dialog.style.setProperty(key,values[key]+'px');});
+}
+if(iosScanner){
+  dialog.setAttribute('data-ios-viewport','');
+  window.addEventListener('resize',syncScannerViewport);
+  window.addEventListener('orientationchange',syncScannerViewport);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',syncScannerViewport);
+    window.visualViewport.addEventListener('scroll',syncScannerViewport);
+  }
+}
+function freshVideo(){
+  var next=video.cloneNode(false);
+  next.autoplay=true;next.muted=true;next.defaultMuted=true;next.playsInline=true;
+  next.setAttribute('playsinline','');next.setAttribute('webkit-playsinline','');
+  video.replaceWith(next);video=next;
+}
 async function startModelCamera(){
   cancelWork();freshVideo();var ticket=session;confirm.hidden=true;readout.value='';setCameraMode(true,true);setBusy(true);say('Opening model camera…');
   try{
@@ -265,6 +290,7 @@ function openScanner(button){
   $('scanModelPhotoLabel').hidden=target!=='product';modelLive.hidden=target!=='product';setCameraMode(false);
   $('scanReadoutLabel').textContent='Detected value';use.textContent='Use scanned value';
   if(!dialog.open)dialog.showModal();
+  syncScannerViewport();
   liveScan();
 }
 document.querySelectorAll('[data-scan-target]').forEach(function(button){button.addEventListener('click',function(){openScanner(button);});});

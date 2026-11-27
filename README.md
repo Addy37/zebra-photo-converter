@@ -52,6 +52,10 @@ Run npm run benchmark for a repeatable 361,872-row synthetic CPU benchmark. It c
 
 The ZXing browser distribution (0.1.5) is vendored under app/vendor/zxing with upstream licenses. It is prepared after initial page load from the same website, without a barcode-scanner CDN request. Native detection remains the first choice where supported. The browser regression test blocks jsDelivr and decodes an actual UPC image with the local library on Chromium and WebKit. Live physical camera scanning on iPhone remains a device acceptance test. The Tesseract OCR library, worker, WASM cores and English data are also vendored under app/vendor/ocr. After initial load, an idle callback loads ZXing and initializes a temporary OCR worker to populate the browser cache, then terminates it. No camera permission is requested. If a scanner is opened early it still works on demand; an in-progress OCR warmup is shared rather than starting duplicate workers. Browser cache persistence is browser-dependent. The full regression also decodes an actual model-number image with external CDNs blocked. The first visit may download several megabytes in the background.
 
+## iOS scanner layout
+
+The scanner dialog tracks Safari's visible viewport on iPhone and iPad, including resize and browser chrome changes. Inline playback is explicitly retained when the camera element is recreated. Existing Android and desktop styling is unchanged. Browser regression checks the dialog, video and both scan guide centers at iPhone 14 Pro Max dimensions and a shorter viewport, plus the existing Android and desktop profiles. These are geometry checks, not a physical camera preview test.
+
 ## Deployment
 
 The existing no-build Cloudflare Pages setup can still serve the repository directly during the transition. To enable Vite after beta approval, use build command npm run build and output directory dist, with Node 22. The existing URL and catalog paths do not need to change. Test a branch preview before changing production settings. Do not merge or promote until desktop and Android/iOS scanning, catalog import, label previews and real printer tests pass.

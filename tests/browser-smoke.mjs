@@ -10,6 +10,34 @@ const fixture = {sku:'6549413',upc:'036000291452',model:'GDT670SGVBB',product:'G
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/a1sAAAAASUVORK5CYII=','base64');
 const wait = async (page, id) => page.waitForFunction(id => !document.getElementById(id).disabled, id);
 const log = (profile, step) => console.log(profile + ' PASS ' + step);
+// Geometry of the actual dialog, video element and guide, with the preview
+// exposed in a permission-denied test. This does not simulate camera pixels.
+async function checkScannerGeometry(page, profile){
+  const bounds=await page.evaluate(()=>{
+    const d=document.getElementById('scanDialog'),p=document.getElementById('scanPreview'),v=document.getElementById('scanVideo'),g=document.getElementById('scanGuide');
+    p.hidden=false;
+    const box=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height};};
+    const vv=window.visualViewport;
+    const normal=box(g);p.classList.add('model-camera');const model=box(g);p.classList.remove('model-camera');
+    const out={dialog:box(d),preview:box(p),video:box(v),normal,model,viewport:{x:vv?.offsetLeft||0,y:vv?.offsetTop||0,w:vv?.width||innerWidth,h:vv?.height||innerHeight},ios:d.hasAttribute('data-ios-viewport'),fit:getComputedStyle(v).objectFit,position:getComputedStyle(v).objectPosition,inline:v.playsInline};
+    p.hidden=true;return out;
+  });
+  const center=(r,k)=>r[k]+r[k==='x'?'w':'h']/2;
+  const near=(a,b,msg,tolerance=2)=>assert.ok(Math.abs(a-b)<=tolerance,msg+': '+a+' vs '+b);
+  for(const axis of ['x','y']){
+    near(center(bounds.dialog,axis),center(bounds.viewport,axis),profile+' dialog center '+axis,4);
+    near(center(bounds.video,axis),center(bounds.preview,axis),profile+' video center '+axis);
+    near(center(bounds.normal,axis),center(bounds.video,axis),profile+' barcode guide center '+axis);
+    near(center(bounds.model,axis),center(bounds.video,axis),profile+' model guide center '+axis);
+  }
+  assert.ok(bounds.dialog.w<=bounds.viewport.w&&bounds.dialog.h<=bounds.viewport.h);
+  assert.ok(bounds.preview.w>0&&bounds.preview.h>0);
+  assert.equal(bounds.fit,'cover');assert.equal(bounds.position,'50% 50%');
+  assert.equal(bounds.inline,true);
+  if(profile==='iPhone WebKit')assert.equal(bounds.ios,true);
+  else assert.equal(bounds.ios,false);
+  console.log(profile+' layout: '+JSON.stringify(bounds));
+}
 async function test(browserType, profile, options, path) {
   const browser=await browserType.launch();
   const context=await browser.newContext({...options,reducedMotion:'reduce',acceptDownloads:true});
@@ -115,6 +143,16 @@ async function test(browserType, profile, options, path) {
     await page.locator('#scanDialog').waitFor({state:'visible'});
     await page.waitForFunction(()=>window.__cameraCalls>0);
     await page.waitForFunction(()=>document.getElementById('scanStatus').textContent.includes('Camera permission denied'));
+    await checkScannerGeometry(page,profile);
+    if(profile==='iPhone WebKit'){
+      const original=page.viewportSize();
+      await page.setViewportSize({width:original.width,height:650});
+      await page.waitForFunction(()=>Math.abs(parseFloat(document.getElementById('scanDialog').style.getPropertyValue('--scan-vh'))-window.visualViewport.height)<2);
+      await checkScannerGeometry(page,profile);
+      await page.setViewportSize(original);
+      await page.waitForFunction(()=>Math.abs(parseFloat(document.getElementById('scanDialog').style.getPropertyValue('--scan-vh'))-window.visualViewport.height)<2);
+    }
+    log(profile,'centered scanner dialog, inline video and barcode/model guides');
     // Decode a real UPC-A image via the actual locally hosted ZXing library.
     // Camera permission is mocked, but the decoder and upload flow are not.
     assert.ok(await page.evaluate(()=>window.ZXingBrowser&&typeof window.ZXingBrowser.BrowserMultiFormatReader==='function'));
@@ -180,7 +218,7 @@ async function test(browserType, profile, options, path) {
 try {
   for(let i=0;i<80;i++){try{if((await fetch(base)).ok)break;}catch{}if(i===79)throw Error('Preview server unavailable');await delay(250);}
   const failures=[];
-  for(const [engine,profile,options,path] of [[chromium,'Desktop',{viewport:{width:1440,height:1000}},'/'],[chromium,'Android emulation',devices['Pixel 7'],'/beta.html'],[webkit,'iPhone WebKit',devices['iPhone 13'],'/beta.html']]){
+  for(const [engine,profile,options,path] of [[chromium,'Desktop',{viewport:{width:1440,height:1000}},'/'],[chromium,'Android emulation',devices['Pixel 7'],'/beta.html'],[webkit,'iPhone WebKit',devices['iPhone 14 Pro Max'],'/beta.html']]){
     try{await test(engine,profile,options,path);}catch(e){failures.push(profile+': '+e.stack);}
   }
   if(failures.length)throw new Error(failures.join('\n\n'));

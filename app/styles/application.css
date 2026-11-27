@@ -389,6 +389,20 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
 .scan-field .scan-button{display:grid;place-items:center;min-width:0;width:46px;min-height:44px;padding:0;border-radius:9px;background:var(--bb-blue);color:white}
 .scan-button svg{width:23px;height:23px;pointer-events:none}
 #scanDialog{width:min(440px,calc(100% - 24px));max-height:90vh;max-height:90dvh;overflow:auto;margin:auto;padding:16px;border:1px solid var(--line);border-radius:14px;color:var(--ink);background:white;box-shadow:0 16px 48px #0005}
+/* iOS Safari can change its visual viewport when browser chrome moves.
+   Center within that visible area, not the underlying layout viewport. */
+#scanDialog[data-ios-viewport]{
+  position:fixed;
+  inset:var(--scan-top,0px) var(--scan-right,0px) var(--scan-bottom,0px) var(--scan-left,0px);
+  margin:auto;
+  width:min(440px,calc(var(--scan-vw,100vw) - 24px));
+  max-width:calc(var(--scan-vw,100vw) - 24px);
+  height:fit-content;
+  max-height:calc(var(--scan-vh,100vh) * .9);
+  overscroll-behavior:contain;
+}
+#scanDialog[data-ios-viewport] #scanPreview{width:100%;max-height:calc(var(--scan-vh,100vh) * .42)}
+#scanDialog[data-ios-viewport] #scanVideo{min-width:0;min-height:0;max-width:none;max-height:none;object-position:50% 50%;-webkit-transform:none;transform:none}
 #scanDialog::backdrop{background:#101c34aa}
 .scan-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
 #scanDialog .scan-close{min-width:40px;min-height:40px;padding:4px 10px}
