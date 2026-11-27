@@ -30,9 +30,7 @@ html.addy-starting.addy-leaving #addySplash .addy-splash-lockup{animation:none;t
 <script id="addy-splash-script">
 (function(){
   var root=document.documentElement;
-  var standalone=navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches||window.matchMedia('(display-mode: minimal-ui)').matches||window.matchMedia('(display-mode: fullscreen)').matches;
-  var preview=new URLSearchParams(location.search).get('splash')==='1';
-  if(!standalone&&!preview)return;
+  // Show the startup splash in regular browsers as well as installed apps.
   var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(reduced)return;
   var start=performance.now(),finishing=false;
@@ -465,7 +463,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <button id="addyInstall" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg> Install app</button>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 36</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 37</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
