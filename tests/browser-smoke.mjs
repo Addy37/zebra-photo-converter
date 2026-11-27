@@ -43,7 +43,13 @@ async function test(browserType, profile, options, path) {
   const context=await browser.newContext({...options,reducedMotion:'reduce',acceptDownloads:true});
   const page=await context.newPage();
   const errors=[];
-  page.on('pageerror',e=>errors.push(e.message));
+  page.on('pageerror',e=>{errors.push(e.message);console.error(profile+' UNCAUGHT:',e.stack||e.message);});
+  page.on('requestfailed',r=>console.log(profile+' REQUEST FAILED:',r.resourceType(),r.url(),r.failure()?.errorText));
+  page.on('console',m=>{if(m.type()==='error'||m.type()==='warning')console.log(profile+' BROWSER '+m.type()+':',m.text(),JSON.stringify(m.location()));});
+  await context.addInitScript(()=>{
+    window.addEventListener('unhandledrejection',e=>console.error('UNHANDLED REJECTION',String(e.reason),e.reason?.stack||''));
+    window.addEventListener('error',e=>{if(e.error)console.error('WINDOW ERROR',e.message,e.filename,e.lineno,e.colno,e.error.stack||'');});
+  });
   try {
     await context.route(base+'/__fixture',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>Test fixture</title>'}));
     await context.route('https://pisces.bbystatic.com/**',route=>route.fulfill({contentType:'image/png',body:png}));
