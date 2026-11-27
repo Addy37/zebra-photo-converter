@@ -19,6 +19,7 @@ async function test(browserType, profile, options, path) {
   try {
     await context.route(base+'/__fixture',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>Test fixture</title>'}));
     await context.route('https://pisces.bbystatic.com/**',route=>route.fulfill({contentType:'image/png',body:png}));
+    await context.route('https://cdn.jsdelivr.net/**',route=>route.abort());
     await page.goto(base+'/__fixture');
     await page.evaluate(async row=>{
       const db=await new Promise((resolve,reject)=>{
@@ -107,8 +108,26 @@ async function test(browserType, profile, options, path) {
     await page.locator('#scanDialog').waitFor({state:'visible'});
     await page.waitForFunction(()=>window.__cameraCalls>0);
     await page.waitForFunction(()=>document.getElementById('scanStatus').textContent.includes('Camera permission denied'));
-    await page.locator('#scanClose').click();
+    // Decode a real UPC-A image via the actual locally hosted ZXing library.
+    // Camera permission is mocked, but the decoder and upload flow are not.
+    assert.equal(await page.evaluate(()=>typeof window.ZXingBrowser),'undefined');
+    const barcode=await page.evaluate(upc=>{
+      const c=document.createElement('canvas');c.width=575;c.height=240;
+      const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,c.width,c.height);
+      const bits=AddyBuyBarcode.upcBits(upc);x.fillStyle='black';
+      for(let i=0;i<bits.length;i++)if(bits[i]==='1')x.fillRect(50+i*5,20,5,180);
+      return c.toDataURL('image/png').split(',')[1];
+    },fixture.upc);
+    await page.locator('#scanUploadOptions summary').click();
+    const localReader=page.waitForResponse(r=>r.url().endsWith('/app/vendor/zxing/zxing-browser.min.js')&&r.ok());
+    await page.locator('#scanBarcodePhoto').setInputFiles({name:'upc-fixture.png',mimeType:'image/png',buffer:Buffer.from(barcode,'base64')});
+    await localReader;
+    await page.waitForFunction(()=>/^(0)?036000291452$/.test(document.getElementById('scanReadout').value));
+    await page.locator('#scanUse').click();
     await page.locator('#scanDialog').waitFor({state:'hidden'});
+    await page.locator('#verifyCreateLabel').waitFor({state:'visible'});
+    assert.equal(await page.locator('#upcInput').inputValue(),fixture.upc);
+    log(profile,'actual local ZXing UPC decoding and catalog match with CDN blocked');
     log(profile,'model search, automatic camera request and close (permission mocked)');
     await page.locator('#photoMode').click();
     const photo=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=40;c.height=30;const x=c.getContext('2d');x.fillStyle='#222';x.fillRect(0,0,40,30);return c.toDataURL('image/png').split(',')[1];});

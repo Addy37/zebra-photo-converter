@@ -48,6 +48,10 @@ Photo-only startup no longer builds the full in-memory catalog search cache. The
 
 Run npm run benchmark for a repeatable 361,872-row synthetic CPU benchmark. It checks matching results and measures search-loop cost, not phone startup, physical scanning, actual database latency or browser memory. First-time catalog import still runs automatically and can take time. First broad search after opening the app may wait for cache preparation. No database migration or service worker introduced.
 
+## Barcode scanner reliability
+
+The ZXing browser distribution (0.1.5) is vendored under app/vendor/zxing with upstream licenses. It is loaded on demand from the same website, without a barcode-scanner CDN request. Native detection remains the first choice where supported. The browser regression test blocks jsDelivr and decodes an actual UPC image with the local library on Chromium and WebKit. Live physical camera scanning on iPhone remains a device acceptance test. The separate Tesseract OCR library still uses its original external hosting.
+
 ## Deployment
 
 The existing no-build Cloudflare Pages setup can still serve the repository directly during the transition. To enable Vite after beta approval, use build command npm run build and output directory dist, with Node 22. The existing URL and catalog paths do not need to change. Test a branch preview before changing production settings. Do not merge or promote until desktop and Android/iOS scanning, catalog import, label previews and real printer tests pass.

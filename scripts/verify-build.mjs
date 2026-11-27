@@ -17,3 +17,6 @@ for (const page of ['index.html', 'beta.html']) {
 }
 assert.deepEqual(readFileSync('dist/addy-buy-catalog-v2.csv.gz'), readFileSync('addy-buy-catalog-v2.csv.gz'));
 console.log('Both static pages, source assets, manifests, icons and catalog verified.');
+
+assert.deepEqual(readFileSync('dist/app/vendor/zxing/zxing-browser.min.js'), readFileSync('app/vendor/zxing/zxing-browser.min.js'));
+console.log('Local ZXing distribution verified in static output.');

@@ -197,13 +197,19 @@ function loadScript(name,url,globalName){
   if(loaded[name])return loaded[name];
   loaded[name]=new Promise(function(resolve,reject){
     var script=document.createElement('script');script.src=url;script.async=true;
-    script.onload=function(){if(window[globalName])resolve(window[globalName]);else reject(new Error('Scanner library unavailable.'));};
-    script.onerror=function(){script.remove();reject(new Error('Could not load scanner. Check your internet connection.'));};
+    var timer=setTimeout(fail,15000);
+    function fail(){
+      clearTimeout(timer);script.onload=null;script.onerror=null;script.remove();
+      var error=new Error(name==='zxing'?'Barcode reader could not start. Reload ADDY BUY and try again. You can also enter the barcode manually.':'Model reader could not load. Check your connection and try again.');
+      error.name='ScannerLoadError';reject(error);
+    }
+    script.onload=function(){if(window[globalName]){clearTimeout(timer);resolve(window[globalName]);}else fail();};
+    script.onerror=fail;
     document.head.appendChild(script);
   }).catch(function(e){delete loaded[name];throw e;});
   return loaded[name];
 }
-function zxing(){return loadScript('zxing','https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js','ZXingBrowser');}
+function zxing(){return loadScript('zxing',new URL('./app/vendor/zxing/zxing-browser.min.js',location.href).href,'ZXingBrowser');}
 function tesseract(){return loadScript('tesseract','https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js','Tesseract');}
 function openScanner(button){
   hideScanToast();
@@ -276,7 +282,7 @@ async function photoBarcode(file){
     var api=await zxing();if(!isCurrent(ticket))return;
     var reader=new api.BrowserMultiFormatReader(),result=await reader.decodeFromImageUrl(url);
     showValue(ticket,result.getText(),'barcode');
-  }catch(e){if(isCurrent(ticket)){setBusy(false);say('No readable barcode found. Try a closer, well-lit photo.');}}
+  }catch(e){if(isCurrent(ticket)){setBusy(false);say(e.name==='ScannerLoadError'?e.message:'No readable barcode found. Try a closer, well-lit photo.');}}
   finally{URL.revokeObjectURL(url);}
 }
 var modelCandidates=AddyBuyCatalog.modelCandidates;
