@@ -17,6 +17,8 @@
 html.addy-starting:not(.addy-leaving){background:#0046be}
 html.addy-starting #addySplash,html.addy-starting.addy-leaving #addySplash{display:grid;position:fixed;inset:0;z-index:2147483647;place-items:center;background:#0046be;color:#fff;overflow:hidden;isolation:isolate}
 #addySplash .addy-splash-lockup{display:flex;flex-direction:column;align-items:center;gap:19px;width:min(56vw,216px);transform-origin:center;animation:addyLogoIn 460ms cubic-bezier(.2,.75,.25,1) both}
+html.addy-starting:not(.addy-animating) #addySplash .addy-splash-lockup{animation:none;opacity:0}
+html.addy-starting:not(.addy-animating) #addySplash .addy-splash-accent{animation:none;transform:scaleX(0)}
 #addySplash svg{display:block;width:100%;height:auto}
 #addySplash .addy-splash-caption{font:650 clamp(9px,2.35vw,11px)/1.3 system-ui,-apple-system,sans-serif;letter-spacing:.21em;white-space:nowrap;text-align:center;color:#fff}
 #addySplash .addy-splash-accent{width:32px;height:3px;background:#ffe000;border-radius:3px;transform-origin:left;animation:addyAccentIn 390ms 180ms cubic-bezier(.2,.75,.25,1) both}
@@ -30,21 +32,36 @@ html.addy-starting.addy-leaving #addySplash .addy-splash-lockup{animation:none;t
 <script id="addy-splash-script">
 (function(){
   var root=document.documentElement;
-  // Show the startup splash in regular browsers as well as installed apps.
-  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduced)return;
-  var start=performance.now(),finishing=false;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var active=true,started=false,holdTimer,fadeTimer;
   root.classList.add('addy-starting');
-  function cleanup(){root.classList.remove('addy-starting','addy-leaving');var splash=document.getElementById('addySplash');if(splash)splash.remove();}
-  function finish(){
-    if(finishing)return;finishing=true;
-    var remaining=Math.max(0,1100-(performance.now()-start));
-    window.setTimeout(function(){root.classList.add('addy-leaving');window.setTimeout(cleanup,410);},remaining);
+  function cleanup(){
+    active=false;
+    window.clearTimeout(holdTimer);
+    window.clearTimeout(fadeTimer);
+    root.classList.remove('addy-starting','addy-animating','addy-leaving');
+    var splash=document.getElementById('addySplash');if(splash)splash.remove();
   }
-  document.addEventListener('DOMContentLoaded',finish,{once:true});
+  function begin(){
+    if(!active||started||document.visibilityState==='hidden')return;
+    started=true;
+    window.requestAnimationFrame(function(){
+      window.requestAnimationFrame(function(){
+        if(!active)return;
+        root.classList.add('addy-animating');
+        holdTimer=window.setTimeout(function(){
+          if(!active)return;
+          root.classList.add('addy-leaving');
+          fadeTimer=window.setTimeout(cleanup,410);
+        },1300);
+      });
+    });
+  }
+  document.addEventListener('DOMContentLoaded',begin,{once:true});
+  document.addEventListener('visibilitychange',function(){
+    if(document.readyState!=='loading')begin();
+  });
   window.addEventListener('pageshow',function(e){if(e.persisted)cleanup();});
-  window.setTimeout(finish,1400);
-  window.setTimeout(cleanup,2200);
 })();
 </script>
 <style>
@@ -463,7 +480,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <button id="addyInstall" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg> Install app</button>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 37</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 38</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
