@@ -339,6 +339,29 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 #productSummary dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:.85rem}
 #productSummary dt{color:#465771}#productSummary dd{margin:0;font-weight:650}
 #productSummary button{justify-self:start;min-height:36px;padding:5px 10px;font-size:.8rem}
+.product-visual{display:grid;grid-template-columns:minmax(92px,132px) minmax(0,1fr);gap:12px;align-items:center;padding:12px;border:1px solid #c5d5e9;background:#f4f8ff;border-radius:12px;min-width:0;color:#12325b}
+.product-visual[hidden],.product-visual [hidden]{display:none!important}
+.product-visual-photo{display:grid;place-items:center;min-height:96px;min-width:0;text-align:center;background:#fff;border-radius:9px;padding:5px}
+.product-visual-zoom{display:block;width:100%;height:auto;padding:0;border:0;background:#fff;color:#12325b;cursor:zoom-in;box-shadow:none;min-height:0}
+.product-visual-zoom img{display:block;width:100%;height:112px;object-fit:contain}
+.product-visual-state{font:500 12px/1.35 system-ui,sans-serif;color:#526880;padding:8px}
+.product-visual-copy{display:grid;gap:5px;min-width:0;overflow-wrap:anywhere}
+.product-visual-name{font-size:15px;line-height:1.3}
+.product-visual-meta,.product-visual-copy small{font:500 12px/1.4 system-ui,sans-serif;color:#465771}
+#productVerifyDialog{box-sizing:border-box;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:18px;border:1px solid #c5d5e9;border-radius:20px;background:#fff;color:#12325b;text-align:center;box-shadow:0 20px 70px #10274755}
+#productVerifyDialog::backdrop{background:#10274788}
+#productVerifyDialog h2{font-size:23px;color:#0046be;margin:6px 0 12px}
+#productVerifyDialog .verify-mark{display:grid;place-items:center;margin:auto;width:48px;height:48px;background:#0046be;color:white;border-radius:50%;font-size:28px}
+#productVerifyDialog .product-visual{grid-template-columns:1fr;background:#fff;border:0;padding:0;gap:8px}
+#productVerifyDialog .product-visual-zoom img{height:min(205px,30dvh)}
+#productVerifyDialog .product-visual-name{font-size:17px}
+#productVerifyDialog .verify-actions{display:grid;gap:8px;margin-top:14px}
+#productVerifyDialog .verify-actions button{width:100%;min-height:44px}
+#productVisualPreview.is-expanded{grid-template-columns:1fr}
+#productVisualPreview.is-expanded img,#productVerifyDialog .is-expanded img{height:min(390px,48dvh)}
+.product-visual.is-expanded .product-visual-zoom{cursor:zoom-out}
+@media(max-height:450px){#productVerifyDialog .product-visual-zoom img{height:95px}#productVerifyDialog .is-expanded img{height:42dvh}}
+@media print{#productVisualPreview,#productVerifyDialog{display:none!important}}
 /* Search results are non-shrinking list rows, not fixed-height action buttons. */
 #catalogChoices{display:flex;flex-direction:column;gap:0;min-width:0;max-height:320px;max-height:min(320px,42dvh);overflow:auto;overscroll-behavior:contain;border:1px solid #d4dce9;border-radius:10px;background:#fff;scrollbar-width:thin}
 #catalogChoices button.catalog-result{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr) 12px;align-items:center;gap:8px;width:100%;min-width:0;min-height:56px;height:auto;padding:9px 10px;border:0;border-radius:0;background:#fff;color:var(--ink);text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.3;font-weight:400;transform:none}
@@ -480,7 +503,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
     <button id="addyInstall" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg> Install app</button>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 39</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 40</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -522,6 +545,7 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
       <div class="scan-field"><input id="catalogModel" type="search" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="SKU, model or UPC" aria-controls="catalogChoices"><button type="button" class="scan-button" data-scan-target="product" aria-label="Scan product barcode or model" title="Scan product barcode or model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
       <div id="catalogMatch" class="catalog-match" hidden role="status" aria-live="polite"></div>
       <div id="catalogChoices" hidden aria-label="Matching products"></div>
+      <section id="productVisualPreview" class="product-visual" hidden aria-label="Matched product"><div class="product-visual-photo"><button type="button" class="product-visual-zoom" hidden aria-label="Enlarge product photo"><img alt="Matched product photo" referrerpolicy="no-referrer"></button><span class="product-visual-state" role="status"></span></div><div class="product-visual-copy"><strong class="product-visual-name"></strong><span class="product-visual-meta"></span><small>Compare the model and physical unit.</small></div></section>
       <section id="productSummary" hidden aria-label="Selected product">
         <strong id="summaryProduct"></strong>
         <dl><dt>Model</dt><dd id="summaryModel"></dd><dt>SKU</dt><dd id="summarySku"></dd><dt>UPC</dt><dd id="summaryUpc"></dd><dt>Dept</dt><dd id="summaryDept"></dd><dt>Brand</dt><dd id="summaryBrand"></dd></dl>
@@ -1743,7 +1767,7 @@ async function lookupModel(scan){
     if(ticket!==lookupTicket||busy)return;
     if(!meta)throw new Error('Import a catalog first.');
     active=meta;
-    var rows=await warmCache(meta),buckets=[[],[],[],[],[],[],[]],total=0;
+    var rows=await warmCache(meta),buckets=Array.from({length:7},function(){return []; }),total=0;
     var exactUPC=catalogUPC(raw);
     if(ticket!==lookupTicket||busy)return;
     for(var i=0;i<rows.length;i++){
@@ -1756,10 +1780,11 @@ async function lookupModel(scan){
     var exactOCR=ocr&&(buckets[0].length||buckets[1].length);
     var results=[].concat.apply([],ocr&&exactOCR?buckets.slice(0,2):buckets).slice(0,10);
     if(!results.length){showMatch(ocr?'No catalog model matched the photo. Try a closer picture or enter the model.':'No matching SKU, model or UPC found.','error');return;}
-    if(scan&&scan.kind==='barcode'&&total===1&&(buckets[0].length||buckets[1].length||buckets[2].length)){
+    var manualExact=!scan&&((exactUPC&&buckets[0].length===1)||(/^\d{7}$/.test(raw)&&buckets[1].length===1));
+    if(manualExact||(scan&&scan.kind==='barcode'&&total===1&&(buckets[0].length||buckets[1].length||buckets[2].length))){
       var latest=await readSKU(db,results[0].sku);
       if(ticket!==lookupTicket||busy)return;
-      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched',product:latest.row}}));return;}
+      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);if(scan)document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched',product:latest.row}}));return;}
       showMatch('Catalog changed. Scan again.','error');return;
     }
     showMatch(ocr&&!exactOCR?'Possible model matches. Verify and select the correct product.':results.length>1?'Select the correct product.':'Select product.','ok');
@@ -1948,6 +1973,7 @@ sync();
   </div>
   <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
 </dialog>
+<dialog id="productVerifyDialog" aria-labelledby="productVerifyTitle"><div class="verify-mark" aria-hidden="true">✓</div><h2 id="productVerifyTitle">Product matched!</h2><section class="product-visual" hidden aria-label="Matched product"><div class="product-visual-photo"><button type="button" class="product-visual-zoom" hidden aria-label="Enlarge product photo"><img alt="Matched product photo" referrerpolicy="no-referrer"></button><span class="product-visual-state" role="status"></span></div><div class="product-visual-copy"><strong class="product-visual-name"></strong><span class="product-visual-meta"></span><small>Compare the model and physical unit.</small></div></section><div class="verify-actions"><button type="button" id="verifyContinue">Confirm &amp; Continue</button><button type="button" id="verifyScanAgain" class="secondary">Scan Again</button></div></dialog>
 <script id="beta31-scanner">
 (function(){
 'use strict';
@@ -1987,6 +2013,40 @@ css.textContent=`#scanPreview.model-camera #scanGuide{inset:36% 6%}
 @media(prefers-reduced-motion:reduce){.scan-success-toast.toast-pop,.scan-success-toast.toast-pop .scan-toast-mark svg,.scan-success-toast.toast-out{animation:none}}`;
 document.head.appendChild(css);
 var toastTimer,toastExitTimer,toast=null,lastVibration=0,productImageTicket=0;
+var pageProduct=$('productVisualPreview'),verifyDialog=$('productVerifyDialog'),verifyProduct=verifyDialog.querySelector('.product-visual'),currentVisualRow=null;
+function renderProductVisual(panel,row){
+  var ticket=(panel._imageTicket||0)+1;panel._imageTicket=ticket;
+  var zoom=panel.querySelector('.product-visual-zoom'),old=zoom.querySelector('img'),img=old.cloneNode(false),state=panel.querySelector('.product-visual-state');
+  img.removeAttribute('src');old.replaceWith(img);zoom.hidden=true;panel.classList.remove('is-expanded');zoom.setAttribute('aria-label','Enlarge product photo');zoom.setAttribute('aria-expanded','false');
+  panel.hidden=!row;state.hidden=false;state.textContent='';
+  if(!row)return;
+  var sku=String(row.sku||'').trim();
+  panel.querySelector('.product-visual-name').textContent=row.product||'Product';
+  panel.querySelector('.product-visual-meta').textContent=[sku?'SKU '+sku:'',row.model?'Model '+row.model:'',row.brand||'',row.upc?'UPC '+row.upc:''].filter(Boolean).join(' · ');
+  state.textContent='Loading product photo…';
+  if(!/^\d{7}$/.test(sku)){state.textContent='Product photo unavailable';return;}
+  img.onload=function(){if(panel._imageTicket!==ticket)return;zoom.hidden=false;state.hidden=true;};
+  img.onerror=function(){if(panel._imageTicket!==ticket)return;zoom.hidden=true;state.hidden=false;state.textContent='Product photo unavailable';};
+  img.src='https://pisces.bbystatic.com/image2/BestBuy_US/images/products/'+sku.slice(0,4)+'/'+sku+'_sd.jpg;maxHeight=600;maxWidth=600';
+}
+[pageProduct,verifyProduct].forEach(function(panel){
+  var zoom=panel.querySelector('.product-visual-zoom');
+  zoom.addEventListener('click',function(){var expanded=panel.classList.toggle('is-expanded');zoom.setAttribute('aria-label',expanded?'Reduce product photo':'Enlarge product photo');zoom.setAttribute('aria-expanded',String(expanded));});
+});
+document.addEventListener('addy-catalog-match',function(e){
+  currentVisualRow=e.detail||null;renderProductVisual(pageProduct,currentVisualRow);
+});
+[['upcSkuInput','sku'],['upcInput','upc'],['dispModel','model']].forEach(function(pair){
+  $(pair[0]).addEventListener('input',function(){if(currentVisualRow&&String(this.value).trim().toUpperCase()!==String(currentVisualRow[pair[1]]||'').trim().toUpperCase()){currentVisualRow=null;renderProductVisual(pageProduct,null);}});
+});
+function showProductVerification(row){
+  hideScanToast();renderProductVisual(verifyProduct,row);
+  if(!verifyDialog.open)verifyDialog.showModal();
+  $('verifyContinue').focus({preventScroll:true});
+}
+$('verifyContinue').addEventListener('click',function(){verifyDialog.close();});
+$('verifyScanAgain').addEventListener('click',function(){verifyDialog.close();var button=document.querySelector('[data-scan-target="product"]');if(button)openScanner(button);});
+verifyDialog.addEventListener('close',function(){if(!verifyDialog.open)renderProductVisual(verifyProduct,null);});
 function scanVibrate(){var now=Date.now();if(now-lastVibration<650)return;lastVibration=now;if(navigator.vibrate){try{navigator.vibrate(300);}catch(err){}}}
 function hideScanToast(){++productImageTicket;clearTimeout(toastTimer);clearTimeout(toastExitTimer);if(toast){toast.hidden=true;toast.classList.remove('toast-pop','toast-out');var product=toast.querySelector('.scan-toast-product');product.hidden=true;product.querySelector('img')?.remove();}}
 function fadeScanToast(){if(!toast||toast.hidden)return;toast.classList.remove('toast-pop');toast.classList.add('toast-out');toastExitTimer=setTimeout(hideScanToast,400);}
@@ -2026,7 +2086,8 @@ function detected(message,title,detail){scanVibrate();say('✓ '+message);showSc
 document.addEventListener('addy-scan-success',function(e){
   scanVibrate();
   var matched=e.detail&&e.detail.message==='Scan successful: product matched';
-  showScanToast(matched?'Product matched!':'All set!',matched?'Product details filled in.':'Scanned value added.',matched?e.detail.product:null);
+  if(matched&&e.detail.product){showProductVerification(e.detail.product);return;}
+  showScanToast(matched?'Product matched!':'All set!',matched?'Product details filled in.':'Scanned value added.');
 });
 function notifySuccess(){document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful'}}));}
 function setCameraMode(model,still){modelMode=model;stillMode=!!still;live.setAttribute('aria-pressed',String(!model));modelLive.setAttribute('aria-pressed',String(model));preview.classList.toggle('model-camera',model);preview.classList.toggle('still-camera',stillMode);preview.querySelector('.scan-aim').textContent=model?'Align model number inside the frame':'Align the barcode inside the frame';capture.textContent='Capture model number';cameraTools.hidden=true;torch.hidden=true;torch.setAttribute('aria-pressed','false');torch.textContent='Flashlight';}
@@ -2259,4 +2320,4 @@ use.addEventListener('click',function(){
 </dialog>
 </body>
 </html>
-<!-- Beta 39: matched-product photo preview; nonblocking SKU CDN lookup. -->
+<!-- Beta 40: persistent product preview and explicit scan verification. -->
