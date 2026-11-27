@@ -210,7 +210,51 @@ function loadScript(name,url,globalName){
   return loaded[name];
 }
 function zxing(){return loadScript('zxing',new URL('./app/vendor/zxing/zxing-browser.min.js',location.href).href,'ZXingBrowser');}
-function tesseract(){return loadScript('tesseract','https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js','Tesseract');}
+var ocrBase=new URL('./app/vendor/ocr/',location.href);
+var warmOCR=null,ocrUsed=false,preparationScheduled=false;
+function tesseract(){return loadScript('tesseract',new URL('tesseract.min.js',ocrBase).href,'Tesseract');}
+function createModelWorker(api,logger){
+  return api.createWorker('eng',1,{
+    workerPath:new URL('worker.min.js',ocrBase).href,
+    corePath:new URL('core/',ocrBase).href,
+    langPath:new URL('lang/',ocrBase).href,
+    workerBlobURL:false,
+    logger:logger||function(){}
+  });
+}
+// Prepare after the initial page load, without requesting camera permission.
+// Warm up the real OCR engine and its language cache, then free the worker.
+async function prepareScanners(){
+  var root=document.documentElement;
+  if(dialog.open||document.hidden){setTimeout(schedulePreparation,1500);return;}
+  root.dataset.scannerPreparation='warming';
+  try{
+    await zxing();
+    if(!ocrUsed){
+      if(dialog.open||document.hidden){setTimeout(schedulePreparation,1500);return;}
+      warmOCR=(async function(){
+        var warmWorker=null;
+        try{warmWorker=await createModelWorker(await tesseract());}
+        finally{if(warmWorker)await warmWorker.terminate();}
+      })();
+      try{await warmOCR;}finally{warmOCR=null;}
+    }
+    root.dataset.scannerPreparation='ready';
+  }catch(e){
+    root.dataset.scannerPreparation='deferred';
+    // A failed background attempt never prevents a normal on-demand retry.
+  }
+}
+function schedulePreparation(){
+  if(preparationScheduled)return;
+  preparationScheduled=true;
+  var run=function(){preparationScheduled=false;prepareScanners();};
+  if(window.requestIdleCallback)window.requestIdleCallback(run,{timeout:1800});
+  else setTimeout(run,250);
+}
+function afterStartup(){setTimeout(schedulePreparation,1200);}
+if(document.readyState==='complete')afterStartup();
+else window.addEventListener('load',afterStartup,{once:true});
 function openScanner(button){
   hideScanToast();
   if(!dialog.showModal){alert('Open this page in an up-to-date Chrome or Safari browser to scan.');return;}
@@ -310,12 +354,13 @@ function contrastPhoto(source){
 }
 var recognizedText='';
 async function photoModel(file){
-  cancelWork();var ticket=session;confirm.hidden=true;setBusy(true);recognizedText='';say('Loading model reader…');
+  cancelWork();ocrUsed=true;var ticket=session;confirm.hidden=true;setBusy(true);recognizedText='';say('Loading model reader…');
   var localWorker=null,canvas=null,enhanced=null,pass=1;
   try{
     var api=await tesseract();if(!isCurrent(ticket))return;
     canvas=file instanceof HTMLCanvasElement?file:await resizePhoto(file);if(!isCurrent(ticket)){canvas.width=0;canvas.height=0;return;}
-    localWorker=await api.createWorker('eng',1,{logger:function(m){if(isCurrent(ticket)&&m.status==='recognizing text')say('Reading label ('+pass+'/2)… '+Math.round((m.progress||0)*100)+'%');}});
+    if(warmOCR){try{await warmOCR;}catch(e){}if(!isCurrent(ticket))return;}
+    localWorker=await createModelWorker(api,function(m){if(isCurrent(ticket)&&m.status==='recognizing text')say('Reading label ('+pass+'/2)… '+Math.round((m.progress||0)*100)+'%');});
     if(!isCurrent(ticket)){await localWorker.terminate();localWorker=null;return;}
     worker=localWorker;
     await localWorker.setParameters({tessedit_pageseg_mode:'11',preserve_interword_spaces:'1'});

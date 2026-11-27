@@ -20,6 +20,8 @@ async function test(browserType, profile, options, path) {
     await context.route(base+'/__fixture',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>Test fixture</title>'}));
     await context.route('https://pisces.bbystatic.com/**',route=>route.fulfill({contentType:'image/png',body:png}));
     await context.route('https://cdn.jsdelivr.net/**',route=>route.abort());
+    await context.route('https://tessdata.projectnaptha.com/**',route=>route.abort());
+    await context.route('https://unpkg.com/**',route=>route.abort());
     await page.goto(base+'/__fixture');
     await page.evaluate(async row=>{
       const db=await new Promise((resolve,reject)=>{
@@ -51,6 +53,11 @@ async function test(browserType, profile, options, path) {
     await page.locator('#nightModeToggle').click();
     assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
     log(profile,'startup, layout, stored theme and catalog metadata');
+    await page.waitForFunction(()=>document.documentElement.dataset.scannerPreparation==='ready',null,{timeout:90000});
+    assert.equal(await page.evaluate(()=>window.__cameraCalls),0);
+    assert.equal(await page.evaluate(()=>typeof window.ZXingBrowser),'object');
+    assert.ok(await page.evaluate(()=>window.Tesseract&&typeof window.Tesseract.createWorker==='function'));
+    log(profile,'both scanners prepared before camera activation, no permission request');
     await page.locator('#verifyMode').click();
     await page.locator('#catalogModel').fill(fixture.sku);
     await page.locator('#verifyCreateLabel').waitFor({state:'visible'});
@@ -110,7 +117,7 @@ async function test(browserType, profile, options, path) {
     await page.waitForFunction(()=>document.getElementById('scanStatus').textContent.includes('Camera permission denied'));
     // Decode a real UPC-A image via the actual locally hosted ZXing library.
     // Camera permission is mocked, but the decoder and upload flow are not.
-    assert.equal(await page.evaluate(()=>typeof window.ZXingBrowser),'undefined');
+    assert.ok(await page.evaluate(()=>window.ZXingBrowser&&typeof window.ZXingBrowser.BrowserMultiFormatReader==='function'));
     const barcode=await page.evaluate(upc=>{
       const c=document.createElement('canvas');c.width=575;c.height=240;
       const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,c.width,c.height);
@@ -119,9 +126,7 @@ async function test(browserType, profile, options, path) {
       return c.toDataURL('image/png').split(',')[1];
     },fixture.upc);
     await page.locator('#scanUploadOptions summary').click();
-    const localReader=page.waitForResponse(r=>r.url().endsWith('/app/vendor/zxing/zxing-browser.min.js')&&r.ok());
     await page.locator('#scanBarcodePhoto').setInputFiles({name:'upc-fixture.png',mimeType:'image/png',buffer:Buffer.from(barcode,'base64')});
-    await localReader;
     await page.waitForFunction(()=>/^(0)?036000291452$/.test(document.getElementById('scanReadout').value));
     await page.locator('#scanUse').click();
     await page.locator('#scanDialog').waitFor({state:'hidden'});
@@ -129,6 +134,23 @@ async function test(browserType, profile, options, path) {
     assert.equal(await page.locator('#upcInput').inputValue(),fixture.upc);
     log(profile,'actual local ZXing UPC decoding and catalog match with CDN blocked');
     log(profile,'model search, automatic camera request and close (permission mocked)');
+    await page.locator('#verifyClear').click();
+    await page.locator('#verifyScanProduct').click();
+    await page.waitForFunction(()=>document.getElementById('scanStatus').textContent.includes('Camera permission denied'));
+    const modelPhoto=await page.evaluate(model=>{
+      const c=document.createElement('canvas');c.width=1200;c.height=320;
+      const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,c.width,c.height);
+      x.fillStyle='black';x.font='bold 100px Arial, sans-serif';x.fillText(model,50,180);
+      return c.toDataURL('image/png').split(',')[1];
+    },fixture.model);
+    await page.locator('#scanUploadOptions summary').click();
+    await page.locator('#scanModelPhoto').setInputFiles({name:'model-fixture.png',mimeType:'image/png',buffer:Buffer.from(modelPhoto,'base64')});
+    await page.waitForFunction(()=>document.getElementById('scanReadout').value.includes('GDT670SGVBB')&&!document.getElementById('scanUse').disabled,null,{timeout:90000});
+    await page.locator('#scanUse').click();
+    await page.locator('#scanDialog').waitFor({state:'hidden'});
+    await page.locator('#verifyCreateLabel').waitFor({state:'visible'});
+    assert.equal(await page.locator('#upcInput').inputValue(),fixture.upc);
+    log(profile,'actual local Tesseract model recognition and catalog match with CDN blocked');
     await page.locator('#photoMode').click();
     const photo=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=40;c.height=30;const x=c.getContext('2d');x.fillStyle='#222';x.fillRect(0,0,40,30);return c.toDataURL('image/png').split(',')[1];});
     await page.locator('#picker').setInputFiles({name:'fixture.png',mimeType:'image/png',buffer:Buffer.from(photo,'base64')});

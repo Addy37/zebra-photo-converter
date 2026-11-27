@@ -20,3 +20,9 @@ console.log('Both static pages, source assets, manifests, icons and catalog veri
 
 assert.deepEqual(readFileSync('dist/app/vendor/zxing/zxing-browser.min.js'), readFileSync('app/vendor/zxing/zxing-browser.min.js'));
 console.log('Local ZXing distribution verified in static output.');
+
+for(const asset of ['tesseract.min.js','worker.min.js','core/tesseract-core-lstm.wasm.js','core/tesseract-core-simd-lstm.wasm.js','core/tesseract-core-lstm.wasm','core/tesseract-core-simd-lstm.wasm','lang/eng.traineddata.gz']){
+  const path='app/vendor/ocr/'+asset;
+  assert.deepEqual(readFileSync('dist/'+path),readFileSync(path),path);
+}
+console.log('Local OCR worker, core and language data verified in static output.');
