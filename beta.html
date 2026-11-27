@@ -525,7 +525,7 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
     <button id="addyInstall" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg> Install app</button>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 41</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 42</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -1314,12 +1314,22 @@ function switchMode(next,force){
 photoMode.addEventListener('click',function(){switchMode('photo');});
 barcodeMode.addEventListener('click',function(){switchMode('barcode');});
 verifyMode.addEventListener('click',function(){switchMode('verify');});
-document.addEventListener('addy-verify-label',function(e){
+function createVerifiedStandardLabel(e){
   if(mode!=='verify'||!e.detail)return;
-  var row=e.detail;brandEdited=false;
+  var row=e.detail;
+  // The verified catalog row is authoritative. Do not restart the search or
+  // inherit an order number, LPN, or disposition from a previous label.
+  labelFormat.value='standard';standardKind='UPC';
+  includeOrder.checked=false;orderInput.value='';lpnInput.value='';
+  brandEdited=false;
+  upcSkuInput.value=String(row.sku||'');upcInput.value=String(row.upc||'');
   document.dispatchEvent(new CustomEvent('addy-catalog-match',{detail:row}));
-  standardKind='UPC';switchMode('barcode');
-});
+  switchMode('barcode');
+  // Use the same validation, drawing, export and print preparation as Generate.
+  upcForm.requestSubmit(upcGenerate);
+  document.getElementById('previewPanel').scrollIntoView({block:'nearest',behavior:'auto'});
+}
+document.addEventListener('addy-verify-label',createVerifiedStandardLabel);
 labelFormat.addEventListener('change',function(){switchMode('barcode',true);});
 function syncStandardFields(){
   var standard=mode==='barcode'&&labelFormat.value==='standard',lpn=standard&&standardKind==='LPN';
@@ -2367,4 +2377,4 @@ use.addEventListener('click',function(){
 </dialog>
 </body>
 </html>
-<!-- Beta 41: dedicated Verify mode using shared catalog and scanner. -->
+<!-- Beta 42: Verify creates a ready-to-print standard UPC label in one click. -->
