@@ -1,0 +1,1 @@
+b5ad3df920738ca7adcb74508d7e6b6a5b9024993fb9a0c702da1ad8964eca07  app/vendor/zxing/zxing-browser.min.js
