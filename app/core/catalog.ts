@@ -1,7 +1,7 @@
 // Shared catalog algorithms. No DOM initialization or storage side effects.
 const AddyBuyCatalog = (function () {
 'use strict';
-function skuKey(s: unknown): string{s=String(s).trim();return /^[0-9]{1,12}$/.test(s)?s.replace(/^0+(?=\d)/,''):'';}
+function skuKey(s: unknown): string{var value=String(s).trim();return /^[0-9]{1,12}$/.test(value)?value.replace(/^0+(?=\d)/,''):'';}
 function validUPC(s: string): boolean{
   if(!/^[0-9]{12}$/.test(s)||s==='000000000000')return false;
   var n=0;for(var i=0;i<12;i++)n+=Number(s[i])*(i%2===0?3:1);
@@ -74,7 +74,7 @@ function ocrModelKeys(text: unknown): Set<string>{
   function add(value: string,explicit: boolean){var k=modelKey(value);if(k.length>=4&&k.length<=64&&/\d/.test(k)&&(/[A-Z]/.test(k)||explicit))keys.add(k);}
   lines.forEach(function(line,i){
     var match=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD(?:EL)?\.)\s*[:#-]?\s*(.*)$/);
-    if(match){var tail=match[1].trim()||(lines[i+1]||'').trim();var parts=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
+    if(match){var tail=match[1].trim()||(lines[i+1]||'').trim();var parts: string[]=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
       for(var j=1;j<=Math.min(parts.length,3);j++)add(parts.slice(0,j).join(''),true);}
     (line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(function(token){add(token,false);});
   });
@@ -128,7 +128,7 @@ function modelCandidates(text: unknown): string[]{
   }
   lines.forEach(function(line,i){
     var m=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD\.)\s*[:#-]?\s*(.*)$/);
-    if(m){var tail=m[1].trim()||(lines[i+1]||'').trim();var parts=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
+    if(m){var tail=m[1].trim()||(lines[i+1]||'').trim();var parts: string[]=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
       if(parts.length){add(parts[0],true);if(parts.length>1)add(parts.slice(0,2).join(''),true);}
     }
   });

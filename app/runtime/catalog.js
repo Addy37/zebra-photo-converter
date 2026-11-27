@@ -1,7 +1,7 @@
 // Shared catalog algorithms. No DOM initialization or storage side effects.
 const AddyBuyCatalog = (function () {
 'use strict';
-function skuKey(s){s=String(s).trim();return /^[0-9]{1,12}$/.test(s)?s.replace(/^0+(?=\d)/,''):'';}
+function skuKey(s){var value=String(s).trim();return /^[0-9]{1,12}$/.test(value)?value.replace(/^0+(?=\d)/,''):'';}
 function validUPC(s){
   if(!/^[0-9]{12}$/.test(s)||s==='000000000000')return false;
   var n=0;for(var i=0;i<12;i++)n+=Number(s[i])*(i%2===0?3:1);
