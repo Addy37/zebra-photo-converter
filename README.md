@@ -42,6 +42,12 @@ The barcode, thermal image and catalog matching algorithms now live in strictly 
 
 The phase 1 byte-for-byte verification is historical and is no longer applicable after extracting functions. npm run check validates TypeScript, runtime parity and focused algorithm/structure tests. npm run build additionally checks the static output.
 
+## Migration phase 3 (targeted catalog optimization)
+
+Photo-only startup no longer builds the full in-memory catalog search cache. The existing IndexedDB catalog stays intact, and entering Product Search or focusing the search field prewarms the cache. Exact seven-digit manual SKU lookups use the IndexedDB primary key directly, with the original search as fallback. Search normalizes UPC once per query rather than once per product; exact UPC scans compare UPCs directly. The result ordering, limits, scan uniqueness rules and catalog version checks are retained. Camera and OCR libraries were already lazy-loaded and remain so.
+
+Run npm run benchmark for a repeatable 361,872-row synthetic CPU benchmark. It checks matching results and measures search-loop cost, not phone startup, physical scanning, actual database latency or browser memory. First-time catalog import still runs automatically and can take time. First broad search after opening the app may wait for cache preparation. No database migration or service worker introduced.
+
 ## Deployment
 
 The existing no-build Cloudflare Pages setup can still serve the repository directly during the transition. To enable Vite after beta approval, use build command npm run build and output directory dist, with Node 22. The existing URL and catalog paths do not need to change. Test a branch preview before changing production settings. Do not merge or promote until desktop and Android/iOS scanning, catalog import, label previews and real printer tests pass.

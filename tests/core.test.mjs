@@ -63,3 +63,28 @@ test('catalog ranking and OCR keep existing priorities', () => {
   assert.equal(catalog.ocrRanker('MODEL: GDT67OSGVBB','GDT67OSGVBB')('GDT670SGVBB'),2);
   assert.ok(plain(catalog.modelCandidates('MODEL: GDT670SGVBB')).includes('GDT670SGVBB'));
 });
+
+test('prepared ranker exactly preserves the previous ranking rules', () => {
+  function previous(entry, raw, key, numeric) {
+    const sku=entry.row.sku,model=entry.model,upc=numeric?catalog.catalogUPC(raw):'';
+    if(upc&&entry.row.upc===upc)return 0;
+    if(numeric&&sku===raw)return 1;
+    if(key&&model===key)return 2;
+    if(numeric&&sku.startsWith(raw))return 3;
+    if(key&&model.startsWith(key))return 4;
+    if(entry.product.includes(raw))return 5;
+    if((numeric&&sku.includes(raw))||(key&&model.includes(key)))return 6;
+    return -1;
+  }
+  const rows = [
+    {row:{sku:'6549413',upc:'036000291452'},model:'GDT670SGVBB',product:'GE DISHWASHER 654'},
+    {row:{sku:'6549414',upc:'036000291452'},model:'GDT670SGVBB',product:'DISHWASHER'},
+    {row:{sku:'16549413',upc:'123456789012'},model:'XGDT670SGVBB',product:'TV'},
+    {row:{sku:'1234567',upc:'123456789012'},model:'6549413',product:'MODEL 6549413'},
+  ];
+  for (const raw of ['036000291452','0036000291452','6549413','654','GDT670SGVBB','GDT670','SGVBB','DISHWASHER','INVALID','123456789012']) {
+    const key=catalog.modelKey(raw), numeric=/^\d+$/.test(raw);
+    const ranker=catalog.createProductRanker(raw,key,numeric);
+    assert.deepEqual(rows.map(ranker),rows.map(r=>previous(r,raw,key,numeric)));
+  }
+});

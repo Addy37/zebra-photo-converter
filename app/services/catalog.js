@@ -146,11 +146,16 @@ async function warmCache(meta){
   cacheBuild={key:key,promise:promise};
   try{return await promise;}finally{if(cacheBuild&&cacheBuild.promise===promise)cacheBuild=null;}
 }
+// Only prewarm when the user enters a catalog-related task. Photo-only startup
+// does not read the full catalog into memory. Searches share any in-flight build.
+function prewarmForSearch(){if(active&&!busy)warmCache(active).catch(function(){});}
+modelInput.addEventListener('focus',prewarmForSearch);
+$('verifyMode').addEventListener('click',prewarmForSearch);
 function selectProduct(row){
   selectingModel=true;sku.value=row.sku;sku.dispatchEvent(new Event('input',{bubbles:true}));
   selectingModel=false;modelInput.value=row.sku;hideChoices();applyRow(row,'');sync();
 }
-var catalogUPC=AddyBuyCatalog.catalogUPC,rankProduct=AddyBuyCatalog.rankProduct,ocrModelKeys=AddyBuyCatalog.ocrModelKeys,ocrRanker=AddyBuyCatalog.ocrRanker;
+var catalogUPC=AddyBuyCatalog.catalogUPC,createProductRanker=AddyBuyCatalog.createProductRanker,ocrModelKeys=AddyBuyCatalog.ocrModelKeys,ocrRanker=AddyBuyCatalog.ocrRanker;
 async function lookupModel(scan){
   var raw=modelInput.value.trim().toUpperCase(),key=modelKey(raw),numeric=/^\d+$/.test(raw),ticket=++lookupTicket;
   var ocr=scan&&scan.kind==='ocr'?ocrRanker(scan.value,scan.preferred):null;
@@ -162,12 +167,20 @@ async function lookupModel(scan){
     if(ticket!==lookupTicket||busy)return;
     if(!meta)throw new Error('Import a catalog first.');
     active=meta;
+    // An exact seven-digit manual SKU is always the highest eligible rank.
+    // Use the existing IndexedDB primary key rather than waiting for a full scan.
+    if(!scan&&/^\d{7}$/.test(raw)){
+      var direct=await readSKU(db,raw);
+      if(ticket!==lookupTicket||busy)return;
+      if(!direct.meta||cacheKey(direct.meta)!==cacheKey(meta)){showMatch('Catalog changed. Search again.','error');return;}
+      if(direct.row&&direct.row.sku===raw){selectProduct(direct.row);return;}
+    }
     var rows=await warmCache(meta),buckets=Array.from({length:7},function(){return []; }),total=0;
-    var exactUPC=catalogUPC(raw);
+    var exactUPC=catalogUPC(raw),ranker=createProductRanker(raw,key,numeric);
+    var barcodeUPC=scan&&scan.kind==='barcode'&&exactUPC;
     if(ticket!==lookupTicket||busy)return;
     for(var i=0;i<rows.length;i++){
-      var rank=ocr?ocr(rows[i].model):rankProduct(rows[i],raw,key,numeric);
-      if(scan&&scan.kind==='barcode'&&exactUPC&&rank!==0)rank=-1;
+      var rank=barcodeUPC?(rows[i].row.upc===exactUPC?0:-1):ocr?ocr(rows[i].model):ranker(rows[i]);
       if(rank>=0){total++;if(buckets[rank].length<10)buckets[rank].push(rows[i].row);}
       if(i>0&&i%20000===0){await new Promise(function(resolve){setTimeout(resolve,0);});if(ticket!==lookupTicket||busy)return;}
     }
@@ -278,7 +291,7 @@ async function importFile(file,builtIn){
   }finally{
     busy=false;cancel.hidden=true;progress.hidden=true;
     try{active=await getMeta(await openDB());}catch(e){}
-    sync();if(active){warmCache(active).catch(function(){});if(modelKey(modelInput.value).length>=3)lookupModel();else if(skuKey(sku.value))schedule();}
+    sync();if(active){if(document.documentElement.dataset.toolMode==='verify'||document.activeElement===modelInput)prewarmForSearch();if(modelKey(modelInput.value).length>=3)lookupModel();else if(skuKey(sku.value))schedule();}
   }
 }
 async function loadHostedCatalog(){
@@ -331,7 +344,7 @@ clear.addEventListener('click',async function(){
     active=null;clearAuto();say('Catalog removed. Manual UPC entry is available.');
   });}catch(e){say(e.message||'Could not remove catalog.');}finally{busy=false;sync();}
 });
-openDB().then(getMeta).then(function(m){active=m;sync();if(m){say('Catalog ready: '+Number(m.count).toLocaleString()+' products.');warmCache(m).catch(function(){});if(modelKey(modelInput.value).length>=3)lookupModel();else if(skuKey(sku.value))schedule();}else{loadHostedCatalog();}}).catch(function(){say('Local storage unavailable. Manual UPC entry is available.');});
+openDB().then(getMeta).then(function(m){active=m;sync();if(m){say('Catalog ready: '+Number(m.count).toLocaleString()+' products.');if(document.documentElement.dataset.toolMode==='verify'||document.activeElement===modelInput)prewarmForSearch();if(modelKey(modelInput.value).length>=3)lookupModel();else if(skuKey(sku.value))schedule();}else{loadHostedCatalog();}}).catch(function(){say('Local storage unavailable. Manual UPC entry is available.');});
 sync();
 })();
 

@@ -58,16 +58,21 @@ function catalogUPC(value){
   return /^\d{12}$/.test(v)&&validUPC(v)?v:'';
 }
 function rankProduct(entry,raw,key,numeric){
-  var sku=entry.row.sku,model=entry.model;
+  return createProductRanker(raw,key,numeric)(entry);
+}
+function createProductRanker(raw,key,numeric){
   var upc=numeric?catalogUPC(raw):'';
-  if(upc&&entry.row.upc===upc)return 0;
-  if(numeric&&sku===raw)return 1;
-  if(key&&model===key)return 2;
-  if(numeric&&sku.startsWith(raw))return 3;
-  if(key&&model.startsWith(key))return 4;
-  if(entry.product.includes(raw))return 5;
-  if((numeric&&sku.includes(raw))||(key&&model.includes(key)))return 6;
-  return -1;
+  return function(entry){
+    var sku=entry.row.sku,model=entry.model;
+    if(upc&&entry.row.upc===upc)return 0;
+    if(numeric&&sku===raw)return 1;
+    if(key&&model===key)return 2;
+    if(numeric&&sku.startsWith(raw))return 3;
+    if(key&&model.startsWith(key))return 4;
+    if(entry.product.includes(raw))return 5;
+    if((numeric&&sku.includes(raw))||(key&&model.includes(key)))return 6;
+    return -1;
+  };
 }
 function ocrModelKeys(text){
   var lines=String(text||'').toUpperCase().split(/\r?\n/),keys=new Set();
@@ -135,5 +140,5 @@ function modelCandidates(text){
   lines.forEach(function(line){(line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(function(v){add(v,false);});});
   return out;
 }
-return { skuKey, validUPC, csvParser, getColumns, rowRecord, modelKey, catalogUPC, rankProduct, ocrModelKeys, ocrRanker, modelCandidates };
+return { skuKey, validUPC, csvParser, getColumns, rowRecord, modelKey, catalogUPC, rankProduct, createProductRanker, ocrModelKeys, ocrRanker, modelCandidates };
 })();
