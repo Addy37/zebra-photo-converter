@@ -154,6 +154,11 @@ async function test(browserType, profile, options, path) {
     assert.equal(ocrResult,fixture.model,'OCR must recognize the actual model number');
     await page.locator('#scanUse').click();
     await page.locator('#scanDialog').waitFor({state:'hidden'});
+    // OCR intentionally requires confirmation of the matching catalog product.
+    const match=page.locator('#catalogChoices .catalog-result').filter({hasText:'SKU '+fixture.sku});
+    await match.waitFor({state:'visible'});
+    assert.equal(await match.count(),1);
+    await match.click();
     await page.locator('#verifyCreateLabel').waitFor({state:'visible'});
     assert.equal(await page.locator('#upcInput').inputValue(),fixture.upc);
     log(profile,'actual local Tesseract model recognition and catalog match with CDN blocked');
