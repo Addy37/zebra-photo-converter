@@ -1759,7 +1759,7 @@ async function lookupModel(scan){
     if(scan&&scan.kind==='barcode'&&total===1&&(buckets[0].length||buckets[1].length||buckets[2].length)){
       var latest=await readSKU(db,results[0].sku);
       if(ticket!==lookupTicket||busy)return;
-      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched'}}));return;}
+      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched',product:latest.row}}));return;}
       showMatch('Catalog changed. Scan again.','error');return;
     }
     showMatch(ocr&&!exactOCR?'Possible model matches. Verify and select the correct product.':results.length>1?'Select the correct product.':'Select product.','ok');
@@ -1779,7 +1779,7 @@ async function lookupModel(scan){
           var latest=await readSKU(db,row.sku);
           if(ticket!==lookupTicket||busy)return;
           if(!latest.meta||cacheKey(latest.meta)!==cacheKey(meta)||!latest.row||latest.row.upc!==row.upc){hideChoices();showMatch('Catalog changed. Search again.','error');return;}
-          selectProduct(latest.row);if(scan)document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched'}}));
+          selectProduct(latest.row);if(scan)document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched',product:latest.row}}));
         }catch(e){showMatch('Could not retrieve product. Try again.','error');}
       });choices.appendChild(btn);
     });choices.hidden=false;choices.scrollTop=0;
@@ -1967,6 +1967,15 @@ css.textContent=`#scanPreview.model-camera #scanGuide{inset:36% 6%}
 .scan-toast-mark svg{width:44px;height:44px;overflow:visible}
 .scan-toast-spark{position:absolute;right:-7px;top:-6px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#ffe000;color:#12325b;font-size:20px;line-height:1}
 .scan-toast-copy{min-width:0;display:grid;gap:6px}
+.scan-toast-product{display:grid;justify-items:center;gap:6px;width:100%;min-width:0}
+.scan-toast-product[hidden],.scan-toast-product img[hidden]{display:none!important}
+.scan-toast-product img{display:block;width:128px;height:112px;object-fit:contain;background:#fff;border-radius:10px}
+.scan-toast-product .scan-product-name{font:650 15px/1.3 system-ui,sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.scan-toast-product .scan-product-meta{font:500 12px/1.35 system-ui,sans-serif;color:#526880;overflow-wrap:anywhere}
+.scan-success-toast:has(.scan-toast-product:not([hidden])){gap:10px;padding:18px 20px;max-height:calc(100dvh - 24px);overflow:hidden}
+.scan-success-toast:has(.scan-toast-product:not([hidden])) .scan-toast-mark{width:52px;height:52px;flex-basis:52px}
+.scan-success-toast:has(.scan-toast-product:not([hidden])) .scan-toast-mark svg{width:32px;height:32px}
+@media(max-height:470px){.scan-toast-product img{height:72px;width:100px}.scan-success-toast:has(.scan-toast-product:not([hidden])){gap:5px;padding:10px 16px}.scan-success-toast:has(.scan-toast-product:not([hidden])) .scan-toast-mark{width:38px;height:38px;flex-basis:38px}}
 .scan-toast-copy strong{font-size:26px;line-height:1.2;color:#003b9c}
 .scan-toast-copy span{font-size:16px;font-weight:500;line-height:1.4;overflow-wrap:anywhere}
 .scan-success-toast.toast-pop{animation:scanToastPop .45s cubic-bezier(.22,.75,.3,1) both}
@@ -1977,21 +1986,39 @@ css.textContent=`#scanPreview.model-camera #scanGuide{inset:36% 6%}
 @keyframes scanToastOut{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-52%) scale(.98)}}
 @media(prefers-reduced-motion:reduce){.scan-success-toast.toast-pop,.scan-success-toast.toast-pop .scan-toast-mark svg,.scan-success-toast.toast-out{animation:none}}`;
 document.head.appendChild(css);
-var toastTimer,toastExitTimer,toast=null,lastVibration=0;
+var toastTimer,toastExitTimer,toast=null,lastVibration=0,productImageTicket=0;
 function scanVibrate(){var now=Date.now();if(now-lastVibration<650)return;lastVibration=now;if(navigator.vibrate){try{navigator.vibrate(300);}catch(err){}}}
-function hideScanToast(){clearTimeout(toastTimer);clearTimeout(toastExitTimer);if(toast){toast.hidden=true;toast.classList.remove('toast-pop','toast-out');}}
+function hideScanToast(){++productImageTicket;clearTimeout(toastTimer);clearTimeout(toastExitTimer);if(toast){toast.hidden=true;toast.classList.remove('toast-pop','toast-out');var product=toast.querySelector('.scan-toast-product');product.hidden=true;product.querySelector('img')?.remove();}}
 function fadeScanToast(){if(!toast||toast.hidden)return;toast.classList.remove('toast-pop');toast.classList.add('toast-out');toastExitTimer=setTimeout(hideScanToast,400);}
-function showScanToast(title,detail){
+function populateScanProduct(row){
+  var panel=toast.querySelector('.scan-toast-product'),ticket=++productImageTicket;
+  panel.hidden=true;panel.querySelector('img')?.remove();
+  if(!row)return;
+  var sku=String(row.sku||'').trim();
+  panel.querySelector('.scan-product-name').textContent=row.product||'Product';
+  panel.querySelector('.scan-product-meta').textContent=[sku?'SKU '+sku:'',row.model?'Model '+row.model:'',row.brand||''].filter(Boolean).join(' · ');
+  panel.hidden=false;
+  if(!/^\d{7}$/.test(sku))return;
+  var img=document.createElement('img');
+  img.alt='Product photo';img.hidden=true;img.decoding='async';img.referrerPolicy='no-referrer';
+  img.onload=function(){if(ticket!==productImageTicket||toast.hidden)return;img.hidden=false;};
+  img.onerror=function(){img.remove();};
+  panel.prepend(img);
+  // Best Buy legacy SKU-based CDN image path; no API credentials or extra catalog download.
+  img.src='https://pisces.bbystatic.com/image2/BestBuy_US/images/products/'+sku.slice(0,4)+'/'+sku+'_sd.jpg;maxHeight=240;maxWidth=280';
+}
+function showScanToast(title,detail,product){
   var parent=dialog.open?dialog:document.body;
   if(!toast){
     toast=document.createElement('div');toast.className='scan-success-toast';toast.hidden=true;
-    toast.innerHTML='<span class="scan-toast-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><span class="scan-toast-spark">✦</span></span><span class="scan-toast-copy"><strong></strong><span></span></span>';
+    toast.innerHTML='<span class="scan-toast-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><span class="scan-toast-spark">✦</span></span><span class="scan-toast-copy"><strong></strong><span></span></span><div class="scan-toast-product" hidden><span class="scan-product-name"></span><span class="scan-product-meta"></span></div>';
   }
   if(toast.parentNode!==parent)parent.appendChild(toast);
   if(dialog.open){toast.setAttribute('aria-hidden','true');toast.removeAttribute('role');}
   else{toast.removeAttribute('aria-hidden');toast.setAttribute('role','status');}
   toast.querySelector('strong').textContent=title;
   toast.querySelector('.scan-toast-copy span').textContent=detail;
+  populateScanProduct(product);
   clearTimeout(toastTimer);clearTimeout(toastExitTimer);toast.classList.remove('toast-pop','toast-out');toast.hidden=false;void toast.offsetWidth;toast.classList.add('toast-pop');
   toastTimer=setTimeout(fadeScanToast,2500);
 }
@@ -1999,7 +2026,7 @@ function detected(message,title,detail){scanVibrate();say('✓ '+message);showSc
 document.addEventListener('addy-scan-success',function(e){
   scanVibrate();
   var matched=e.detail&&e.detail.message==='Scan successful: product matched';
-  showScanToast(matched?'Product matched!':'All set!',matched?'Product details filled in.':'Scanned value added.');
+  showScanToast(matched?'Product matched!':'All set!',matched?'Product details filled in.':'Scanned value added.',matched?e.detail.product:null);
 });
 function notifySuccess(){document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful'}}));}
 function setCameraMode(model,still){modelMode=model;stillMode=!!still;live.setAttribute('aria-pressed',String(!model));modelLive.setAttribute('aria-pressed',String(model));preview.classList.toggle('model-camera',model);preview.classList.toggle('still-camera',stillMode);preview.querySelector('.scan-aim').textContent=model?'Align model number inside the frame':'Align the barcode inside the frame';capture.textContent='Capture model number';cameraTools.hidden=true;torch.hidden=true;torch.setAttribute('aria-pressed','false');torch.textContent='Flashlight';}
@@ -2232,4 +2259,4 @@ use.addEventListener('click',function(){
 </dialog>
 </body>
 </html>
-<!-- Beta 31: iOS first-print wizard and Zebra ZPL sharing with file fallback. -->
+<!-- Beta 32: matched-product photo preview; nonblocking SKU CDN lookup. -->
