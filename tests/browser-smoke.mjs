@@ -137,15 +137,21 @@ async function test(browserType, profile, options, path) {
     await page.locator('#verifyClear').click();
     await page.locator('#verifyScanProduct').click();
     await page.waitForFunction(()=>document.getElementById('scanStatus').textContent.includes('Camera permission denied'));
+    const ocrTrace=[];
+    await page.exposeFunction('reportOCRStatus',value=>{ocrTrace.push(value);console.log(profile+' OCR: '+value);});
+    await page.evaluate(()=>{const status=document.getElementById('scanStatus');new MutationObserver(()=>window.reportOCRStatus(status.textContent)).observe(status,{childList:true,characterData:true,subtree:true});});
     const modelPhoto=await page.evaluate(model=>{
-      const c=document.createElement('canvas');c.width=1200;c.height=320;
+      const c=document.createElement('canvas');c.width=1600;c.height=480;
       const x=c.getContext('2d');x.fillStyle='white';x.fillRect(0,0,c.width,c.height);
-      x.fillStyle='black';x.font='bold 100px Arial, sans-serif';x.fillText(model,50,180);
+      x.fillStyle='black';x.font='bold 80px monospace';x.fillText('MODEL: '+model,60,220);
       return c.toDataURL('image/png').split(',')[1];
     },fixture.model);
     await page.locator('#scanUploadOptions summary').click();
     await page.locator('#scanModelPhoto').setInputFiles({name:'model-fixture.png',mimeType:'image/png',buffer:Buffer.from(modelPhoto,'base64')});
-    await page.waitForFunction(()=>document.getElementById('scanReadout').value.includes('GDT670SGVBB')&&!document.getElementById('scanUse').disabled,null,{timeout:90000});
+    await page.waitForFunction(()=>!document.getElementById('scanUse').disabled,null,{timeout:60000});
+    const ocrResult=await page.locator('#scanReadout').inputValue();
+    console.log(profile+' OCR result: '+JSON.stringify(ocrResult)+'; status: '+await page.locator('#scanStatus').textContent());
+    assert.equal(ocrResult,fixture.model,'OCR must recognize the actual model number');
     await page.locator('#scanUse').click();
     await page.locator('#scanDialog').waitFor({state:'hidden'});
     await page.locator('#verifyCreateLabel').waitFor({state:'visible'});
@@ -162,13 +168,15 @@ async function test(browserType, profile, options, path) {
     assert.deepEqual(errors,[]);
     log(profile,'no uncaught browser exceptions');
   } catch(error) {
-    console.error(profile+' FAILED',await page.locator('#status').textContent().catch(()=>''),await page.locator('#catalogMatch').textContent().catch(()=>''),errors);
+    console.error(profile+' FAILED',await page.locator('#status').textContent().catch(()=>''),await page.locator('#catalogMatch').textContent().catch(()=>''), 'scanner:',await page.locator('#scanStatus').textContent().catch(()=>''),'readout:',await page.locator('#scanReadout').inputValue().catch(()=>''),errors);
     throw error;
   } finally {await browser.close();}
 }
 try {
   for(let i=0;i<80;i++){try{if((await fetch(base)).ok)break;}catch{}if(i===79)throw Error('Preview server unavailable');await delay(250);}
-  await test(chromium,'Desktop',{viewport:{width:1440,height:1000}},'/');
-  await test(chromium,'Android emulation',devices['Pixel 7'],'/beta.html');
-  await test(webkit,'iPhone WebKit',devices['iPhone 13'],'/beta.html');
+  const failures=[];
+  for(const [engine,profile,options,path] of [[chromium,'Desktop',{viewport:{width:1440,height:1000}},'/'],[chromium,'Android emulation',devices['Pixel 7'],'/beta.html'],[webkit,'iPhone WebKit',devices['iPhone 13'],'/beta.html']]){
+    try{await test(engine,profile,options,path);}catch(e){failures.push(profile+': '+e.stack);}
+  }
+  if(failures.length)throw new Error(failures.join('\n\n'));
 } finally {server.kill();}
