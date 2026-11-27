@@ -12,11 +12,30 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/addy-buy-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/addy-buy-180.png">
 <title>Zebra Label Converter | Warehouse Tools</title>
+<script id="addy-theme-script">
+(function(){
+  var key='addy-buy-night-mode-v1',root=document.documentElement,dark=false;
+  try{dark=localStorage.getItem(key)==='dark';}catch(e){}
+  function apply(){
+    root.dataset.theme=dark?'dark':'light';
+    var meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.content=dark?'#10274c':'#0046be';
+    var button=document.getElementById('nightModeToggle');
+    if(button){button.setAttribute('aria-pressed',String(dark));button.title=dark?'Turn off night mode':'Turn on night mode';}
+  }
+  apply();
+  document.addEventListener('DOMContentLoaded',function(){
+    var button=document.getElementById('nightModeToggle');apply();
+    if(button)button.addEventListener('click',function(){dark=!dark;try{localStorage.setItem(key,dark?'dark':'light');}catch(e){}apply();});
+  },{once:true});
+})();
+</script>
 <style id="addy-splash-style">
 #addySplash{display:none}
 html.addy-starting:not(.addy-leaving){background:#0046be}
 html.addy-starting #addySplash,html.addy-starting.addy-leaving #addySplash{display:grid;position:fixed;inset:0;z-index:2147483647;place-items:center;background:#0046be;color:#fff;overflow:hidden;isolation:isolate}
 #addySplash .addy-splash-lockup{display:flex;flex-direction:column;align-items:center;gap:19px;width:min(56vw,216px);transform-origin:center;animation:addyLogoIn 460ms cubic-bezier(.2,.75,.25,1) both}
+html.addy-starting:not(.addy-animating) #addySplash .addy-splash-lockup{animation:none;opacity:0}
+html.addy-starting:not(.addy-animating) #addySplash .addy-splash-accent{animation:none;transform:scaleX(0)}
 #addySplash svg{display:block;width:100%;height:auto}
 #addySplash .addy-splash-caption{font:650 clamp(9px,2.35vw,11px)/1.3 system-ui,-apple-system,sans-serif;letter-spacing:.21em;white-space:nowrap;text-align:center;color:#fff}
 #addySplash .addy-splash-accent{width:32px;height:3px;background:#ffe000;border-radius:3px;transform-origin:left;animation:addyAccentIn 390ms 180ms cubic-bezier(.2,.75,.25,1) both}
@@ -30,23 +49,36 @@ html.addy-starting.addy-leaving #addySplash .addy-splash-lockup{animation:none;t
 <script id="addy-splash-script">
 (function(){
   var root=document.documentElement;
-  var standalone=navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches||window.matchMedia('(display-mode: minimal-ui)').matches||window.matchMedia('(display-mode: fullscreen)').matches;
-  var preview=new URLSearchParams(location.search).get('splash')==='1';
-  if(!standalone&&!preview)return;
-  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if(reduced)return;
-  var start=performance.now(),finishing=false;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var active=true,started=false,holdTimer,fadeTimer;
   root.classList.add('addy-starting');
-  function cleanup(){root.classList.remove('addy-starting','addy-leaving');var splash=document.getElementById('addySplash');if(splash)splash.remove();}
-  function finish(){
-    if(finishing)return;finishing=true;
-    var remaining=Math.max(0,1100-(performance.now()-start));
-    window.setTimeout(function(){root.classList.add('addy-leaving');window.setTimeout(cleanup,410);},remaining);
+  function cleanup(){
+    active=false;
+    window.clearTimeout(holdTimer);
+    window.clearTimeout(fadeTimer);
+    root.classList.remove('addy-starting','addy-animating','addy-leaving');
+    var splash=document.getElementById('addySplash');if(splash)splash.remove();
   }
-  document.addEventListener('DOMContentLoaded',finish,{once:true});
+  function begin(){
+    if(!active||started||document.visibilityState==='hidden')return;
+    started=true;
+    window.requestAnimationFrame(function(){
+      window.requestAnimationFrame(function(){
+        if(!active)return;
+        root.classList.add('addy-animating');
+        holdTimer=window.setTimeout(function(){
+          if(!active)return;
+          root.classList.add('addy-leaving');
+          fadeTimer=window.setTimeout(cleanup,410);
+        },1300);
+      });
+    });
+  }
+  document.addEventListener('DOMContentLoaded',begin,{once:true});
+  document.addEventListener('visibilitychange',function(){
+    if(document.readyState!=='loading')begin();
+  });
   window.addEventListener('pageshow',function(e){if(e.persisted)cleanup();});
-  window.setTimeout(finish,1400);
-  window.setTimeout(cleanup,2200);
 })();
 </script>
 <style>
@@ -159,6 +191,24 @@ footer span{font-size:.75rem}
 .print-grid button{width:100%}
 #printCopies{width:100%;min-height:46px;border:1px solid #aebdd1;border-radius:9px;font:inherit;font-size:16px;padding:8px}
 #printStatus{overflow-wrap:anywhere;color:var(--bb-dark);margin-bottom:0}
+#iosPrintSetupLink{width:100%;margin-top:8px}
+#iosPrintDialog{width:min(430px,calc(100% - 28px));max-height:88vh;max-height:88dvh;overflow:auto;margin:auto;padding:22px;border:1px solid #d6e2f2;border-radius:22px;background:#fff;color:#173358;box-shadow:0 16px 60px #10274755;color-scheme:light}
+#iosPrintDialog::backdrop{background:#101c34a8}
+#iosPrintDialog h2{font-size:1.35rem;color:#0046be;line-height:1.2}
+#iosPrintDialog p{color:#52647b;margin:8px 0 12px}
+#iosPrintDialog .ios-print-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+#iosPrintDialog .ios-print-icon{display:grid;place-items:center;width:62px;height:62px;background:#0046be;color:#fff;border-radius:18px;margin:0 auto 14px}
+#iosPrintDialog .ios-print-icon svg{width:33px;height:33px}
+#iosPrintDialog .ios-print-step{display:flex;gap:12px;padding:13px 0;border-top:1px solid #e4eaf3;align-items:flex-start}
+#iosPrintDialog .ios-print-num{display:grid;place-items:center;background:#eaf1fc;color:#0046be;width:32px;height:32px;flex:0 0 32px;border-radius:10px;font-weight:800}
+#iosPrintDialog .ios-print-step p{margin:4px 0;font-size:.88rem}
+#iosPrintDialog .ios-print-actions{display:grid;gap:9px;margin-top:14px}
+#iosPrintDialog .ios-print-actions button,#iosPrintDialog .ios-print-actions a{width:100%;min-height:44px}
+#iosPrintDialog .ios-print-primary{background:var(--bb-yellow);color:#17243a}
+#iosPrintDialog .ios-print-info{border:1px solid #d7e2f2;background:#f3f7fc;border-radius:12px;padding:12px;margin:12px 0}
+#iosPrintDialog #iosPrintCopies{width:100%;min-height:44px;font:inherit;border:1px solid #aebdd1;border-radius:9px;padding:8px;color:#173358;background:#fff}
+#iosPrintDialog #iosPrintMessage{font-size:.85rem;margin-top:12px;overflow-wrap:anywhere}
+@media print{#iosPrintDialog,#iosPrintSetupLink{display:none!important}}
 #printerSelect{font-size:16px}
 #directPrint{background:var(--bb-yellow);color:#17243a}
 #printSheet{display:none}
@@ -306,6 +356,29 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 #productSummary dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:0;font-size:.85rem}
 #productSummary dt{color:#465771}#productSummary dd{margin:0;font-weight:650}
 #productSummary button{justify-self:start;min-height:36px;padding:5px 10px;font-size:.8rem}
+.product-visual{display:grid;grid-template-columns:minmax(92px,132px) minmax(0,1fr);gap:12px;align-items:center;padding:12px;border:1px solid #c5d5e9;background:#f4f8ff;border-radius:12px;min-width:0;color:#12325b}
+.product-visual[hidden],.product-visual [hidden]{display:none!important}
+.product-visual-photo{display:grid;place-items:center;min-height:96px;min-width:0;text-align:center;background:#fff;border-radius:9px;padding:5px}
+.product-visual-zoom{display:block;width:100%;height:auto;padding:0;border:0;background:#fff;color:#12325b;cursor:zoom-in;box-shadow:none;min-height:0}
+.product-visual-zoom img{display:block;width:100%;height:112px;object-fit:contain}
+.product-visual-state{font:500 12px/1.35 system-ui,sans-serif;color:#526880;padding:8px}
+.product-visual-copy{display:grid;gap:5px;min-width:0;overflow-wrap:anywhere}
+.product-visual-name{font-size:15px;line-height:1.3}
+.product-visual-meta,.product-visual-copy small{font:500 12px/1.4 system-ui,sans-serif;color:#465771}
+#productVerifyDialog{box-sizing:border-box;width:min(420px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;padding:18px;border:1px solid #c5d5e9;border-radius:20px;background:#fff;color:#12325b;text-align:center;box-shadow:0 20px 70px #10274755}
+#productVerifyDialog::backdrop{background:#10274788}
+#productVerifyDialog h2{font-size:23px;color:#0046be;margin:6px 0 12px}
+#productVerifyDialog .verify-mark{display:grid;place-items:center;margin:auto;width:48px;height:48px;background:#0046be;color:white;border-radius:50%;font-size:28px}
+#productVerifyDialog .product-visual{grid-template-columns:1fr;background:#fff;border:0;padding:0;gap:8px}
+#productVerifyDialog .product-visual-zoom img{height:min(205px,30dvh)}
+#productVerifyDialog .product-visual-name{font-size:17px}
+#productVerifyDialog .verify-actions{display:grid;gap:8px;margin-top:14px}
+#productVerifyDialog .verify-actions button{width:100%;min-height:44px}
+#productVisualPreview.is-expanded{grid-template-columns:1fr}
+#productVisualPreview.is-expanded img,#productVerifyDialog .is-expanded img{height:min(390px,48dvh)}
+.product-visual.is-expanded .product-visual-zoom{cursor:zoom-out}
+@media(max-height:450px){#productVerifyDialog .product-visual-zoom img{height:95px}#productVerifyDialog .is-expanded img{height:42dvh}}
+@media print{#productVisualPreview,#productVerifyDialog{display:none!important}}
 /* Search results are non-shrinking list rows, not fixed-height action buttons. */
 #catalogChoices{display:flex;flex-direction:column;gap:0;min-width:0;max-height:320px;max-height:min(320px,42dvh);overflow:auto;overscroll-behavior:contain;border:1px solid #d4dce9;border-radius:10px;background:#fff;scrollbar-width:thin}
 #catalogChoices button.catalog-result{flex:0 0 auto;display:grid;grid-template-columns:minmax(0,1fr) 12px;align-items:center;gap:8px;width:100%;min-width:0;min-height:56px;height:auto;padding:9px 10px;border:0;border-radius:0;background:#fff;color:var(--ink);text-align:left;white-space:normal;overflow-wrap:anywhere;line-height:1.3;font-weight:400;transform:none}
@@ -334,7 +407,57 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 .catalog-match{padding:10px 12px;background:#edf5ff;border:1px solid #b6cee9;border-radius:8px;color:var(--ink);overflow-wrap:anywhere;font-size:.9rem}
 .catalog-match[data-state="error"]{background:#fff8e2;border-color:#e7cb75}
 #catalogBadge{font-weight:500}
-.mode-switch{grid-template-columns:repeat(2,minmax(0,1fr))}
+.mode-switch{grid-template-columns:repeat(3,minmax(0,1fr))}
+#verifyIntro,#verifyStart,#verifyActions{display:none}
+html[data-tool-mode="verify"] #verifyIntro{display:grid;gap:5px;margin-bottom:5px}
+#verifyIntro h2{margin:0;color:#12325b;font-size:1.35rem}
+#verifyIntro p{margin:0;color:#526880;font-size:.9rem;line-height:1.45}
+html[data-tool-mode="verify"] #verifyStart:not([hidden]),html[data-tool-mode="verify"] #verifyActions:not([hidden]){display:grid;gap:8px}
+html[data-tool-mode="verify"] #verifyStart button,html[data-tool-mode="verify"] #verifyActions button{width:100%;min-height:44px}
+html[data-tool-mode="verify"] #previewPanel,html[data-tool-mode="verify"] #printingPanel,html[data-tool-mode="verify"] #batchPanel,html[data-tool-mode="verify"] #formatPanel,html[data-tool-mode="verify"] #productSummary,html[data-tool-mode="verify"] #standardBarcodeType,html[data-tool-mode="verify"] #standardManualSlot,html[data-tool-mode="verify"] #standardOptions,html[data-tool-mode="verify"] #dispositionFields,html[data-tool-mode="verify"] .label-form-actions,html[data-tool-mode="verify"] main>.info{display:none!important}
+html[data-tool-mode="verify"] .workspace{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"editor"!important;grid-template-rows:auto!important;max-width:860px;width:100%;margin-inline:auto}
+html[data-tool-mode="verify"] #productVisualPreview{grid-template-columns:1fr;gap:14px;padding:14px;background:#fff;border-color:#d5e0ee;text-align:center}
+html[data-tool-mode="verify"] #productVisualPreview .product-visual-photo{min-height:150px}
+html[data-tool-mode="verify"] #productVisualPreview .product-visual-zoom img{height:clamp(180px,34dvh,320px)}
+html[data-tool-mode="verify"] #productVisualPreview.is-expanded img{height:clamp(240px,55dvh,540px)}
+html[data-tool-mode="verify"] #productVisualPreview .product-visual-name{font-size:1.18rem}
+html[data-tool-mode="verify"] #productVisualPreview .product-visual-meta{display:none}
+#verifyDetails{display:none;margin:5px 0 0;text-align:left}
+html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid #dce5f1;background:#f5f8fc;border-radius:10px;padding:0 12px}
+#verifyDetails div{display:grid;grid-template-columns:minmax(75px,.65fr) minmax(0,1.35fr);gap:8px;padding:8px 0;border-bottom:1px solid #dce5f1;font-size:.88rem}
+#verifyDetails div:last-child{border:0}
+#verifyDetails dt{color:#465771}
+#verifyDetails dd{margin:0;font-weight:700;overflow-wrap:anywhere;text-align:right}
+@media(min-width:700px){html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded){grid-template-columns:minmax(0,1fr) minmax(0,1fr);text-align:left}html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions{grid-template-columns:1fr 1fr}}
+/* Product Search uses the same editor/preview columns as Photo and Labels. */
+#searchPreviewPanel{display:none}
+@media screen and (min-width:851px){
+ html[data-layout="desktop"][data-tool-mode="verify"] .workspace{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)!important;grid-template-areas:"editor preview"!important;grid-template-rows:auto!important;max-width:none;margin-inline:0;width:100%;gap:12px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #searchPreviewPanel{display:flex;grid-area:preview;flex-direction:column;min-width:0;align-self:stretch}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productSearchGroup{gap:10px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview,html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded){grid-template-columns:minmax(0,1fr);text-align:left;background:#f4f8ff;padding:14px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview>.product-visual-photo{display:none}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-copy{gap:10px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-name{font-size:clamp(1.05rem,1.35vw,1.45rem);line-height:1.3}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails{padding:0 12px;margin:0}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails div{padding:10px 0;font-size:.95rem;align-items:center}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails div:nth-child(-n+2) dd{font-size:clamp(1rem,1.35vw,1.4rem);color:#003b9c}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails dd{font-variant-numeric:tabular-nums}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyClear{grid-column:1/-1}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions button{min-height:44px;white-space:normal}
+ #searchPreviewWrap{display:grid;place-items:center;min-height:clamp(340px,58dvh,650px);flex:1;padding:14px;background:#e8eef6;border:1px solid #d6e0ef;border-radius:10px}
+ #searchPreviewWrap .product-visual-photo{box-sizing:border-box;width:100%;min-height:clamp(310px,54dvh,620px);padding:16px;background:#fff;box-shadow:0 2px 12px #14366c12}
+ #searchPreviewWrap .product-visual-zoom{padding:0}
+ #searchPreviewWrap .product-visual-zoom img{height:clamp(280px,50dvh,580px);width:100%;object-fit:contain}
+ #searchPreviewPanel.is-expanded .product-visual-zoom img{height:clamp(320px,65dvh,780px)}
+ #searchPreviewEmpty{display:grid;justify-items:center;gap:8px;color:#526880;text-align:center;padding:24px}
+ #searchPreviewEmpty svg{width:44px;height:44px;color:#8095b4}
+ #searchPreviewHint{margin:10px 0 0;color:#526880;font-size:.85rem;text-align:center}
+}
+@media print{#searchPreviewPanel{display:none!important}}
+@media(max-width:390px){#verifyMode{font-size:.78rem;line-height:1.15;padding-inline:3px}}
+@media print{#verifyIntro,#verifyStart,#verifyActions{display:none!important}}
 #dispositionFields{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px;min-width:0}
 .disposition-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 #dispositionFields .control{min-width:0}
@@ -382,6 +505,76 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 #scanDialog #scanReadout{display:block;width:100%;min-height:44px;padding:8px;font:inherit;box-sizing:border-box;border:1px solid #aebdd1;border-radius:8px}
 #scanDialog .scan-confirm{display:grid;gap:8px;margin-top:10px}
 
+</style>
+<style id="addy-night-style">
+.layout-theme-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:3px}
+.layout-theme-row label{margin:0}
+#nightModeToggle{width:34px;min-width:34px;height:30px;min-height:30px;padding:4px;border:1px solid #c9d9f1;border-radius:8px;background:#eaf1fc;color:#00358d;box-shadow:none}
+#nightModeToggle svg{width:18px;height:18px}
+#nightModeToggle .theme-sun,#nightModeToggle[aria-pressed="true"] .theme-moon{display:none}
+#nightModeToggle[aria-pressed="true"] .theme-sun{display:block}
+@media screen and (min-width:851px){
+ html[data-layout="desktop"] .view-toolbar{width:196px;gap:3px}
+ html[data-layout="desktop"] .view-toolbar>div{display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:3px 7px;align-items:center}
+ html[data-layout="desktop"] .layout-theme-row{display:contents}
+ html[data-layout="desktop"] .layout-theme-row label{grid-column:1;grid-row:1;margin:0;line-height:1.2}
+ html[data-layout="desktop"] .view-toolbar select{grid-column:1;grid-row:2;min-width:0;min-height:30px}
+ html[data-layout="desktop"] #nightModeToggle{grid-column:2;grid-row:1/3;align-self:end;min-height:34px;height:34px;background:#ffffff20;color:#fff;border-color:#ffffff60}
+ html[data-layout="desktop"] #layoutHint{line-height:1.2;margin-top:1px}
+}
+@media screen{
+html[data-theme="dark"]{--bb-blue:#2865cf;--bb-dark:#a9caff;--ink:#e6edf8;--muted:#a6b5c9;--line:#34435a;--surface:#192536;background:#101722;color:var(--ink);color-scheme:dark}
+html[data-theme="dark"] body{background:#101722}
+html[data-theme="dark"] .hero{background:#10274c;border-bottom-color:#ffe000}
+html[data-theme="dark"] .panel{background:var(--surface);border-color:var(--line);box-shadow:0 3px 12px #0002}
+html[data-theme="dark"] .mode-switch,html[data-theme="dark"] .standard-type-switch,html[data-theme="dark"] #scanDialog .scan-mode-switch{background:#121c2b;border-color:var(--line);box-shadow:none}
+html[data-theme="dark"] .mode-switch button,html[data-theme="dark"] .standard-type-switch button,html[data-theme="dark"] #scanDialog .scan-mode-switch button{color:#c5d5ee}
+html[data-theme="dark"] .mode-switch button[aria-pressed="true"],html[data-theme="dark"] .standard-type-switch button[aria-pressed="true"],html[data-theme="dark"] #scanDialog .scan-mode-switch button[aria-pressed="true"]{background:#2865cf;color:#fff}
+html[data-theme="dark"] button.secondary,html[data-theme="dark"] .action.secondary,html[data-theme="dark"][data-layout="desktop"] .actions .primary,html[data-theme="dark"][data-layout="mobile"] #laptopPrint{background:#25364e;color:#d1e2ff;border-color:#405674}
+html[data-theme="dark"] #nightModeToggle{background:#25364e;color:#ffe000;border-color:#536780}
+html[data-theme="dark"] input:not([type="file"]):not([type="checkbox"]):not([type="radio"]),html[data-theme="dark"] select,html[data-theme="dark"] #standardModelSlot #dispModel,html[data-theme="dark"] #dispositionFields input:not([type="checkbox"]),html[data-theme="dark"] #iosPrintDialog #iosPrintCopies{background:#101b2b;color:var(--ink);border-color:#485c78}
+/* Explicit ID selectors override the original light-mode input colors. */
+html[data-theme="dark"] #catalogModel,html[data-theme="dark"] #dispType,html[data-theme="dark"] #upcInput,html[data-theme="dark"] #upcSkuInput,html[data-theme="dark"] #lpnForm input,html[data-theme="dark"] #standardOptions .scan-field input,html[data-theme="dark"] #printCopies,html[data-theme="dark"] #scanDialog #scanReadout{background:#101b2b;color:#edf3ff;border-color:#485c78;caret-color:#edf3ff;color-scheme:dark}
+html[data-theme="dark"] input::placeholder,html[data-theme="dark"] #upcInput::placeholder,html[data-theme="dark"] #catalogModel::placeholder{color:#92a3ba;opacity:1}
+html[data-theme="dark"] input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #101b2b inset;-webkit-text-fill-color:#edf3ff;caret-color:#edf3ff}
+html[data-theme="dark"] input[aria-invalid="true"]{border-color:#ff8484!important}
+html[data-theme="dark"] #pickArea{background:#1c2e48;border-color:#5079b5;color:#b1cfff}
+html[data-theme="dark"] #pickArea.drag{background:#284369;border-color:#a9caff}
+html[data-theme="dark"] #previewWrap,html[data-theme="dark"] #searchPreviewWrap{background:#101a29;border-color:#34435a}
+html[data-theme="dark"] canvas,html[data-theme="dark"] .batch-card img{background:#fff;box-shadow:none}
+html[data-theme="dark"] .info,html[data-theme="dark"] #productSummary,html[data-theme="dark"] .product-visual,html[data-theme="dark"][data-tool-mode="verify"] #productVisualPreview,html[data-theme="dark"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded),html[data-theme="dark"][data-tool-mode="verify"] #verifyDetails{background:#1c2c42;border-color:#3a506d;color:var(--ink)}
+html[data-theme="dark"] #productSummary dt,html[data-theme="dark"] #verifyDetails dt,html[data-theme="dark"] .product-visual-meta,html[data-theme="dark"] .product-visual-copy small,html[data-theme="dark"] #verifyIntro p,html[data-theme="dark"] #searchPreviewEmpty,html[data-theme="dark"] #searchPreviewHint,html[data-theme="dark"] footer{color:var(--muted)}
+html[data-theme="dark"] #verifyIntro h2,html[data-theme="dark"] #productVerifyDialog h2,html[data-theme="dark"] #iosPrintDialog h2,html[data-theme="dark"] #addyInstallDialog h2{color:#c4dbff}
+html[data-theme="dark"] #verifyDetails div{border-color:#364861}
+html[data-theme="dark"][data-layout="desktop"][data-tool-mode="verify"] #verifyDetails div:nth-child(-n+2) dd{color:#b2d0ff}
+html[data-theme="dark"] #catalogChoices,html[data-theme="dark"] #catalogChoices button.catalog-result{background:#192536;border-color:#34435a;color:var(--ink)}
+html[data-theme="dark"] #catalogChoices button.catalog-result:hover,html[data-theme="dark"] #catalogChoices button.catalog-result:focus-visible,html[data-theme="dark"] #catalogChoices button.catalog-result:active{background:#263b58}
+html[data-theme="dark"] .catalog-result-sku{color:#a9caff}
+html[data-theme="dark"] .catalog-match{background:#21354f;border-color:#405674;color:var(--ink)}
+html[data-theme="dark"] #catalogMatch[data-state="ok"]{background:transparent;border:0;color:var(--muted)}
+html[data-theme="dark"] .catalog-match[data-state="error"],html[data-theme="dark"] .warning{background:#493a1e;border-color:#8e7232;color:#ffe4a2}
+html[data-theme="dark"] .warning strong{color:#ffe4a2}
+html[data-theme="dark"][data-layout="desktop"] #batchList:empty{background:#142031;border-color:#405674}
+html[data-theme="dark"] #scanDialog,html[data-theme="dark"] #productVerifyDialog,html[data-theme="dark"] #iosPrintDialog,html[data-theme="dark"] #addyInstallDialog,html[data-theme="dark"] .scan-success-toast{background:#192536;color:var(--ink);border-color:#405674;color-scheme:dark}
+html[data-theme="dark"] #iosPrintDialog p,html[data-theme="dark"] #addyInstallDialog p,html[data-theme="dark"] #addyInstallDialog li{color:var(--muted)}
+html[data-theme="dark"] #iosPrintDialog .ios-print-info,html[data-theme="dark"] #iosPrintDialog .ios-print-num{background:#24354e;color:#c4dbff;border-color:#405674}
+html[data-theme="dark"] #iosPrintDialog .ios-print-step{border-color:#34435a}
+html[data-theme="dark"] #productVerifyDialog .product-visual{background:transparent;border:0}
+html[data-theme="dark"] .scan-toast-copy strong{color:#c4dbff}
+html[data-theme="dark"] .scan-toast-product .scan-product-meta{color:var(--muted)}
+/* Keep the actual photo unfiltered; only the surrounding preview surface is dark. */
+html[data-theme="dark"] .product-visual-photo,html[data-theme="dark"] #searchPreviewWrap .product-visual-photo{background:#101a29;color:var(--ink);box-shadow:none}
+html[data-theme="dark"] .product-visual-zoom{background:#fff;color:#17243a;width:fit-content;max-width:100%;padding:0;overflow:hidden}
+html[data-theme="dark"] .product-visual-zoom img{width:auto;max-width:100%;object-fit:contain}
+html[data-theme="dark"] #searchPreviewWrap .product-visual-zoom img{width:auto;max-width:100%;object-fit:contain}
+html[data-theme="dark"] .product-visual-state{color:var(--muted)}
+html[data-theme="dark"] #searchPreviewWrap .product-visual-photo{padding:10px}
+html[data-theme="dark"] #searchPreviewWrap .product-visual-zoom{border-radius:8px}
+html[data-theme="dark"] #verifyIntro h2{color:var(--ink)}
+html[data-theme="dark"] #verifyDetails div:nth-child(-n+2) dd{color:#b9d4ff}
+html[data-theme="dark"] button:focus-visible,html[data-theme="dark"] a:focus-visible,html[data-theme="dark"] select:focus-visible,html[data-theme="dark"] input:focus-visible{outline-color:#a9caff}
+}
+@media print{#nightModeToggle{display:none!important}}
 </style>
 <style id="addy-install-style">
 #addyInstall[hidden]{display:none!important}
@@ -454,14 +647,15 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 </header>
 <div class="warning" id="needsBrowser"><strong>iPhone setup:</strong> Apple's Files preview does not run this converter. Open it as a webpage in Safari, or in an HTML viewer that supports JavaScript. The buttons will work only in a full browser.</div>
 <div class="view-toolbar">
-  <div><label for="layoutMode">Website layout</label><select id="layoutMode"><option value="auto">Auto (recommended)</option><option value="desktop">Desktop</option><option value="mobile">Mobile</option></select></div>
+  <div><div class="layout-theme-row"><label for="layoutMode">Website layout</label><button id="nightModeToggle" type="button" aria-label="Night mode" aria-pressed="false" title="Turn on night mode"><svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 14.1A9 9 0 0 1 9.9 3.2 9 9 0 1 0 20.8 14.1Z"/></svg><svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button></div><select id="layoutMode"><option value="auto">Auto (recommended)</option><option value="desktop">Desktop</option><option value="mobile">Mobile</option></select></div>
   <span class="muted" id="layoutHint" aria-live="polite">Automatic layout</span>
 </div>
 <div class="workspace">
 <div class="editor">
-<div class="mode-switch" role="group" aria-label="Label type">
+<div class="mode-switch" role="group" aria-label="Tool mode">
   <button id="photoMode" type="button" aria-pressed="true">Photo</button>
-  <button id="barcodeMode" type="button" aria-pressed="false">Barcode labels</button>
+  <button id="barcodeMode" type="button" aria-pressed="false">Labels</button>
+  <button id="verifyMode" type="button" aria-pressed="false">Product Search</button>
 </div>
 <div class="control" id="formatPanel" hidden style="margin-bottom:12px"><label for="labelFormat">Label format</label><select id="labelFormat"><option value="standard">Standard product label</option><option value="disposition" selected>Disposition label</option></select></div>
 <div class="panel" id="photoPanel">
@@ -484,10 +678,14 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
   <form id="upcForm">
     <div id="standardBarcodeType" class="standard-type" hidden><label>Barcode type</label><div class="standard-type-switch" role="group" aria-label="Barcode type"><button id="standardUPC" type="button" aria-pressed="true">UPC</button><button id="standardLPN" type="button" aria-pressed="false">LPN</button></div></div>
     <div id="productSearchGroup">
+      <div id="verifyIntro"><h2>Product Search</h2><p>Scan a barcode or find a SKU, model or UPC. Compare the result with the physical unit.</p></div>
       <label for="catalogModel">Find product</label>
       <div class="scan-field"><input id="catalogModel" type="search" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="SKU, model or UPC" aria-controls="catalogChoices"><button type="button" class="scan-button" data-scan-target="product" aria-label="Scan product barcode or model" title="Scan product barcode or model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
+      <div id="verifyStart"><button id="verifyScanProduct" type="button">Scan Product</button></div>
       <div id="catalogMatch" class="catalog-match" hidden role="status" aria-live="polite"></div>
       <div id="catalogChoices" hidden aria-label="Matching products"></div>
+      <section id="productVisualPreview" class="product-visual" hidden aria-label="Matched product"><div class="product-visual-photo"><button type="button" class="product-visual-zoom" hidden aria-label="Enlarge product photo"><img alt="Matched product photo" referrerpolicy="no-referrer"></button><span class="product-visual-state" role="status"></span></div><div class="product-visual-copy"><strong class="product-visual-name"></strong><span class="product-visual-meta"></span><small>Compare the model and physical unit.</small><dl id="verifyDetails"><div><dt>SKU</dt><dd data-verify-field="sku"></dd></div><div><dt>Model</dt><dd data-verify-field="model"></dd></div><div><dt>UPC</dt><dd data-verify-field="upc"></dd></div><div><dt>Brand</dt><dd data-verify-field="brand"></dd></div><div><dt>Department</dt><dd data-verify-field="dept"></dd></div></dl></div></section>
+      <div id="verifyActions" hidden><button id="verifyNextProduct" type="button">Scan Next Product</button><button id="verifyCreateLabel" type="button" class="primary">Create Label for This Product</button><button id="verifyClear" type="button" class="secondary">Clear Product</button></div>
       <section id="productSummary" hidden aria-label="Selected product">
         <strong id="summaryProduct"></strong>
         <dl><dt>Model</dt><dd id="summaryModel"></dd><dt>SKU</dt><dd id="summarySku"></dd><dt>UPC</dt><dd id="summaryUpc"></dd><dt>Dept</dt><dd id="summaryDept"></dd><dt>Brand</dt><dd id="summaryBrand"></dd></dl>
@@ -551,10 +749,18 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
   <button id="batchAddCurrent" type="button" class="secondary" style="width:100%;margin-top:10px" disabled>Add current label to print queue</button>
   <div id="status" role="status" aria-live="polite">Choose a photo to start.</div>
 </div>
+<section class="panel" id="searchPreviewPanel" aria-labelledby="searchPreviewHeading">
+  <div class="section-header"><h2 id="searchPreviewHeading">Product preview</h2><span class="muted" id="searchPreviewSku">No product selected</span></div>
+  <div id="searchPreviewWrap">
+    <div id="searchPreviewEmpty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><strong>No product selected</strong><span>Scan or search for a product to see its image here.</span></div>
+  </div>
+  <p id="searchPreviewHint" hidden>Click the product image to enlarge it.</p>
+</section>
 <section class="panel" id="printingPanel" aria-labelledby="printHeading">
   <div class="section-header"><h2 id="printHeading">ZQ630 printing</h2><span class="muted">Experimental · 4 × 3 in · 203 DPI</span></div>
   <p class="help" id="printIntro">Generate a label first. Your existing PNG actions still work.</p>
   <div id="printPrimary"><button id="laptopPrint" type="button" disabled>Print from laptop</button></div>
+  <button id="iosPrintSetupLink" type="button" class="secondary" hidden>iPhone printer setup / troubleshooting</button>
   <p class="help" id="systemPrintHelp">Windows: select your paired Zebra printer (e.g. Mobile Zebra), 4 × 3-inch stock, actual size, no margins or headers. Set copies in the print dialog.</p>
   <details class="print-extra" id="experimentalPrint"><summary>Other printing options (experimental)</summary>
   <div class="control"><label for="printCopies">Copies (Bluetooth / ZPL)</label><input id="printCopies" type="number" inputmode="numeric" min="1" max="100" step="1" value="1"></div>
@@ -593,6 +799,29 @@ html[data-layout="mobile"] #laptopPrint{background:#eaf1fc;color:var(--bb-dark);
 </main>
 <div id="printSheet" aria-hidden="true"><img id="printImage" alt=""></div>
 <div id="batchSheet" aria-hidden="true"></div>
+<dialog id="iosPrintDialog" aria-labelledby="iosPrintTitle">
+  <div class="ios-print-head"><h2 id="iosPrintTitle">Let’s get you printing!</h2><button type="button" id="iosPrintClose" class="secondary" aria-label="Close printer setup">✕</button></div>
+  <div id="iosPrintWelcome">
+    <div class="ios-print-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6zM17 12h1"/></svg></div>
+    <p style="text-align:center">You’re on an iPhone or iPad. Your Zebra printer needs a quick one-time setup.</p>
+    <div class="ios-print-actions"><button type="button" class="ios-print-primary" id="iosStartSetup">Set up my printer</button><button type="button" class="secondary" id="iosAlreadySetup">I’ve already connected my printer</button><button type="button" class="secondary" id="iosMaybeLater">Maybe later</button></div>
+  </div>
+  <div id="iosPrintSteps" hidden>
+    <div class="ios-print-info"><strong>Zebra ZQ630</strong><p style="margin:4px 0 0">Bluetooth Classic · 4 × 3-inch labels · 203 DPI</p></div>
+    <div class="ios-print-step"><span class="ios-print-num">1</span><div><strong>Install Zebra Printer Setup Utility</strong><p>Get the free official Zebra app.</p><a href="https://apps.apple.com/us/app/zebra-printer-setup-utility/id1454308745" target="_blank" rel="noopener">Get the app from the App Store</a></div></div>
+    <div class="ios-print-step"><span class="ios-print-num">2</span><div><strong>Connect your printer</strong><p>Turn on the printer and Bluetooth. Use the Zebra app to find your printer and select its Bluetooth Classic connection, accepting any pairing prompts. If it is not listed, check iOS Bluetooth settings and the printer’s discoverability.</p></div></div>
+    <div class="ios-print-step"><span class="ios-print-num">3</span><div><strong>Check label settings</strong><p>Use 4 × 3-inch stock and Black Mark for our warehouse labels. Print a test label in the Zebra app before continuing.</p></div></div>
+    <div class="ios-print-actions"><button type="button" class="ios-print-primary" id="iosSetupDone">I’ve completed setup</button><button type="button" class="secondary" id="iosSetupBack">Back</button></div>
+  </div>
+  <div id="iosPrintReady" hidden>
+    <div class="ios-print-info"><strong>Zebra ZQ630</strong><p style="margin:4px 0 0">Setup marked complete on this device. Connection is managed by the Zebra app.</p></div>
+    <label for="iosPrintCopies">Copies</label><input id="iosPrintCopies" type="number" inputmode="numeric" min="1" max="100" step="1" value="1">
+    <div class="ios-print-actions"><button type="button" class="ios-print-primary" id="iosSendLabel">Share label to Zebra</button><button type="button" class="secondary" id="iosSaveLabel">Save ZPL file instead</button><button type="button" class="secondary" id="iosAirPrint">Use iOS system print</button></div>
+    <p>Choose Zebra Setup in the share sheet if available. Otherwise save the ZPL to Files, open Zebra Setup, choose Available Files, select or import the saved file, then send it to the connected printer.</p>
+    <button type="button" class="secondary" id="iosRepeatSetup">Printer setup / troubleshooting</button>
+  </div>
+  <p id="iosPrintMessage" role="status" aria-live="polite"></p>
+</dialog>
 <script>
 (function(){
 'use strict';
@@ -607,7 +836,7 @@ var rotate=document.getElementById('rotate');
 var download=document.getElementById('download');
 var view=document.getElementById('view');
 var status=document.getElementById('status');
-var photoMode=document.getElementById('photoMode'),barcodeMode=document.getElementById('barcodeMode');
+var photoMode=document.getElementById('photoMode'),barcodeMode=document.getElementById('barcodeMode'),verifyMode=document.getElementById('verifyMode');
 var photoPanel=document.getElementById('photoPanel'),barcodePanel=document.getElementById('barcodePanel');
 var upcInput=document.getElementById('upcInput'),upcForm=document.getElementById('upcForm'),previewMeta=document.getElementById('previewMeta');
 var upcSkuInput=document.getElementById('upcSkuInput');
@@ -626,6 +855,9 @@ var batchQueue=[],batchBusy=false;
 var batchAddCurrent=document.getElementById('batchAddCurrent'),batchPicker=document.getElementById('batchPicker'),batchClear=document.getElementById('batchClear'),batchList=document.getElementById('batchList'),batchCount=document.getElementById('batchCount'),batchPrint=document.getElementById('batchPrint'),batchShare=document.getElementById('batchShare'),batchStatus=document.getElementById('batchStatus'),batchSheet=document.getElementById('batchSheet');
 var source=null,sourceUrl='',outputUrl='',outputFile=null,fileName='photo',degrees=0,revision=0;
 var isIOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+var iosSetupKey='addy-buy-ios-zebra-setup-v1',iosSetupComplete=false,iosDialog=document.getElementById('iosPrintDialog'),iosSetupLink=document.getElementById('iosPrintSetupLink'),iosCopies=document.getElementById('iosPrintCopies'),iosMessage=document.getElementById('iosPrintMessage');
+if(isIOS){try{iosSetupComplete=localStorage.getItem(iosSetupKey)==='1';}catch(e){}}
+iosSetupLink.hidden=!isIOS;
 document.getElementById('needsBrowser').hidden=true;
 if(isIOS){document.getElementById('iosNote').style.display='block';}else{share.textContent='Share PNG';}
 ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
@@ -642,6 +874,7 @@ function applyLayout(){
   laptopPrint.textContent=actual==='desktop'?'Print label':'System print';
   printIntro.textContent=actual==='desktop'?'Generate a label and use Print label to open your Windows printer dialog.':'Save or share the PNG with your existing printing app. System print is available if your device supports it.';
   systemPrintHelp.textContent=actual==='desktop'?'Select your paired Zebra printer (e.g. Mobile Zebra), 4 × 3-inch stock, actual size, no margins or headers. Set copies in the print dialog.':'System print requires a compatible installed printer service. If unavailable, use Share / Save PNG or your existing Zebra utility.';
+  if(isIOS){laptopPrint.textContent='Print label';printIntro.textContent='Print with your Zebra printer using the iPhone setup guide.';systemPrintHelp.textContent='One-time setup with the Zebra app. Safari shares the label file; the Zebra app sends it to the printer.';}
 }
 layoutMode.addEventListener('change',function(){try{localStorage.setItem('zebra-beta-layout',layoutMode.value);}catch(e){}applyLayout();});
 if(desktopQuery.addEventListener)desktopQuery.addEventListener('change',applyLayout);
@@ -738,10 +971,64 @@ shareZpl.addEventListener('click',function(){
 });
 laptopPrint.addEventListener('click',function(){
   if(!outputFile||!printGraphic)return;
+  if(isIOS&&iosDialog.showModal){openIOSPrint(false);return;}
+  systemPrintLabel();
+});
+function systemPrintLabel(){
+  if(!outputFile||!printGraphic)return;
   printMessage('Select the Bluetooth ZQ630 in the print dialog. Set stock to 4 × 3 inches, actual size, no margins or headers. Set copies there.');
   if(printImage.complete&&printImage.naturalWidth){document.body.removeAttribute('data-print-job');window.print();}
-  else{printMessage('Print preview is still loading. Try Print from laptop again.');}
-});
+  else{printMessage('Print preview is still loading. Try Print label again.');}
+}
+function iosPrintScreen(screen){
+  var titles={welcome:'Let’s get you printing!',steps:'Connect your Zebra printer',ready:'Print your label'};
+  document.getElementById('iosPrintTitle').textContent=titles[screen];
+  ['Welcome','Steps','Ready'].forEach(function(s){document.getElementById('iosPrint'+s).hidden=s.toLowerCase()!==screen;});
+  iosMessage.textContent='';
+  var ready=!!outputFile&&!!printGraphic&&!printBusy;
+  ['iosSendLabel','iosSaveLabel','iosAirPrint'].forEach(function(id){document.getElementById(id).disabled=!ready;});
+  if(screen==='ready'&&!ready)iosMessage.textContent='Setup saved. Generate a label to print.';
+}
+function openIOSPrint(setup){
+  if(!isIOS||!iosDialog.showModal)return;
+  iosCopies.value=printCopies.value;
+  iosPrintScreen(setup?'steps':iosSetupComplete?'ready':'welcome');
+  if(!iosDialog.open)iosDialog.showModal();
+}
+function completeIOSSetup(){
+  iosSetupComplete=true;try{localStorage.setItem(iosSetupKey,'1');}catch(e){}
+  iosPrintScreen('ready');
+}
+function iosLabelFile(){
+  if(!outputFile||!printGraphic)throw new Error('Generate a label first.');
+  var n=Number(iosCopies.value);
+  if(!Number.isInteger(n)||n<1||n>100)throw new Error('Enter a whole number from 1 to 100.');
+  printCopies.value=String(n);
+  return zplFile();
+}
+function iosSaveFile(){
+  try{downloadZpl(iosLabelFile());iosMessage.textContent='Save the ZPL to Files if prompted. Open Zebra Setup → Available Files → select or import the file → Send to Printer. Check that it printed before sending again.';}
+  catch(e){iosMessage.textContent=e.message;}
+}
+function iosShareFile(){
+  try{
+    var file=iosLabelFile();
+    if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
+      navigator.share({files:[file]}).then(function(){iosMessage.textContent='Share sheet closed. Check the Zebra app and printer before sending again.';}).catch(function(e){iosMessage.textContent=e.name==='AbortError'?'Sharing canceled. Your label is still ready.':'Sharing unavailable. Use Save ZPL file instead, then open Available Files in Zebra Setup.';});
+    }else{iosMessage.textContent='This browser cannot share this ZPL file. Use Save ZPL file instead, then open Available Files in Zebra Setup.';}
+  }catch(e){iosMessage.textContent=e.message;}
+}
+iosSetupLink.addEventListener('click',function(){openIOSPrint(true);});
+document.getElementById('iosPrintClose').addEventListener('click',function(){iosDialog.close();});
+document.getElementById('iosMaybeLater').addEventListener('click',function(){iosDialog.close();});
+document.getElementById('iosStartSetup').addEventListener('click',function(){iosPrintScreen('steps');});
+document.getElementById('iosSetupBack').addEventListener('click',function(){iosPrintScreen(iosSetupComplete?'ready':'welcome');});
+document.getElementById('iosSetupDone').addEventListener('click',completeIOSSetup);
+document.getElementById('iosAlreadySetup').addEventListener('click',completeIOSSetup);
+document.getElementById('iosRepeatSetup').addEventListener('click',function(){iosPrintScreen('steps');});
+document.getElementById('iosSaveLabel').addEventListener('click',iosSaveFile);
+document.getElementById('iosSendLabel').addEventListener('click',iosShareFile);
+document.getElementById('iosAirPrint').addEventListener('click',function(){iosDialog.close();systemPrintLabel();});
 async function bridgeRequest(base,path,options){
   var ctrl=new AbortController(),timer=setTimeout(function(){ctrl.abort();},path==='write'?30000:6000);
   try{
@@ -1120,11 +1407,13 @@ function sharpenDisposition(){
 }
 function switchMode(next,force){
   if(next===mode&&!force)return;
-  mode=next;++revision;disableOutput();clearPreview();
+  mode=next;document.documentElement.dataset.toolMode=mode;++revision;disableOutput();clearPreview();
   var barcode=mode==='barcode',photo=mode==='photo';
   photoMode.setAttribute('aria-pressed',String(photo));
   barcodeMode.setAttribute('aria-pressed',String(barcode));
-  formatPanel.hidden=photo;
+  verifyMode.setAttribute('aria-pressed',String(mode==='verify'));
+  formatPanel.hidden=!barcode;
+  if(mode==='verify'){photoPanel.hidden=true;barcodePanel.hidden=false;syncStandardFields();return;}
   var advanced=barcode&&labelFormat.value==='disposition';
   dispositionFields.hidden=!advanced;
   upcGenerate.textContent='Generate label';
@@ -1145,6 +1434,23 @@ function switchMode(next,force){
 }
 photoMode.addEventListener('click',function(){switchMode('photo');});
 barcodeMode.addEventListener('click',function(){switchMode('barcode');});
+verifyMode.addEventListener('click',function(){switchMode('verify');});
+function createVerifiedStandardLabel(e){
+  if(mode!=='verify'||!e.detail)return;
+  var row=e.detail;
+  // The verified catalog row is authoritative. Do not restart the search or
+  // inherit an order number, LPN, or disposition from a previous label.
+  labelFormat.value='standard';standardKind='UPC';
+  includeOrder.checked=false;orderInput.value='';lpnInput.value='';
+  brandEdited=false;
+  upcSkuInput.value=String(row.sku||'');upcInput.value=String(row.upc||'');
+  document.dispatchEvent(new CustomEvent('addy-catalog-match',{detail:row}));
+  switchMode('barcode');
+  // Use the same validation, drawing, export and print preparation as Generate.
+  upcForm.requestSubmit(upcGenerate);
+  document.getElementById('previewPanel').scrollIntoView({block:'nearest',behavior:'auto'});
+}
+document.addEventListener('addy-verify-label',createVerifiedStandardLabel);
 labelFormat.addEventListener('change',function(){switchMode('barcode',true);});
 function syncStandardFields(){
   var standard=mode==='barcode'&&labelFormat.value==='standard',lpn=standard&&standardKind==='LPN';
@@ -1627,7 +1933,7 @@ async function lookupModel(scan){
     if(ticket!==lookupTicket||busy)return;
     if(!meta)throw new Error('Import a catalog first.');
     active=meta;
-    var rows=await warmCache(meta),buckets=[[],[],[],[],[],[],[]],total=0;
+    var rows=await warmCache(meta),buckets=Array.from({length:7},function(){return []; }),total=0;
     var exactUPC=catalogUPC(raw);
     if(ticket!==lookupTicket||busy)return;
     for(var i=0;i<rows.length;i++){
@@ -1640,10 +1946,11 @@ async function lookupModel(scan){
     var exactOCR=ocr&&(buckets[0].length||buckets[1].length);
     var results=[].concat.apply([],ocr&&exactOCR?buckets.slice(0,2):buckets).slice(0,10);
     if(!results.length){showMatch(ocr?'No catalog model matched the photo. Try a closer picture or enter the model.':'No matching SKU, model or UPC found.','error');return;}
-    if(scan&&scan.kind==='barcode'&&total===1&&(buckets[0].length||buckets[1].length||buckets[2].length)){
+    var manualExact=!scan&&((exactUPC&&buckets[0].length===1)||(/^\d{7}$/.test(raw)&&buckets[1].length===1)||(document.documentElement.dataset.toolMode==='verify'&&!buckets[0].length&&!buckets[1].length&&buckets[2].length===1));
+    if(manualExact||(scan&&scan.kind==='barcode'&&total===1&&(buckets[0].length||buckets[1].length||buckets[2].length))){
       var latest=await readSKU(db,results[0].sku);
       if(ticket!==lookupTicket||busy)return;
-      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched'}}));return;}
+      if(latest.meta&&cacheKey(latest.meta)===cacheKey(meta)&&latest.row&&latest.row.upc===results[0].upc){selectProduct(latest.row);if(scan)document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched',product:latest.row}}));return;}
       showMatch('Catalog changed. Scan again.','error');return;
     }
     showMatch(ocr&&!exactOCR?'Possible model matches. Verify and select the correct product.':results.length>1?'Select the correct product.':'Select product.','ok');
@@ -1663,7 +1970,7 @@ async function lookupModel(scan){
           var latest=await readSKU(db,row.sku);
           if(ticket!==lookupTicket||busy)return;
           if(!latest.meta||cacheKey(latest.meta)!==cacheKey(meta)||!latest.row||latest.row.upc!==row.upc){hideChoices();showMatch('Catalog changed. Search again.','error');return;}
-          selectProduct(latest.row);if(scan)document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched'}}));
+          selectProduct(latest.row);if(scan)document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful: product matched',product:latest.row}}));
         }catch(e){showMatch('Could not retrieve product. Try again.','error');}
       });choices.appendChild(btn);
     });choices.hidden=false;choices.scrollTop=0;
@@ -1832,6 +2139,7 @@ sync();
   </div>
   <p class="help">Images are processed on this device. Scanner libraries may need an internet connection on first use. Verify the result before printing.</p>
 </dialog>
+<dialog id="productVerifyDialog" aria-labelledby="productVerifyTitle"><div class="verify-mark" aria-hidden="true">✓</div><h2 id="productVerifyTitle">Product matched!</h2><section class="product-visual" hidden aria-label="Matched product"><div class="product-visual-photo"><button type="button" class="product-visual-zoom" hidden aria-label="Enlarge product photo"><img alt="Matched product photo" referrerpolicy="no-referrer"></button><span class="product-visual-state" role="status"></span></div><div class="product-visual-copy"><strong class="product-visual-name"></strong><span class="product-visual-meta"></span><small>Compare the model and physical unit.</small></div></section><div class="verify-actions"><button type="button" id="verifyContinue">Confirm &amp; Continue</button><button type="button" id="verifyScanAgain" class="secondary">Scan Again</button></div></dialog>
 <script id="stable-scanner">
 (function(){
 'use strict';
@@ -1851,6 +2159,15 @@ css.textContent=`#scanPreview.model-camera #scanGuide{inset:36% 6%}
 .scan-toast-mark svg{width:44px;height:44px;overflow:visible}
 .scan-toast-spark{position:absolute;right:-7px;top:-6px;width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#ffe000;color:#12325b;font-size:20px;line-height:1}
 .scan-toast-copy{min-width:0;display:grid;gap:6px}
+.scan-toast-product{display:grid;justify-items:center;gap:6px;width:100%;min-width:0}
+.scan-toast-product[hidden],.scan-toast-product img[hidden]{display:none!important}
+.scan-toast-product img{display:block;width:128px;height:112px;object-fit:contain;background:#fff;border-radius:10px}
+.scan-toast-product .scan-product-name{font:650 15px/1.3 system-ui,sans-serif;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.scan-toast-product .scan-product-meta{font:500 12px/1.35 system-ui,sans-serif;color:#526880;overflow-wrap:anywhere}
+.scan-success-toast:has(.scan-toast-product:not([hidden])){gap:10px;padding:18px 20px;max-height:calc(100dvh - 24px);overflow:hidden}
+.scan-success-toast:has(.scan-toast-product:not([hidden])) .scan-toast-mark{width:52px;height:52px;flex-basis:52px}
+.scan-success-toast:has(.scan-toast-product:not([hidden])) .scan-toast-mark svg{width:32px;height:32px}
+@media(max-height:470px){.scan-toast-product img{height:72px;width:100px}.scan-success-toast:has(.scan-toast-product:not([hidden])){gap:5px;padding:10px 16px}.scan-success-toast:has(.scan-toast-product:not([hidden])) .scan-toast-mark{width:38px;height:38px;flex-basis:38px}}
 .scan-toast-copy strong{font-size:26px;line-height:1.2;color:#003b9c}
 .scan-toast-copy span{font-size:16px;font-weight:500;line-height:1.4;overflow-wrap:anywhere}
 .scan-success-toast.toast-pop{animation:scanToastPop .45s cubic-bezier(.22,.75,.3,1) both}
@@ -1861,21 +2178,105 @@ css.textContent=`#scanPreview.model-camera #scanGuide{inset:36% 6%}
 @keyframes scanToastOut{from{opacity:1;transform:translate(-50%,-50%) scale(1)}to{opacity:0;transform:translate(-50%,-52%) scale(.98)}}
 @media(prefers-reduced-motion:reduce){.scan-success-toast.toast-pop,.scan-success-toast.toast-pop .scan-toast-mark svg,.scan-success-toast.toast-out{animation:none}}`;
 document.head.appendChild(css);
-var toastTimer,toastExitTimer,toast=null,lastVibration=0;
+var toastTimer,toastExitTimer,toast=null,lastVibration=0,productImageTicket=0;
+var pageProduct=$('productVisualPreview'),verifyDialog=$('productVerifyDialog'),verifyProduct=verifyDialog.querySelector('.product-visual'),currentVisualRow=null;
+var verifyStart=$('verifyStart'),verifyActions=$('verifyActions');
+var pagePhoto=pageProduct.querySelector('.product-visual-photo'),searchPreviewPanel=$('searchPreviewPanel'),searchPreviewWrap=$('searchPreviewWrap'),searchPreviewEmpty=$('searchPreviewEmpty'),searchPreviewSku=$('searchPreviewSku'),searchPreviewHint=$('searchPreviewHint');
+var searchDesktopQuery=window.matchMedia('(min-width:851px)');
+function syncSearchPreview(){
+  var root=document.documentElement;
+  var desktop=root.dataset.toolMode==='verify'&&root.dataset.layout==='desktop'&&searchDesktopQuery.matches;
+  var host=desktop?searchPreviewWrap:pageProduct;
+  if(pagePhoto.parentNode!==host){
+    if(desktop)host.appendChild(pagePhoto);else host.insertBefore(pagePhoto,host.firstChild);
+  }
+  pagePhoto.hidden=!currentVisualRow;
+  searchPreviewEmpty.hidden=!!currentVisualRow;
+  searchPreviewSku.textContent=currentVisualRow?'SKU '+String(currentVisualRow.sku||''):'No product selected';
+  searchPreviewPanel.classList.toggle('is-expanded',desktop&&pageProduct.classList.contains('is-expanded'));
+  searchPreviewHint.hidden=!currentVisualRow||pagePhoto.querySelector('.product-visual-zoom').hidden;
+}
+new MutationObserver(syncSearchPreview).observe(document.documentElement,{attributes:true,attributeFilter:['data-layout','data-tool-mode']});
+if(searchDesktopQuery.addEventListener)searchDesktopQuery.addEventListener('change',syncSearchPreview);
+else if(searchDesktopQuery.addListener)searchDesktopQuery.addListener(syncSearchPreview);
+syncSearchPreview();
+function setVisualMatch(row){
+  currentVisualRow=row||null;renderProductVisual(pageProduct,currentVisualRow);syncSearchPreview();
+  verifyStart.hidden=!!row;verifyActions.hidden=!row;
+  document.querySelectorAll('[data-verify-field]').forEach(function(field){var value=row&&row[field.dataset.verifyField];field.textContent=value==null||value===''?'Not available':String(value);});
+}
+function clearVerifyProduct(){var search=$('catalogModel');search.value='';search.dispatchEvent(new Event('input',{bubbles:true}));setVisualMatch(null);}
+function startVerifyScan(clear){if(clear)clearVerifyProduct();var button=document.querySelector('[data-scan-target="product"]');if(button)openScanner(button);}
+$('verifyScanProduct').addEventListener('click',function(){startVerifyScan(false);});
+$('verifyNextProduct').addEventListener('click',function(){startVerifyScan(true);});
+$('verifyClear').addEventListener('click',function(){clearVerifyProduct();$('catalogModel').focus();});
+$('verifyCreateLabel').addEventListener('click',function(){if(currentVisualRow)document.dispatchEvent(new CustomEvent('addy-verify-label',{detail:currentVisualRow}));});
+function renderProductVisual(panel,row){
+  var ticket=(panel._imageTicket||0)+1;panel._imageTicket=ticket;
+  var photo=panel===pageProduct?pagePhoto:panel.querySelector('.product-visual-photo');
+  var zoom=photo.querySelector('.product-visual-zoom'),old=zoom.querySelector('img'),img=old.cloneNode(false),state=photo.querySelector('.product-visual-state');
+  img.removeAttribute('src');old.replaceWith(img);zoom.hidden=true;panel.classList.remove('is-expanded');zoom.setAttribute('aria-label','Enlarge product photo');zoom.setAttribute('aria-expanded','false');
+  panel.hidden=!row;state.hidden=false;state.textContent='';
+  if(!row)return;
+  var sku=String(row.sku||'').trim();
+  panel.querySelector('.product-visual-name').textContent=row.product||'Product';
+  panel.querySelector('.product-visual-meta').textContent=[sku?'SKU '+sku:'',row.model?'Model '+row.model:'',row.brand||'',row.upc?'UPC '+row.upc:''].filter(Boolean).join(' · ');
+  state.textContent='Loading product photo…';
+  if(!/^\d{7}$/.test(sku)){state.textContent='Product photo unavailable';return;}
+  img.onload=function(){if(panel._imageTicket!==ticket)return;zoom.hidden=false;state.hidden=true;if(panel===pageProduct)syncSearchPreview();};
+  img.onerror=function(){if(panel._imageTicket!==ticket)return;zoom.hidden=true;state.hidden=false;state.textContent='Product photo unavailable';if(panel===pageProduct)syncSearchPreview();};
+  img.src='https://pisces.bbystatic.com/image2/BestBuy_US/images/products/'+sku.slice(0,4)+'/'+sku+'_sd.jpg;maxHeight=600;maxWidth=600';
+}
+[pageProduct,verifyProduct].forEach(function(panel){
+  var zoom=(panel===pageProduct?pagePhoto:panel).querySelector('.product-visual-zoom');
+  zoom.addEventListener('click',function(){var expanded=panel.classList.toggle('is-expanded');zoom.setAttribute('aria-label',expanded?'Reduce product photo':'Enlarge product photo');zoom.setAttribute('aria-expanded',String(expanded));if(panel===pageProduct)syncSearchPreview();});
+});
+document.addEventListener('addy-catalog-match',function(e){
+  setVisualMatch(e.detail||null);
+});
+[['upcSkuInput','sku'],['upcInput','upc'],['dispModel','model']].forEach(function(pair){
+  $(pair[0]).addEventListener('input',function(){if(currentVisualRow&&String(this.value).trim().toUpperCase()!==String(currentVisualRow[pair[1]]||'').trim().toUpperCase()){setVisualMatch(null);}});
+});
+function showProductVerification(row){
+  hideScanToast();renderProductVisual(verifyProduct,row);
+  if(!verifyDialog.open)verifyDialog.showModal();
+  $('verifyContinue').focus({preventScroll:true});
+}
+$('verifyContinue').addEventListener('click',function(){verifyDialog.close();});
+$('verifyScanAgain').addEventListener('click',function(){verifyDialog.close();var button=document.querySelector('[data-scan-target="product"]');if(button)openScanner(button);});
+verifyDialog.addEventListener('close',function(){if(!verifyDialog.open)renderProductVisual(verifyProduct,null);});
 function scanVibrate(){var now=Date.now();if(now-lastVibration<650)return;lastVibration=now;if(navigator.vibrate){try{navigator.vibrate(300);}catch(err){}}}
-function hideScanToast(){clearTimeout(toastTimer);clearTimeout(toastExitTimer);if(toast){toast.hidden=true;toast.classList.remove('toast-pop','toast-out');}}
+function hideScanToast(){++productImageTicket;clearTimeout(toastTimer);clearTimeout(toastExitTimer);if(toast){toast.hidden=true;toast.classList.remove('toast-pop','toast-out');var product=toast.querySelector('.scan-toast-product');product.hidden=true;product.querySelector('img')?.remove();}}
 function fadeScanToast(){if(!toast||toast.hidden)return;toast.classList.remove('toast-pop');toast.classList.add('toast-out');toastExitTimer=setTimeout(hideScanToast,400);}
-function showScanToast(title,detail){
+function populateScanProduct(row){
+  var panel=toast.querySelector('.scan-toast-product'),ticket=++productImageTicket;
+  panel.hidden=true;panel.querySelector('img')?.remove();
+  if(!row)return;
+  var sku=String(row.sku||'').trim();
+  panel.querySelector('.scan-product-name').textContent=row.product||'Product';
+  panel.querySelector('.scan-product-meta').textContent=[sku?'SKU '+sku:'',row.model?'Model '+row.model:'',row.brand||''].filter(Boolean).join(' · ');
+  panel.hidden=false;
+  if(!/^\d{7}$/.test(sku))return;
+  var img=document.createElement('img');
+  img.alt='Product photo';img.hidden=true;img.decoding='async';img.referrerPolicy='no-referrer';
+  img.onload=function(){if(ticket!==productImageTicket||toast.hidden)return;img.hidden=false;};
+  img.onerror=function(){img.remove();};
+  panel.prepend(img);
+  // Best Buy legacy SKU-based CDN image path; no API credentials or extra catalog download.
+  img.src='https://pisces.bbystatic.com/image2/BestBuy_US/images/products/'+sku.slice(0,4)+'/'+sku+'_sd.jpg;maxHeight=240;maxWidth=280';
+}
+function showScanToast(title,detail,product){
   var parent=dialog.open?dialog:document.body;
   if(!toast){
     toast=document.createElement('div');toast.className='scan-success-toast';toast.hidden=true;
-    toast.innerHTML='<span class="scan-toast-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><span class="scan-toast-spark">✦</span></span><span class="scan-toast-copy"><strong></strong><span></span></span>';
+    toast.innerHTML='<span class="scan-toast-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg><span class="scan-toast-spark">✦</span></span><span class="scan-toast-copy"><strong></strong><span></span></span><div class="scan-toast-product" hidden><span class="scan-product-name"></span><span class="scan-product-meta"></span></div>';
   }
   if(toast.parentNode!==parent)parent.appendChild(toast);
   if(dialog.open){toast.setAttribute('aria-hidden','true');toast.removeAttribute('role');}
   else{toast.removeAttribute('aria-hidden');toast.setAttribute('role','status');}
   toast.querySelector('strong').textContent=title;
   toast.querySelector('.scan-toast-copy span').textContent=detail;
+  populateScanProduct(product);
   clearTimeout(toastTimer);clearTimeout(toastExitTimer);toast.classList.remove('toast-pop','toast-out');toast.hidden=false;void toast.offsetWidth;toast.classList.add('toast-pop');
   toastTimer=setTimeout(fadeScanToast,2500);
 }
@@ -1883,6 +2284,7 @@ function detected(message,title,detail){scanVibrate();say('✓ '+message);showSc
 document.addEventListener('addy-scan-success',function(e){
   scanVibrate();
   var matched=e.detail&&e.detail.message==='Scan successful: product matched';
+  if(matched&&e.detail.product){if(document.documentElement.dataset.toolMode==='verify'){hideScanToast();return;}showProductVerification(e.detail.product);return;}
   showScanToast(matched?'Product matched!':'All set!',matched?'Product details filled in.':'Scanned value added.');
 });
 function notifySuccess(){document.dispatchEvent(new CustomEvent('addy-scan-success',{detail:{message:'Scan successful'}}));}
@@ -2116,3 +2518,4 @@ use.addEventListener('click',function(){
 </dialog>
 </body>
 </html>
+<!-- Stable: approved Beta 47 promotion. -->
