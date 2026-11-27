@@ -513,7 +513,15 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
 #nightModeToggle svg{width:18px;height:18px}
 #nightModeToggle .theme-sun,#nightModeToggle[aria-pressed="true"] .theme-moon{display:none}
 #nightModeToggle[aria-pressed="true"] .theme-sun{display:block}
-@media screen and (min-width:851px){html[data-layout="desktop"] #nightModeToggle{background:#ffffff20;color:#fff;border-color:#ffffff60}}
+@media screen and (min-width:851px){
+ html[data-layout="desktop"] .view-toolbar{width:196px;gap:3px}
+ html[data-layout="desktop"] .view-toolbar>div{display:grid;grid-template-columns:minmax(0,1fr) 34px;gap:3px 7px;align-items:center}
+ html[data-layout="desktop"] .layout-theme-row{display:contents}
+ html[data-layout="desktop"] .layout-theme-row label{grid-column:1;grid-row:1;margin:0;line-height:1.2}
+ html[data-layout="desktop"] .view-toolbar select{grid-column:1;grid-row:2;min-width:0;min-height:30px}
+ html[data-layout="desktop"] #nightModeToggle{grid-column:2;grid-row:1/3;align-self:end;min-height:34px;height:34px;background:#ffffff20;color:#fff;border-color:#ffffff60}
+ html[data-layout="desktop"] #layoutHint{line-height:1.2;margin-top:1px}
+}
 @media screen{
 html[data-theme="dark"]{--bb-blue:#2865cf;--bb-dark:#a9caff;--ink:#e6edf8;--muted:#a6b5c9;--line:#34435a;--surface:#192536;background:#101722;color:var(--ink);color-scheme:dark}
 html[data-theme="dark"] body{background:#101722}
@@ -525,7 +533,10 @@ html[data-theme="dark"] .mode-switch button[aria-pressed="true"],html[data-theme
 html[data-theme="dark"] button.secondary,html[data-theme="dark"] .action.secondary,html[data-theme="dark"][data-layout="desktop"] .actions .primary,html[data-theme="dark"][data-layout="mobile"] #laptopPrint{background:#25364e;color:#d1e2ff;border-color:#405674}
 html[data-theme="dark"] #nightModeToggle{background:#25364e;color:#ffe000;border-color:#536780}
 html[data-theme="dark"] input:not([type="file"]):not([type="checkbox"]):not([type="radio"]),html[data-theme="dark"] select,html[data-theme="dark"] #standardModelSlot #dispModel,html[data-theme="dark"] #dispositionFields input:not([type="checkbox"]),html[data-theme="dark"] #iosPrintDialog #iosPrintCopies{background:#101b2b;color:var(--ink);border-color:#485c78}
-html[data-theme="dark"] input::placeholder{color:#92a3ba}
+/* Explicit ID selectors override the original light-mode input colors. */
+html[data-theme="dark"] #catalogModel,html[data-theme="dark"] #dispType,html[data-theme="dark"] #upcInput,html[data-theme="dark"] #upcSkuInput,html[data-theme="dark"] #lpnForm input,html[data-theme="dark"] #standardOptions .scan-field input,html[data-theme="dark"] #printCopies,html[data-theme="dark"] #scanDialog #scanReadout{background:#101b2b;color:#edf3ff;border-color:#485c78;caret-color:#edf3ff;color-scheme:dark}
+html[data-theme="dark"] input::placeholder,html[data-theme="dark"] #upcInput::placeholder,html[data-theme="dark"] #catalogModel::placeholder{color:#92a3ba;opacity:1}
+html[data-theme="dark"] input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #101b2b inset;-webkit-text-fill-color:#edf3ff;caret-color:#edf3ff}
 html[data-theme="dark"] input[aria-invalid="true"]{border-color:#ff8484!important}
 html[data-theme="dark"] #pickArea{background:#1c2e48;border-color:#5079b5;color:#b1cfff}
 html[data-theme="dark"] #pickArea.drag{background:#284369;border-color:#a9caff}
@@ -551,8 +562,16 @@ html[data-theme="dark"] #iosPrintDialog .ios-print-step{border-color:#34435a}
 html[data-theme="dark"] #productVerifyDialog .product-visual{background:transparent;border:0}
 html[data-theme="dark"] .scan-toast-copy strong{color:#c4dbff}
 html[data-theme="dark"] .scan-toast-product .scan-product-meta{color:var(--muted)}
-/* Keep real product photos and thermal label artwork on neutral white. */
-html[data-theme="dark"] .product-visual-photo,html[data-theme="dark"] .product-visual-zoom,html[data-theme="dark"] #searchPreviewWrap .product-visual-photo{background:#fff;color:#17243a}
+/* Keep the actual photo unfiltered; only the surrounding preview surface is dark. */
+html[data-theme="dark"] .product-visual-photo,html[data-theme="dark"] #searchPreviewWrap .product-visual-photo{background:#101a29;color:var(--ink);box-shadow:none}
+html[data-theme="dark"] .product-visual-zoom{background:#fff;color:#17243a;width:fit-content;max-width:100%;padding:0;overflow:hidden}
+html[data-theme="dark"] .product-visual-zoom img{width:auto;max-width:100%;object-fit:contain}
+html[data-theme="dark"] #searchPreviewWrap .product-visual-zoom img{width:auto;max-width:100%;object-fit:contain}
+html[data-theme="dark"] .product-visual-state{color:var(--muted)}
+html[data-theme="dark"] #searchPreviewWrap .product-visual-photo{padding:10px}
+html[data-theme="dark"] #searchPreviewWrap .product-visual-zoom{border-radius:8px}
+html[data-theme="dark"] #verifyIntro h2{color:var(--ink)}
+html[data-theme="dark"] #verifyDetails div:nth-child(-n+2) dd{color:#b9d4ff}
 html[data-theme="dark"] button:focus-visible,html[data-theme="dark"] a:focus-visible,html[data-theme="dark"] select:focus-visible,html[data-theme="dark"] input:focus-visible{outline-color:#a9caff}
 }
 @media print{#nightModeToggle{display:none!important}}
@@ -621,7 +640,7 @@ html[data-theme="dark"] button:focus-visible,html[data-theme="dark"] a:focus-vis
     <button id="addyInstall" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg> Install app</button>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 45</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 46</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -2500,4 +2519,4 @@ use.addEventListener('click',function(){
 </dialog>
 </body>
 </html>
-<!-- Beta 45: persistent night mode across desktop and mobile. -->
+<!-- Beta 46: refine night-mode fields, header controls and product preview framing. -->
