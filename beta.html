@@ -412,6 +412,41 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
 #verifyDetails dt{color:#465771}
 #verifyDetails dd{margin:0;font-weight:700;overflow-wrap:anywhere;text-align:right}
 @media(min-width:700px){html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded){grid-template-columns:minmax(0,1fr) minmax(0,1fr);text-align:left}html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions{grid-template-columns:1fr 1fr}}
+/* Product Search desktop workstation: match the existing desktop workspace width
+   and keep the mode switch anchored to the same left column as Photo and Labels. */
+@media screen and (min-width:851px){
+ html[data-layout="desktop"][data-tool-mode="verify"] .workspace{max-width:none;margin-inline:0;width:100%}
+ html[data-layout="desktop"][data-tool-mode="verify"] .editor .mode-switch{width:calc(42.5% - 5.1px);box-sizing:border-box}
+ html[data-layout="desktop"][data-tool-mode="verify"] #barcodePanel{padding:clamp(14px,1.3vw,22px)}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productSearchGroup{gap:10px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyIntro h2{font-size:clamp(1.4rem,1.7vw,1.85rem)}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyIntro p{font-size:.98rem}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productSearchGroup>.scan-field{grid-template-columns:minmax(0,1fr) 54px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productSearchGroup>.scan-field .scan-button{width:54px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productSearchGroup #catalogModel{min-height:46px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded){grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(18px,3vw,48px);padding:clamp(12px,1.8vw,28px);align-items:center;text-align:left}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-photo{min-height:220px;border:1px solid #e0e7f0;padding:12px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-zoom{padding:0}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-zoom img{height:clamp(220px,44dvh,500px)}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview.is-expanded img{height:clamp(280px,62dvh,680px)}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-copy{gap:10px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-name{font-size:clamp(1.18rem,1.8vw,1.8rem);line-height:1.28}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-copy small{font-size:.95rem}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails{padding:0 16px;margin:0}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails div{padding:12px 0;font-size:clamp(.92rem,1.05vw,1.12rem);align-items:center}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails div:nth-child(-n+2) dd{font-size:clamp(1.1rem,1.6vw,1.65rem);color:#003b9c}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails dd{font-variant-numeric:tabular-nums}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.65fr);gap:10px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions button{min-height:46px;font-size:.98rem}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyClear{background:#fff;border-color:#c5d5e9}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyStart{max-width:380px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #catalogPanel{margin-top:12px}
+}
+@media screen and (min-width:851px) and (max-width:1100px){
+ html[data-layout="desktop"][data-tool-mode="verify"] .editor .mode-switch{min-width:350px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded){gap:16px;padding:12px}
+}
+@media(max-width:390px){#verifyMode{font-size:.78rem;line-height:1.15;padding-inline:3px}}
 @media print{#verifyIntro,#verifyStart,#verifyActions{display:none!important}}
 #dispositionFields{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px;min-width:0}
 .disposition-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -525,7 +560,7 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
     <button id="addyInstall" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg> Install app</button>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 42</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 43</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -541,7 +576,7 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
 <div class="mode-switch" role="group" aria-label="Tool mode">
   <button id="photoMode" type="button" aria-pressed="true">Photo</button>
   <button id="barcodeMode" type="button" aria-pressed="false">Labels</button>
-  <button id="verifyMode" type="button" aria-pressed="false">Verify</button>
+  <button id="verifyMode" type="button" aria-pressed="false">Product Search</button>
 </div>
 <div class="control" id="formatPanel" hidden style="margin-bottom:12px"><label for="labelFormat">Label format</label><select id="labelFormat"><option value="standard">Standard product label</option><option value="disposition" selected>Disposition label</option></select></div>
 <div class="panel" id="photoPanel">
@@ -564,7 +599,7 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
   <form id="upcForm">
     <div id="standardBarcodeType" class="standard-type" hidden><label>Barcode type</label><div class="standard-type-switch" role="group" aria-label="Barcode type"><button id="standardUPC" type="button" aria-pressed="true">UPC</button><button id="standardLPN" type="button" aria-pressed="false">LPN</button></div></div>
     <div id="productSearchGroup">
-      <div id="verifyIntro"><h2>Product Verification</h2><p>Scan a barcode or find a SKU, model or UPC. Compare the result with the physical unit.</p></div>
+      <div id="verifyIntro"><h2>Product Search</h2><p>Scan a barcode or find a SKU, model or UPC. Compare the result with the physical unit.</p></div>
       <label for="catalogModel">Find product</label>
       <div class="scan-field"><input id="catalogModel" type="search" maxlength="120" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="SKU, model or UPC" aria-controls="catalogChoices"><button type="button" class="scan-button" data-scan-target="product" aria-label="Scan product barcode or model" title="Scan product barcode or model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 9v6M10 9v6M14 9v6M17 9v6"/></svg></button></div>
       <div id="verifyStart"><button id="verifyScanProduct" type="button">Scan Product</button></div>
@@ -2377,4 +2412,4 @@ use.addEventListener('click',function(){
 </dialog>
 </body>
 </html>
-<!-- Beta 42: Verify creates a ready-to-print standard UPC label in one click. -->
+<!-- Beta 43: Product Search naming and full-width desktop workspace. -->
