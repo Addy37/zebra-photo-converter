@@ -90,6 +90,7 @@ async function test(browserType, profile, options, path) {
     await page.locator('#labelFormat').selectOption('disposition');
     await page.locator('#dispType').selectOption('BULK');
     await page.locator('#dispLpn').fill('LPN12345678');
+    await page.locator('#dispMore summary').click();
     await page.locator('#upcInput').fill(fixture.upc);
     await page.locator('#upcGenerate').click();
     await wait(page,'saveZpl');
