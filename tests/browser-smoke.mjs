@@ -36,7 +36,9 @@ async function test(browserType, profile, options, path) {
     await context.addInitScript(()=>{
       window.__printCalls=0;window.print=()=>{window.__printCalls++;};
       window.__cameraCalls=0;
-      if(navigator.mediaDevices)navigator.mediaDevices.getUserMedia=async()=>{window.__cameraCalls++;throw new DOMException('Test denied','NotAllowedError');};
+      // Headless WebKit may omit the native mediaDevices interface entirely.
+      // Supply an explicit test-only interface in every browser profile.
+      Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:async()=>{window.__cameraCalls++;throw new DOMException('Test denied','NotAllowedError');}}});
     });
     await page.goto(base+path);
     await page.waitForFunction(()=>document.getElementById('catalogBadge').textContent.includes('1 products'));
@@ -104,6 +106,7 @@ async function test(browserType, profile, options, path) {
     await page.locator('#verifyScanProduct').click();
     await page.locator('#scanDialog').waitFor({state:'visible'});
     await page.waitForFunction(()=>window.__cameraCalls>0);
+    await page.waitForFunction(()=>document.getElementById('scanStatus').textContent.includes('Camera permission denied'));
     await page.locator('#scanClose').click();
     await page.locator('#scanDialog').waitFor({state:'hidden'});
     log(profile,'model search, automatic camera request and close (permission mocked)');
