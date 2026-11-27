@@ -1,0 +1,55 @@
+name: Vendor local OCR assets
+on:
+  push:
+    branches:
+      - beta-vite-architecture
+    paths:
+      - '.github/workflows/vendor-ocr.yml'
+permissions:
+  contents: write
+jobs:
+  vendor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Extract pinned upstream distributions
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          for spec in 'tesseract.js@6.0.1' 'tesseract.js-core@6.0.0' '@tesseract.js-data/eng@1.0.0'; do
+            npm pack "$spec" --pack-destination "$tmp" --ignore-scripts
+          done
+          for tgz in "$tmp"/*.tgz; do
+            dir="${tgz%.tgz}"; mkdir "$dir"; tar -xzf "$tgz" -C "$dir"
+          done
+          dest=app/vendor/ocr
+          mkdir -p "$dest/core" "$dest/lang" "$dest/licenses"
+          cp "$tmp/tesseract.js-6.0.1/package/dist/tesseract.min.js" "$dest/"
+          cp "$tmp/tesseract.js-6.0.1/package/dist/worker.min.js" "$dest/"
+          cp "$tmp/tesseract.js-core-6.0.0/package/"*.wasm* "$dest/core/"
+          cp "$tmp/tesseract.js-data-eng-1.0.0/package/4.0.0_best_int/eng.traineddata.gz" "$dest/lang/"
+          for dir in "$tmp"/*/package; do
+            name="$(basename "$(dirname "$dir")")"
+            for f in "$dir"/LICENSE* "$dir"/NOTICE* "$dir"/COPYING* "$dir"/README*; do
+              if [ -f "$f" ]; then cp "$f" "$dest/licenses/$name-$(basename "$f")"; fi
+            done
+          done
+          printf '%s\n' 'Pinned upstream npm distributions: tesseract.js 6.0.1, tesseract.js-core 6.0.0, @tesseract.js-data/eng 1.0.0 (4.0.0_best_int). Unmodified browser, worker, WASM and language files.' > "$dest/README.txt"
+          find "$dest" -type f ! -name SHA256SUMS.txt -print0 | sort -z | xargs -0 sha256sum > "$dest/SHA256SUMS.txt"
+          du -ah "$dest" | sort -h | tail -20
+          test -z "$(find "$dest" -type f -size +25M -print)"
+      - name: Commit only vendored assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/beta-vite-architecture
+          git add app/vendor/ocr
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "Vendor pinned Tesseract OCR distributions and language data"
+          git push origin HEAD:refs/heads/beta-vite-architecture
