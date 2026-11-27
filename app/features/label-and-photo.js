@@ -91,22 +91,7 @@ function resetPrintOutput(){
   printGraphic='';printImage.removeAttribute('src');
   updatePrintButtons();
 }
-function rasterGraphic(pixels,width,height){
-  var stride=Math.ceil(width/8),total=stride*height,hex=new Array(total),digits='0123456789ABCDEF';
-  for(var y=0;y<height;y++){
-    for(var b=0;b<stride;b++){
-      var packed=0;
-      for(var bit=0;bit<8;bit++){
-        var x=b*8+bit;
-        if(x>=width)continue;
-        var at=(y*width+x)*4;
-        if(pixels[at+3]>127&&(pixels[at]+pixels[at+1]+pixels[at+2])/3<128)packed|=128>>bit;
-      }
-      hex[y*stride+b]=digits[packed>>4]+digits[packed&15];
-    }
-  }
-  return '^FO0,0^GFA,'+total+','+total+','+stride+','+hex.join('')+'^FS';
-}
+var rasterGraphic=AddyBuyThermal.rasterGraphic;
 function preparePrintOutput(){
   try{
     printGraphic=rasterGraphic(ctx.getImageData(0,0,W,H).data,W,H);
@@ -376,29 +361,7 @@ input.addEventListener('change',function(){var files=Array.from(input.files||[])
 area.addEventListener('drop',function(e){if(e.dataTransfer&&e.dataTransfer.files){var files=Array.from(e.dataTransfer.files);if(files.length>1)addBatchImages(files);else chooseFile(files[0]);}});
 quality.addEventListener('change',convert);
 rotate.addEventListener('click',function(){if(!source)return;degrees=(degrees+90)%360;convert();});
-function upcCheck(body){
-  var sum=0;
-  for(var i=0;i<11;i++)sum+=Number(body.charAt(i))*(i%2===0?3:1);
-  return String((10-sum%10)%10);
-}
-function normalizeUPC(raw){
-  var value=raw.trim();
-  if(!/^[0-9]{11,12}$/.test(value))throw new Error('Enter 11 or 12 UPC digits (including any leading zeros).');
-  var check=upcCheck(value.slice(0,11));
-  if(value.length===12&&value.charAt(11)!==check)throw new Error('Invalid UPC check digit. Check the number; the expected last digit is '+check+'.');
-  return value.slice(0,11)+check;
-}
-function upcBits(value){
-  var left=['0001101','0011001','0010011','0111101','0100011','0110001','0101111','0111011','0110111','0001011'];
-  var bits='101',i,j,p;
-  for(i=0;i<6;i++)bits+=left[Number(value.charAt(i))];
-  bits+='01010';
-  for(i=6;i<12;i++){
-    p=left[Number(value.charAt(i))];
-    for(j=0;j<7;j++)bits+=p.charAt(j)==='0'?'1':'0';
-  }
-  return bits+'101';
-}
+var normalizeUPC=AddyBuyBarcode.normalizeUPC,upcBits=AddyBuyBarcode.upcBits;
 function clearPreview(){
   ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
 }
@@ -429,16 +392,8 @@ function drawStandard(value,sku,model,order,kind,geometry){
   }
   thermalText(value,kind==='UPC'?left:W/2,barY+barHeight+48,width,41,kind==='UPC'?'left':'center');
 }
-// Code 128 symbol widths, including start, checksum and stop patterns.
-var CODE128_PATTERNS=["212222","222122","222221","121223","121322","131222","122213","122312","132212","221213","221312","231212","112232","122132","122231","113222","123122","123221","223211","221132","221231","213212","223112","312131","311222","321122","321221","312212","322112","322211","212123","212321","232121","111323","131123","131321","112313","132113","132311","211313","231113","231311","112133","112331","132131","113123","113321","133121","313121","211331","231131","213113","213311","213131","311123","311321","331121","312113","312311","332111","314111","221411","431111","111224","111422","121124","121421","141122","141221","112214","112412","122114","122411","142112","142211","241211","221114","413111","241112","134111","111242","121142","121241","114212","124112","124211","411212","421112","421211","212141","214121","412121","111143","111341","131141","114113","114311","411113","411311","113141","114131","311141","411131","211412","211214","211232","2331112"];
-function barcodeGeometry(words){
-  var pattern=words.map(function(w){return CODE128_PATTERNS[w];}).join('');
-  var modules=0;
-  for(var i=0;i<pattern.length;i++)modules+=Number(pattern.charAt(i));
-  var module=Math.min(5,Math.floor((W-2*MX)/(modules+20)));
-  if(module<2)throw new Error('LPN is too long to print with readable bars on this label.');
-  return {pattern:pattern,module:module,x:Math.floor((W-modules*module)/2),modules:modules};
-}
+var CODE128_PATTERNS=AddyBuyBarcode.CODE128_PATTERNS;
+function barcodeGeometry(words){return AddyBuyBarcode.barcodeGeometry(words,W,MX);}
 function dispositionText(value,x,y,maxWidth,size,align){
   if(!value)return;
   ctx.textAlign=align||'left';ctx.textBaseline='middle';
@@ -450,34 +405,7 @@ function dispositionText(value,x,y,maxWidth,size,align){
   }
   ctx.fillText(value,x,y);
 }
-// Choose Code 128 B/C runs to keep mixed letter/numeric LPNs compact.
-function compactCode128(value){
-  if(!/^[\x20-\x7e]+$/.test(value))throw new Error('Invalid Code 128 data.');
-  var memo={};
-  function pair(i){return /^\d{2}$/.test(value.slice(i,i+2));}
-  function best(i,mode){
-    if(i===value.length)return [];
-    var k=i+':'+mode;if(memo[k])return memo[k];
-    var options=[];
-    if(mode==='B'){
-      options.push([value.charCodeAt(i)-32].concat(best(i+1,'B')));
-      if(pair(i))options.push([99,Number(value.slice(i,i+2))].concat(best(i+2,'C')));
-    }else{
-      if(pair(i))options.push([Number(value.slice(i,i+2))].concat(best(i+2,'C')));
-      options.push([100,value.charCodeAt(i)-32].concat(best(i+1,'B')));
-    }
-    options.sort(function(a,b){return a.length-b.length;});
-    return memo[k]=options[0];
-  }
-  var words=[104].concat(best(0,'B'));
-  if(pair(0)){
-    var c=[105].concat(best(0,'C'));
-    if(c.length<words.length)words=c;
-  }
-  var checksum=words[0];
-  for(var i=1;i<words.length;i++)checksum+=i*words[i];
-  words.push(checksum%103,106);return words;
-}
+var compactCode128=AddyBuyBarcode.compactCode128;
 function disp128(value,width,label){
   var pattern;
   try{pattern=compactCode128(value).map(function(w){return CODE128_PATTERNS[w];}).join('');}
@@ -566,16 +494,7 @@ function drawDisposition(value,sku){
   }
   if(d.Date){var p=d.Date.split('-');thermalText(p.length===3?p[1]+'/'+p[2]+'/'+p[0]:d.Date,770,581,350,36,'right');}
 }
-// Generated disposition labels are line art, not photographs. Convert antialiased
-// text to solid printer dots without applying photo dithering or changing bar widths.
-function solidThermalPixels(pixels){
-  for(var i=0;i<pixels.length;i+=4){
-    var gray=(pixels[i]+pixels[i+1]+pixels[i+2])/3;
-    var bw=pixels[i+3]>127&&gray<150?0:255;
-    pixels[i]=pixels[i+1]=pixels[i+2]=bw;pixels[i+3]=255;
-  }
-  return pixels;
-}
+var solidThermalPixels=AddyBuyThermal.solidThermalPixels;
 function sharpenDisposition(){
   var image=ctx.getImageData(0,0,W,H);
   solidThermalPixels(image.data);
@@ -727,37 +646,7 @@ upcForm.addEventListener('submit',async function(e){
     activateOutput(file,blob);setStatus((advanced?'Label':kind+' '+value)+' ready.');
   }catch(err){if(mine===revision){clearPreview();setStatus(err.message||'Could not export this barcode. Try again.');}}
 });
-function paintPhoto(ctx,source,degrees,shading){
-  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
-  var sw=source.naturalWidth||source.width,sh=source.naturalHeight||source.height;
-  if(!sw||!sh)throw new Error('Invalid photo dimensions');
-  var rotated=degrees%180!==0,boxW=rotated?sh:sw,boxH=rotated?sw:sh;
-  var scale=Math.min((W-2*MX)/boxW,(H-2*MY)/boxH);
-  var x=Math.floor((W-boxW*scale)/2),y=Math.floor((H-boxH*scale)/2);
-  var x1=Math.min(W,Math.ceil((W+boxW*scale)/2)),y1=Math.min(H,Math.ceil((H+boxH*scale)/2));
-  ctx.save();ctx.translate(W/2,H/2);ctx.rotate(degrees*Math.PI/180);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,-sw*scale/2,-sh*scale/2,sw*scale,sh*scale);ctx.restore();
-  var pixels=ctx.getImageData(0,0,W,H),p=pixels.data,levels=new Float32Array(W*H),mode=shading;
-  var light=mode==='light'?19:mode==='dark'?-17:mode==='bold'?-4:0;
-  var contrast=mode==='bold'?1.43:1.14;
-  var yy,xx,i,at,gray,old,bw,err;
-  for(yy=Math.max(0,y);yy<y1;yy++)for(xx=Math.max(0,x);xx<x1;xx++){
-    at=(yy*W+xx)*4;
-    gray=0.299*p[at]+0.587*p[at+1]+0.114*p[at+2];
-    levels[yy*W+xx]=Math.max(0,Math.min(255,(gray-127.5)*contrast+127.5+light));
-  }
-  // Floyd-Steinberg dithering for the Zebra's black-and-white printhead.
-  for(yy=Math.max(0,y);yy<y1;yy++)for(xx=Math.max(0,x);xx<x1;xx++){
-    i=yy*W+xx;old=levels[i];bw=old<128?0:255;err=old-bw;at=i*4;
-    p[at]=p[at+1]=p[at+2]=bw;p[at+3]=255;
-    if(xx+1<x1)levels[i+1]+=err*7/16;
-    if(yy+1<y1){
-      if(xx>Math.max(0,x))levels[i+W-1]+=err*3/16;
-      levels[i+W]+=err*5/16;
-      if(xx+1<x1)levels[i+W+1]+=err/16;
-    }
-  }
-  ctx.putImageData(pixels,0,0);
-}
+function paintPhoto(ctx,source,degrees,shading){return AddyBuyThermal.paintPhoto(ctx,source,degrees,shading,W,H,MX,MY);}
 var crcTable=(function(){var t=[],n,c,k;for(n=0;n<256;n++){c=n;for(k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);t[n]=c>>>0;}return t;})();
 function crc32(b){var c=0xffffffff;for(var j=0;j<b.length;j++)c=crcTable[(c^b[j])&255]^(c>>>8);return(c^0xffffffff)>>>0;}
 function pngChunk(type,data){

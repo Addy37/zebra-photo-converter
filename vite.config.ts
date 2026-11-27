@@ -2,8 +2,8 @@ import { defineConfig } from 'vite';
 import { cpSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-// Phase 1: keep the existing classic-script order and public asset paths.
-// Later, migrate individual feature files to typed ES modules.
+// Keep the classic-script order and public asset paths during migration.
+// Runtime counterparts are checked against the typed core before build.
 const root = import.meta.dirname;
 const staticAssets = [
   'app', 'icons', 'manifest.webmanifest', 'beta.webmanifest',

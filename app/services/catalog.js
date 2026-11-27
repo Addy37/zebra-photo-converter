@@ -8,12 +8,7 @@ var dbPromise=null,active=null,busy=false,cancelled=false,lookupTicket=0,lookupT
 var modelInput=$('catalogModel'),choices=$('catalogChoices'),selectingModel=false,modelSearching=false;
 var searchCache=null,cacheBuild=null,cacheEpoch=0;
 var DB='addy-buy-product-catalog-v1',LOCK='addy-buy-catalog-write-v1',SLOTS=['productsA','productsB'];
-function skuKey(s){s=String(s).trim();return /^[0-9]{1,12}$/.test(s)?s.replace(/^0+(?=\d)/,''):'';}
-function validUPC(s){
-  if(!/^[0-9]{12}$/.test(s)||s==='000000000000')return false;
-  var n=0;for(var i=0;i<12;i++)n+=Number(s[i])*(i%2===0?3:1);
-  return n%10===0;
-}
+var skuKey=AddyBuyCatalog.skuKey,validUPC=AddyBuyCatalog.validUPC;
 function openDB(){
   if(dbPromise)return dbPromise;
   dbPromise=new Promise(function(resolve,reject){
@@ -63,47 +58,7 @@ function readSKU(db,key){
     };
   });
 }
-function csvParser(){
-  var row=[],field='',quoted=false,closed=false,skipLF=false;
-  return function(chunk,final){
-    var out=[];
-    function endField(){row.push(field);field='';closed=false;}
-    function endRow(){endField();if(row.length>1||row[0]!=='')out.push(row);row=[];}
-    for(var i=0;i<chunk.length;i++){
-      var c=chunk[i];
-      if(skipLF){skipLF=false;if(c==='\n')continue;}
-      if(quoted){if(c==='"'){quoted=false;closed=true;}else field+=c;continue;}
-      if(closed){
-        if(c==='"'){field+='"';quoted=true;closed=false;continue;}
-        if(c!==','&&c!=='\r'&&c!=='\n')throw new Error('Invalid character after quoted CSV field.');
-      }
-      if(c===','){endField();}
-      else if(c==='\r'||c==='\n'){endRow();skipLF=c==='\r';}
-      else if(c==='"'){if(field!=='')throw new Error('Unexpected quote in CSV field.');quoted=true;}
-      else{field+=c;}
-      if(field.length>65536||row.length>100)throw new Error('Unexpected CSV field size.');
-    }
-    if(final){
-      if(quoted)throw new Error('CSV ended inside a quoted field.');
-      if(field!==''||row.length||closed)endRow();
-    }
-    return out;
-  };
-}
-function getColumns(header){
-  var cols=header.map(function(v){return v.replace(/^\uFEFF/,'').trim().toLowerCase();});
-  var indexes=['sku','product','upc'].map(function(n){return cols.indexOf(n);});
-  if(indexes.some(function(i){return i<0;}))throw new Error('CSV must include SKU, Product and UPC headers.');
-  return indexes.concat(['brand','model','dept'].map(function(n){return cols.indexOf(n);}));
-}
-function rowRecord(row,cols){
-  if(row.length<=Math.max.apply(null,cols))throw new Error('Malformed CSV row.');
-  var key=skuKey(row[cols[0]]),code=row[cols[2]].trim();
-  if(!key||!validUPC(code))return null;
-  var record={sku:key,product:row[cols[1]].trim(),upc:code};
-  ['brand','model','dept'].forEach(function(k,i){var col=cols[i+3];if(col>=0&&row[col])record[k]=row[col].trim();});
-  return record;
-}
+var csvParser=AddyBuyCatalog.csvParser,getColumns=AddyBuyCatalog.getColumns,rowRecord=AddyBuyCatalog.rowRecord;
 var hostedLoading=false,hostedController=null,hostedButton=$('loadHostedCatalog');
 function say(text){status.textContent=text;if(hostedLoading&&!active)showMatch(text,'');}
 function showMatch(text,state){match.hidden=!text;match.textContent=text;match.dataset.state=state||'';}
@@ -132,7 +87,7 @@ async function lookup(){
     applyRow(result.row,'');
   }catch(e){if(ticket===lookupTicket)showMatch('Local lookup failed. Manual UPC entry is available.','error');}
 }
-function modelKey(value){return String(value||'').toUpperCase().trim().replace(/[^A-Z0-9]/g,'');}
+var modelKey=AddyBuyCatalog.modelKey;
 function details(row,matchedModel){
   var out=Object.assign({},row),notes=[];
   if(!out.brand){
@@ -195,73 +150,7 @@ function selectProduct(row){
   selectingModel=true;sku.value=row.sku;sku.dispatchEvent(new Event('input',{bubbles:true}));
   selectingModel=false;modelInput.value=row.sku;hideChoices();applyRow(row,'');sync();
 }
-function catalogUPC(value){
-  var v=String(value||'').trim();
-  if(/^0\d{12}$/.test(v))v=v.slice(1);
-  return /^\d{12}$/.test(v)&&validUPC(v)?v:'';
-}
-function rankProduct(entry,raw,key,numeric){
-  var sku=entry.row.sku,model=entry.model;
-  var upc=numeric?catalogUPC(raw):'';
-  if(upc&&entry.row.upc===upc)return 0;
-  if(numeric&&sku===raw)return 1;
-  if(key&&model===key)return 2;
-  if(numeric&&sku.startsWith(raw))return 3;
-  if(key&&model.startsWith(key))return 4;
-  if(entry.product.includes(raw))return 5;
-  if((numeric&&sku.includes(raw))||(key&&model.includes(key)))return 6;
-  return -1;
-}
-function ocrModelKeys(text){
-  var lines=String(text||'').toUpperCase().split(/\r?\n/),keys=new Set();
-  function add(value,explicit){var k=modelKey(value);if(k.length>=4&&k.length<=64&&/\d/.test(k)&&(/[A-Z]/.test(k)||explicit))keys.add(k);}
-  lines.forEach(function(line,i){
-    var match=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD(?:EL)?\.)\s*[:#-]?\s*(.*)$/);
-    if(match){var tail=match[1].trim()||(lines[i+1]||'').trim();var parts=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
-      for(var j=1;j<=Math.min(parts.length,3);j++)add(parts.slice(0,j).join(''),true);}
-    (line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(function(token){add(token,false);});
-  });
-  return keys;
-}
-function ocrFold(value){
-  return value.replace(/[OQ0]/g,'0').replace(/[IL1]/g,'1').replace(/[S5]/g,'5').replace(/[Z2]/g,'2').replace(/[B8]/g,'8').replace(/[G6]/g,'6');
-}
-function oneEdit(a,b){
-  if(Math.abs(a.length-b.length)>1)return false;
-  if(a.length===b.length){
-    var first=-1,second=-1;
-    for(var i=0;i<a.length;i++)if(a[i]!==b[i]){if(first<0)first=i;else if(second<0)second=i;else return false;}
-    return second<0||(second===first+1&&a[first]===b[second]&&a[second]===b[first]);
-  }
-  if(a.length>b.length){var swap=a;a=b;b=swap;}
-  var p=0,q=0,miss=0;
-  while(p<a.length&&q<b.length){if(a[p]===b[q]){p++;q++;}else{if(++miss>1)return false;q++;}}
-  return true;
-}
-function ocrRanker(text,preferred){
-  var keys=ocrModelKeys(text),primary=modelKey(preferred);
-  if(primary.length>=4&&primary.length<=64)keys.add(primary);
-  var list=Array.from(keys),approx=list.filter(function(k){return k.length>=6&&/[A-Z]/.test(k)&&/\d/.test(k);});
-  approx.sort(function(a,b){return (b===primary?1:0)-(a===primary?1:0)||b.length-a.length;});
-  approx=approx.slice(0,16).map(function(k){return {key:k,fold:ocrFold(k)};});
-  return function(model){
-    if(!model)return -1;
-    if(model===primary&&primary.length>=4)return 0;
-    if(keys.has(model))return 1;
-    if(model.length<6)return -1;
-    var fold=null,best=7;
-    for(var i=0;i<approx.length;i++){
-      var a=approx[i],k=a.key,delta=Math.abs(model.length-k.length);
-      if(delta<=1){
-        if(fold===null)fold=ocrFold(model);
-        if(delta===0&&fold===a.fold){best=Math.min(best,2);continue;}
-        if(k.length>=7&&oneEdit(k,model))best=Math.min(best,4);
-      }
-      if(delta<=6&&(model.startsWith(k)||(model.length>=7&&k.startsWith(model))))best=Math.min(best,3);
-    }
-    return best===7?-1:best;
-  };
-}
+var catalogUPC=AddyBuyCatalog.catalogUPC,rankProduct=AddyBuyCatalog.rankProduct,ocrModelKeys=AddyBuyCatalog.ocrModelKeys,ocrRanker=AddyBuyCatalog.ocrRanker;
 async function lookupModel(scan){
   var raw=modelInput.value.trim().toUpperCase(),key=modelKey(raw),numeric=/^\d+$/.test(raw),ticket=++lookupTicket;
   var ocr=scan&&scan.kind==='ocr'?ocrRanker(scan.value,scan.preferred):null;

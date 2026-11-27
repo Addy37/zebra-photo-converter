@@ -4,7 +4,7 @@ Browser-based warehouse label printing and product lookup. No backend or React r
 
 ## Local development
 
-Use Node.js 22.12+ (Node 22 LTS recommended).
+Use Node.js 22.13+ (Node 22 LTS recommended).
 
 ```sh
 npm install
@@ -26,13 +26,21 @@ Open the development URL printed by Vite. Stable is at / and beta at /beta.html.
 - app/services/catalog.js: IndexedDB, compressed CSV import, ranking, product lookup and catalog UI.
 - app/features/scanner-and-product-search.js: camera, ZXing, OCR, scan feedback, product images and verification UI.
 - app/features/install.js and install-beta.js: PWA installation instructions (variant-specific text).
+- app/core/barcode.ts: UPC-A and Code 128 encoding and geometry.
+- app/core/thermal.ts: pixel packing, monochrome conversion and photo dithering.
+- app/core/catalog.ts: CSV parsing, search ranking and OCR candidate matching.
+- app/runtime/: classic-script counterparts for no-build static hosting. Edit the TypeScript sources and run npm run generate:core; CI checks for drift.
 - vite.config.ts: Vite static build and preservation of asset paths.
 
 ## Migration phase 1
 
-The approved stable and beta script/style bodies are extracted unchanged. Classic scripts retain their original execution order and scope; early startup remains inline. This avoids a framework rewrite and preserves existing storage keys and events. The toolchain is TypeScript-ready; the existing browser JavaScript is not yet converted to TypeScript. Future phases can split the larger feature files into typed modules with focused tests.
+The approved stable and beta script/style bodies are extracted unchanged. Classic scripts retain their original execution order and scope; early startup remains inline. This avoids a framework rewrite and preserves existing storage keys and events. The phase 1 source is preserved in commit af7463d78db8d51fa761081335c9ec0c8e3b6170.
 
-Run npm run verify:baseline once to reproduce the exact original approved HTML blobs. This check will intentionally fail after later feature edits. npm test checks local asset references, script parsing and manifest assets. npm run build additionally checks the static output.
+## Migration phase 2 (typed core)
+
+The barcode, thermal image and catalog matching algorithms now live in strictly checked TypeScript files. Classic browser entry scripts call those shared modules and keep their original initialization timing. The larger DOM controllers, printer bridge and IndexedDB orchestration remain JavaScript pending browser/device parity testing. No runtime dependencies or framework added.
+
+The phase 1 byte-for-byte verification is historical and is no longer applicable after extracting functions. npm run check validates TypeScript, runtime parity and focused algorithm/structure tests. npm run build additionally checks the static output.
 
 ## Deployment
 

@@ -279,21 +279,7 @@ async function photoBarcode(file){
   }catch(e){if(isCurrent(ticket)){setBusy(false);say('No readable barcode found. Try a closer, well-lit photo.');}}
   finally{URL.revokeObjectURL(url);}
 }
-function modelCandidates(text){
-  var lines=String(text||'').toUpperCase().split(/\r?\n/),out=[];
-  function add(v,explicit){
-    v=v.trim();var k=v.replace(/[^A-Z0-9]/g,'');
-    if(k.length>=4&&k.length<=64&&(/\d/.test(k)&&(/[A-Z]/.test(k)||explicit))&&!out.includes(v))out.push(v);
-  }
-  lines.forEach(function(line,i){
-    var m=line.match(/\b(?:MODEL(?:\s*(?:NO\.?|NUMBER|#))?|MOD\.)\s*[:#-]?\s*(.*)$/);
-    if(m){var tail=m[1].trim()||(lines[i+1]||'').trim();var parts=tail.match(/[A-Z0-9][A-Z0-9./_-]*/g)||[];
-      if(parts.length){add(parts[0],true);if(parts.length>1)add(parts.slice(0,2).join(''),true);}
-    }
-  });
-  lines.forEach(function(line){(line.match(/[A-Z0-9][A-Z0-9./_-]{3,63}/g)||[]).forEach(function(v){add(v,false);});});
-  return out;
-}
+var modelCandidates=AddyBuyCatalog.modelCandidates;
 async function resizePhoto(file){
   var url=URL.createObjectURL(file),image=new Image();
   try{

@@ -9,6 +9,9 @@ for (const page of ['index.html', 'beta.html']) {
     const scripts = [...html.matchAll(/<script\b[^>]*src="\.\/(app\/[^"]+)"/g)].map(m => m[1]);
     assert.deepEqual(scripts, [
       page === 'beta.html' ? 'app/features/install-beta.js' : 'app/features/install.js',
+      'app/runtime/barcode.js',
+      'app/runtime/thermal.js',
+      'app/runtime/catalog.js',
       'app/features/label-and-photo.js',
       'app/services/catalog.js',
       'app/features/scanner-and-product-search.js',
