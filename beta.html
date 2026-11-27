@@ -412,40 +412,33 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
 #verifyDetails dt{color:#465771}
 #verifyDetails dd{margin:0;font-weight:700;overflow-wrap:anywhere;text-align:right}
 @media(min-width:700px){html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded){grid-template-columns:minmax(0,1fr) minmax(0,1fr);text-align:left}html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions{grid-template-columns:1fr 1fr}}
-/* Product Search desktop workstation: match the existing desktop workspace width
-   and keep the mode switch anchored to the same left column as Photo and Labels. */
+/* Product Search uses the same editor/preview columns as Photo and Labels. */
+#searchPreviewPanel{display:none}
 @media screen and (min-width:851px){
- html[data-layout="desktop"][data-tool-mode="verify"] .workspace{max-width:none;margin-inline:0;width:100%}
- html[data-layout="desktop"][data-tool-mode="verify"] .editor .mode-switch{width:calc(42.5% - 5.1px);box-sizing:border-box}
- html[data-layout="desktop"][data-tool-mode="verify"] #barcodePanel{padding:clamp(14px,1.3vw,22px)}
+ html[data-layout="desktop"][data-tool-mode="verify"] .workspace{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)!important;grid-template-areas:"editor preview"!important;grid-template-rows:auto!important;max-width:none;margin-inline:0;width:100%;gap:12px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #searchPreviewPanel{display:flex;grid-area:preview;flex-direction:column;min-width:0;align-self:stretch}
  html[data-layout="desktop"][data-tool-mode="verify"] #productSearchGroup{gap:10px}
- html[data-layout="desktop"][data-tool-mode="verify"] #verifyIntro h2{font-size:clamp(1.4rem,1.7vw,1.85rem)}
- html[data-layout="desktop"][data-tool-mode="verify"] #verifyIntro p{font-size:.98rem}
- html[data-layout="desktop"][data-tool-mode="verify"] #productSearchGroup>.scan-field{grid-template-columns:minmax(0,1fr) 54px}
- html[data-layout="desktop"][data-tool-mode="verify"] #productSearchGroup>.scan-field .scan-button{width:54px}
- html[data-layout="desktop"][data-tool-mode="verify"] #productSearchGroup #catalogModel{min-height:46px}
- html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded){grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(18px,3vw,48px);padding:clamp(12px,1.8vw,28px);align-items:center;text-align:left}
- html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-photo{min-height:220px;border:1px solid #e0e7f0;padding:12px}
- html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-zoom{padding:0}
- html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-zoom img{height:clamp(220px,44dvh,500px)}
- html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview.is-expanded img{height:clamp(280px,62dvh,680px)}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview,html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded){grid-template-columns:minmax(0,1fr);text-align:left;background:#f4f8ff;padding:14px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview>.product-visual-photo{display:none}
  html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-copy{gap:10px}
- html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-name{font-size:clamp(1.18rem,1.8vw,1.8rem);line-height:1.28}
- html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-copy small{font-size:.95rem}
- html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails{padding:0 16px;margin:0}
- html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails div{padding:12px 0;font-size:clamp(.92rem,1.05vw,1.12rem);align-items:center}
- html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails div:nth-child(-n+2) dd{font-size:clamp(1.1rem,1.6vw,1.65rem);color:#003b9c}
+ html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview .product-visual-name{font-size:clamp(1.05rem,1.35vw,1.45rem);line-height:1.3}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails{padding:0 12px;margin:0}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails div{padding:10px 0;font-size:.95rem;align-items:center}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails div:nth-child(-n+2) dd{font-size:clamp(1rem,1.35vw,1.4rem);color:#003b9c}
  html[data-layout="desktop"][data-tool-mode="verify"] #verifyDetails dd{font-variant-numeric:tabular-nums}
- html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,.65fr);gap:10px}
- html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions button{min-height:46px;font-size:.98rem}
- html[data-layout="desktop"][data-tool-mode="verify"] #verifyClear{background:#fff;border-color:#c5d5e9}
- html[data-layout="desktop"][data-tool-mode="verify"] #verifyStart{max-width:380px}
- html[data-layout="desktop"][data-tool-mode="verify"] #catalogPanel{margin-top:12px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyClear{grid-column:1/-1}
+ html[data-layout="desktop"][data-tool-mode="verify"] #verifyActions button{min-height:44px;white-space:normal}
+ #searchPreviewWrap{display:grid;place-items:center;min-height:clamp(340px,58dvh,650px);flex:1;padding:14px;background:#e8eef6;border:1px solid #d6e0ef;border-radius:10px}
+ #searchPreviewWrap .product-visual-photo{box-sizing:border-box;width:100%;min-height:clamp(310px,54dvh,620px);padding:16px;background:#fff;box-shadow:0 2px 12px #14366c12}
+ #searchPreviewWrap .product-visual-zoom{padding:0}
+ #searchPreviewWrap .product-visual-zoom img{height:clamp(280px,50dvh,580px);width:100%;object-fit:contain}
+ #searchPreviewPanel.is-expanded .product-visual-zoom img{height:clamp(320px,65dvh,780px)}
+ #searchPreviewEmpty{display:grid;justify-items:center;gap:8px;color:#526880;text-align:center;padding:24px}
+ #searchPreviewEmpty svg{width:44px;height:44px;color:#8095b4}
+ #searchPreviewHint{margin:10px 0 0;color:#526880;font-size:.85rem;text-align:center}
 }
-@media screen and (min-width:851px) and (max-width:1100px){
- html[data-layout="desktop"][data-tool-mode="verify"] .editor .mode-switch{min-width:350px}
- html[data-layout="desktop"][data-tool-mode="verify"] #productVisualPreview:not(.is-expanded){gap:16px;padding:12px}
-}
+@media print{#searchPreviewPanel{display:none!important}}
 @media(max-width:390px){#verifyMode{font-size:.78rem;line-height:1.15;padding-inline:3px}}
 @media print{#verifyIntro,#verifyStart,#verifyActions{display:none!important}}
 #dispositionFields{display:grid;gap:10px;border-top:1px solid var(--line);padding-top:12px;min-width:0}
@@ -560,7 +553,7 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
     <button id="addyInstall" type="button" hidden><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></svg> Install app</button>
   </div>
   <div class="hero-copy">
-    <h1>Zebra label converter <span class="beta-tag">BETA 43</span></h1>
+    <h1>Zebra label converter <span class="beta-tag">BETA 44</span></h1>
     <a class="beta-link" href="index.html">Return to stable version</a>
     <p>Convert photos or create standard product and disposition labels.</p>
     <span class="pill">ZEBRA PRESET • 4 × 3 IN • 203 DPI</span>
@@ -670,6 +663,13 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
   <button id="batchAddCurrent" type="button" class="secondary" style="width:100%;margin-top:10px" disabled>Add current label to print queue</button>
   <div id="status" role="status" aria-live="polite">Choose a photo to start.</div>
 </div>
+<section class="panel" id="searchPreviewPanel" aria-labelledby="searchPreviewHeading">
+  <div class="section-header"><h2 id="searchPreviewHeading">Product preview</h2><span class="muted" id="searchPreviewSku">No product selected</span></div>
+  <div id="searchPreviewWrap">
+    <div id="searchPreviewEmpty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8" cy="9" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><strong>No product selected</strong><span>Scan or search for a product to see its image here.</span></div>
+  </div>
+  <p id="searchPreviewHint" hidden>Click the product image to enlarge it.</p>
+</section>
 <section class="panel" id="printingPanel" aria-labelledby="printHeading">
   <div class="section-header"><h2 id="printHeading">ZQ630 printing</h2><span class="muted">Experimental · 4 × 3 in · 203 DPI</span></div>
   <p class="help" id="printIntro">Generate a label first. Your existing PNG actions still work.</p>
@@ -2095,8 +2095,27 @@ document.head.appendChild(css);
 var toastTimer,toastExitTimer,toast=null,lastVibration=0,productImageTicket=0;
 var pageProduct=$('productVisualPreview'),verifyDialog=$('productVerifyDialog'),verifyProduct=verifyDialog.querySelector('.product-visual'),currentVisualRow=null;
 var verifyStart=$('verifyStart'),verifyActions=$('verifyActions');
+var pagePhoto=pageProduct.querySelector('.product-visual-photo'),searchPreviewPanel=$('searchPreviewPanel'),searchPreviewWrap=$('searchPreviewWrap'),searchPreviewEmpty=$('searchPreviewEmpty'),searchPreviewSku=$('searchPreviewSku'),searchPreviewHint=$('searchPreviewHint');
+var searchDesktopQuery=window.matchMedia('(min-width:851px)');
+function syncSearchPreview(){
+  var root=document.documentElement;
+  var desktop=root.dataset.toolMode==='verify'&&root.dataset.layout==='desktop'&&searchDesktopQuery.matches;
+  var host=desktop?searchPreviewWrap:pageProduct;
+  if(pagePhoto.parentNode!==host){
+    if(desktop)host.appendChild(pagePhoto);else host.insertBefore(pagePhoto,host.firstChild);
+  }
+  pagePhoto.hidden=!currentVisualRow;
+  searchPreviewEmpty.hidden=!!currentVisualRow;
+  searchPreviewSku.textContent=currentVisualRow?'SKU '+String(currentVisualRow.sku||''):'No product selected';
+  searchPreviewPanel.classList.toggle('is-expanded',desktop&&pageProduct.classList.contains('is-expanded'));
+  searchPreviewHint.hidden=!currentVisualRow||pagePhoto.querySelector('.product-visual-zoom').hidden;
+}
+new MutationObserver(syncSearchPreview).observe(document.documentElement,{attributes:true,attributeFilter:['data-layout','data-tool-mode']});
+if(searchDesktopQuery.addEventListener)searchDesktopQuery.addEventListener('change',syncSearchPreview);
+else if(searchDesktopQuery.addListener)searchDesktopQuery.addListener(syncSearchPreview);
+syncSearchPreview();
 function setVisualMatch(row){
-  currentVisualRow=row||null;renderProductVisual(pageProduct,currentVisualRow);
+  currentVisualRow=row||null;renderProductVisual(pageProduct,currentVisualRow);syncSearchPreview();
   verifyStart.hidden=!!row;verifyActions.hidden=!row;
   document.querySelectorAll('[data-verify-field]').forEach(function(field){var value=row&&row[field.dataset.verifyField];field.textContent=value==null||value===''?'Not available':String(value);});
 }
@@ -2108,7 +2127,8 @@ $('verifyClear').addEventListener('click',function(){clearVerifyProduct();$('cat
 $('verifyCreateLabel').addEventListener('click',function(){if(currentVisualRow)document.dispatchEvent(new CustomEvent('addy-verify-label',{detail:currentVisualRow}));});
 function renderProductVisual(panel,row){
   var ticket=(panel._imageTicket||0)+1;panel._imageTicket=ticket;
-  var zoom=panel.querySelector('.product-visual-zoom'),old=zoom.querySelector('img'),img=old.cloneNode(false),state=panel.querySelector('.product-visual-state');
+  var photo=panel===pageProduct?pagePhoto:panel.querySelector('.product-visual-photo');
+  var zoom=photo.querySelector('.product-visual-zoom'),old=zoom.querySelector('img'),img=old.cloneNode(false),state=photo.querySelector('.product-visual-state');
   img.removeAttribute('src');old.replaceWith(img);zoom.hidden=true;panel.classList.remove('is-expanded');zoom.setAttribute('aria-label','Enlarge product photo');zoom.setAttribute('aria-expanded','false');
   panel.hidden=!row;state.hidden=false;state.textContent='';
   if(!row)return;
@@ -2117,13 +2137,13 @@ function renderProductVisual(panel,row){
   panel.querySelector('.product-visual-meta').textContent=[sku?'SKU '+sku:'',row.model?'Model '+row.model:'',row.brand||'',row.upc?'UPC '+row.upc:''].filter(Boolean).join(' · ');
   state.textContent='Loading product photo…';
   if(!/^\d{7}$/.test(sku)){state.textContent='Product photo unavailable';return;}
-  img.onload=function(){if(panel._imageTicket!==ticket)return;zoom.hidden=false;state.hidden=true;};
-  img.onerror=function(){if(panel._imageTicket!==ticket)return;zoom.hidden=true;state.hidden=false;state.textContent='Product photo unavailable';};
+  img.onload=function(){if(panel._imageTicket!==ticket)return;zoom.hidden=false;state.hidden=true;if(panel===pageProduct)syncSearchPreview();};
+  img.onerror=function(){if(panel._imageTicket!==ticket)return;zoom.hidden=true;state.hidden=false;state.textContent='Product photo unavailable';if(panel===pageProduct)syncSearchPreview();};
   img.src='https://pisces.bbystatic.com/image2/BestBuy_US/images/products/'+sku.slice(0,4)+'/'+sku+'_sd.jpg;maxHeight=600;maxWidth=600';
 }
 [pageProduct,verifyProduct].forEach(function(panel){
-  var zoom=panel.querySelector('.product-visual-zoom');
-  zoom.addEventListener('click',function(){var expanded=panel.classList.toggle('is-expanded');zoom.setAttribute('aria-label',expanded?'Reduce product photo':'Enlarge product photo');zoom.setAttribute('aria-expanded',String(expanded));});
+  var zoom=(panel===pageProduct?pagePhoto:panel).querySelector('.product-visual-zoom');
+  zoom.addEventListener('click',function(){var expanded=panel.classList.toggle('is-expanded');zoom.setAttribute('aria-label',expanded?'Reduce product photo':'Enlarge product photo');zoom.setAttribute('aria-expanded',String(expanded));if(panel===pageProduct)syncSearchPreview();});
 });
 document.addEventListener('addy-catalog-match',function(e){
   setVisualMatch(e.detail||null);
@@ -2412,4 +2432,4 @@ use.addEventListener('click',function(){
 </dialog>
 </body>
 </html>
-<!-- Beta 43: Product Search naming and full-width desktop workspace. -->
+<!-- Beta 44: Product Search shares the desktop two-column workspace with a separate product preview. -->
