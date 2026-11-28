@@ -66,7 +66,7 @@ function disableOutput(){
   resetPrintOutput();
   if(outputUrl){URL.revokeObjectURL(outputUrl);outputUrl='';}
 }
-function activateOutput(file,blob){
+function activateOutput(file,blob,zplPixels){
   outputFile=file;
   outputUrl=URL.createObjectURL(blob);
   download.href=outputUrl;download.download=file.name;
@@ -74,7 +74,7 @@ function activateOutput(file,blob){
   [download,view].forEach(function(a){a.classList.remove('disabled');a.removeAttribute('aria-disabled');});
   share.disabled=false;
   batchAddCurrent.disabled=batchBusy||batchQueue.length>=50;
-  preparePrintOutput();
+  preparePrintOutput(zplPixels);
   setStatus('Ready! Choose Share / Save, Download, or Open PNG.');
 }
 function printMessage(message){printStatus.textContent=message;}
@@ -92,9 +92,9 @@ function resetPrintOutput(){
   updatePrintButtons();
 }
 var rasterGraphic=AddyBuyThermal.rasterGraphic;
-function preparePrintOutput(){
+function preparePrintOutput(zplPixels){
   try{
-    printGraphic=rasterGraphic(ctx.getImageData(0,0,W,H).data,W,H);
+    printGraphic=rasterGraphic(zplPixels||ctx.getImageData(0,0,W,H).data,W,H);
     printImage.src=outputUrl;
     printMessage('Label ready for printing or ZPL export.');
   }catch(err){printGraphic='';printMessage('Could not prepare ZPL. PNG is still available.');}
@@ -696,12 +696,22 @@ async function convert(){
   var mine=++revision;
   disableOutput();setStatus('Converting photo…');
   try{
-    paintPhoto(ctx,source,degrees,quality.value);
+    var shading=quality.value;
+    paintPhoto(ctx,source,degrees,shading);
+    // Native ZPL requires one-bit dots. Retain the existing normal photo
+    // dithering for ZPL export, independent of the grayscale system-print PNG.
+    var zplPixels;
+    if(shading==='android'){
+      var scratch=document.createElement('canvas');scratch.width=W;scratch.height=H;
+      var scratchCtx=scratch.getContext('2d',{willReadFrequently:true});
+      paintPhoto(scratchCtx,source,degrees,'normal');
+      zplPixels=scratchCtx.getImageData(0,0,W,H).data;
+    }
     var blob=await withPrintDpi(await toPngBlob());
     if(mine!==revision)return;
     var name=fileName+'_Zebra_4x3.png';
     var file=new File([blob],name,{type:'image/png'});
-    activateOutput(file,blob);
+    activateOutput(file,blob,zplPixels);
   }catch(e){if(mine===revision)setStatus('Could not convert this photo. Please try another image.');}
 }
 share.addEventListener('click',function(){
