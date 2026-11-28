@@ -402,8 +402,22 @@ html[data-tool-mode="verify"] #verifyDetails{display:grid;gap:0;border:1px solid
   max-height:calc(var(--scan-vh,100vh) * .9);
   overscroll-behavior:contain;
 }
-#scanDialog[data-ios-viewport] #scanPreview{width:100%;max-height:calc(var(--scan-vh,100vh) * .42)}
-#scanDialog[data-ios-viewport] #scanVideo{min-width:0;min-height:0;max-width:none;max-height:none;object-position:50% 50%;-webkit-transform:none;transform:none}
+/* Explicit frame height: do not let intrinsic video dimensions determine layout. */
+#scanDialog[data-ios-viewport] #scanPreview{
+  width:100%;min-width:0;aspect-ratio:auto;
+  height:min(304.5px,calc((var(--scan-vw,100vw) - 58px) * .75),calc(var(--scan-vh,100vh) * .42));
+  max-height:calc(var(--scan-vh,100vh) * .42);
+}
+@media(max-width:600px) and (orientation:portrait){
+  #scanDialog[data-ios-viewport] #scanPreview{
+    height:min(406px,calc(var(--scan-vw,100vw) - 58px),calc(var(--scan-vh,100vh) * .42));
+  }
+}
+#scanDialog[data-ios-viewport] #scanVideo{
+  inset:auto;left:0;top:0;width:100%;height:100%;
+  min-width:0;min-height:0;max-width:none;max-height:none;
+  object-fit:cover;object-position:50% 50%;-webkit-transform:none;transform:none;
+}
 #scanDialog::backdrop{background:#101c34aa}
 .scan-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px}
 #scanDialog .scan-close{min-width:40px;min-height:40px;padding:4px 10px}

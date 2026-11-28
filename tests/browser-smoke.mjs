@@ -34,8 +34,37 @@ async function checkScannerGeometry(page, profile){
   assert.ok(bounds.preview.w>0&&bounds.preview.h>0);
   assert.equal(bounds.fit,'cover');assert.equal(bounds.position,'50% 50%');
   assert.equal(bounds.inline,true);
-  if(profile==='iPhone WebKit')assert.equal(bounds.ios,true);
-  else assert.equal(bounds.ios,false);
+  if(profile==='iPhone WebKit'){
+    assert.equal(bounds.ios,true);
+    assert.ok(bounds.preview.w>=bounds.preview.h,'iPhone viewfinder must not become a narrow portrait rectangle');
+    assert.ok(bounds.preview.w>=bounds.dialog.w-36,'iPhone viewfinder fills dialog width');
+    // Exercise the production metadata/resize handler with intrinsic camera dimensions.
+    // This simulates camera proportions, not iOS hardware video compositing.
+    const coverage=await page.evaluate(()=>{
+      const p=document.getElementById('scanPreview'),v=document.getElementById('scanVideo'),g=document.getElementById('scanGuide');
+      p.hidden=false;
+      const results=[];
+      try{
+        for(const [width,height] of [[720,1280],[1280,720],[1080,1920],[1920,1080]]){
+          Object.defineProperty(v,'videoWidth',{configurable:true,value:width});
+          Object.defineProperty(v,'videoHeight',{configurable:true,value:height});
+          v.dispatchEvent(new Event('loadedmetadata'));
+          const r=v.getBoundingClientRect(),f=p.getBoundingClientRect(),guide=g.getBoundingClientRect();
+          results.push({width,height,videoW:r.width,videoH:r.height,frameW:p.clientWidth,frameH:p.clientHeight,dx:r.x+r.width/2-f.x-f.width/2,dy:r.y+r.height/2-f.y-f.height/2,guideX:guide.x+guide.width/2-r.x-r.width/2,guideY:guide.y+guide.height/2-r.y-r.height/2});
+        }
+      }finally{
+        delete v.videoWidth;delete v.videoHeight;v.dispatchEvent(new Event('resize'));p.hidden=true;
+      }
+      return results;
+    });
+    for(const c of coverage){
+      assert.ok(c.videoW>=c.frameW-1&&c.videoH>=c.frameH-1,'Video covers frame');
+      near(c.videoW/c.videoH,c.width/c.height,'Intrinsic aspect ratio retained',.015);
+      near(c.dx,0,'Camera horizontal center');near(c.dy,0,'Camera vertical center');
+      near(c.guideX,0,'Guide horizontal center');near(c.guideY,0,'Guide vertical center');
+    }
+    console.log(profile+' camera cover: '+JSON.stringify(coverage));
+  }else assert.equal(bounds.ios,false);
   console.log(profile+' layout: '+JSON.stringify(bounds));
 }
 async function test(browserType, profile, options, path) {
@@ -82,6 +111,9 @@ async function test(browserType, profile, options, path) {
     assert.equal(await page.locator('html').getAttribute('data-layout'),profile==='Desktop'?'desktop':'mobile');
     await page.locator('#nightModeToggle').click();
     assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
+    // Finish initial OCR preparation before the intentional theme-persistence reload.
+    // Reloading mid-WASM fetch can emit a WebKit navigation cancellation error.
+    await page.waitForFunction(()=>document.documentElement.dataset.scannerPreparation==='ready',null,{timeout:90000});
     await page.reload();
     await page.waitForFunction(()=>document.documentElement.dataset.theme==='dark');
     await page.locator('#nightModeToggle').click();
@@ -214,6 +246,25 @@ async function test(browserType, profile, options, path) {
     await page.locator('#rotate').click();
     await wait(page,'saveZpl');
     log(profile,'photo conversion and rotation');
+    {
+      const pixels=async()=>page.evaluate(async()=>{
+        const img=document.getElementById('printImage');await img.decode();
+        const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
+        const x=c.getContext('2d');x.drawImage(img,0,0);
+        const p=x.getImageData(0,0,c.width,c.height).data;
+        let gray=0,colored=0;for(let i=0;i<p.length;i+=4){if(p[i]!==p[i+1]||p[i]!==p[i+2])colored++;if(p[i]>0&&p[i]<255)gray++;}
+        return {gray,colored,w:c.width,h:c.height};
+      });
+      assert.equal(await page.locator('#quality').inputValue(),'normal');
+      const optimized=await pixels();
+      assert.equal(optimized.w,812);assert.equal(optimized.h,609);
+      assert.equal(optimized.colored,0);assert.ok(optimized.gray>10000,'Default PNG retains intermediate gray pixels');
+      await page.locator('#quality').selectOption('dithered');await wait(page,'saveZpl');
+      assert.equal((await pixels()).gray,0,'Original dithered preset remains binary');
+      await page.locator('#quality').selectOption('normal');await wait(page,'saveZpl');
+      assert.ok((await pixels()).gray>10000,'Default grayscale mode restored');
+      log(profile,'Default grayscale PNG and original dithered preset');
+    }
     assert.deepEqual(errors,[]);
     log(profile,'no uncaught browser exceptions');
   } catch(error) {

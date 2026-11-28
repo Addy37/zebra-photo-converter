@@ -159,9 +159,28 @@ function syncScannerViewport(){
   var layoutW=root.clientWidth,layoutH=root.clientHeight;
   var values={'--scan-vw':w,'--scan-vh':h,'--scan-left':left,'--scan-top':top,'--scan-right':Math.max(0,layoutW-w-left),'--scan-bottom':Math.max(0,layoutH-h-top)};
   Object.keys(values).forEach(function(key){dialog.style.setProperty(key,values[key]+'px');});
+  syncIOSVideo();
+}
+// Safari can render the camera's intrinsic portrait rectangle despite object-fit.
+// Size the actual video element to cover the viewfinder, cropping at its edges.
+// OCR uses the actual video bounds, so its existing guide-to-source mapping remains valid.
+function syncIOSVideo(){
+  if(!iosScanner||preview.hidden)return;
+  var w=preview.clientWidth,h=preview.clientHeight,vw=video.videoWidth,vh=video.videoHeight;
+  // Without metadata, use the responsive CSS dimensions rather than stale pixel sizes.
+  if(!vw||!vh){
+    ['width','height','left','top'].forEach(function(key){video.style.removeProperty(key);});
+    return;
+  }
+  if(!w||!h)return;
+  var scale=Math.max(w/vw,h/vh);
+  var width=vw*scale,height=vh*scale;
+  video.style.width=width+'px';video.style.height=height+'px';
+  video.style.left=(w-width)/2+'px';video.style.top=(h-height)/2+'px';
 }
 if(iosScanner){
   dialog.setAttribute('data-ios-viewport','');
+  if(window.ResizeObserver)new ResizeObserver(syncIOSVideo).observe(preview);
   window.addEventListener('resize',syncScannerViewport);
   window.addEventListener('orientationchange',syncScannerViewport);
   if(window.visualViewport){
@@ -173,6 +192,11 @@ function freshVideo(){
   var next=video.cloneNode(false);
   next.autoplay=true;next.muted=true;next.defaultMuted=true;next.playsInline=true;
   next.setAttribute('playsinline','');next.setAttribute('webkit-playsinline','');
+  if(iosScanner){
+    ['width','height','left','top'].forEach(function(key){next.style.removeProperty(key);});
+    next.addEventListener('loadedmetadata',syncIOSVideo);
+    next.addEventListener('resize',syncIOSVideo);
+  }
   video.replaceWith(next);video=next;
 }
 async function startModelCamera(){
@@ -181,7 +205,7 @@ async function startModelCamera(){
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Live camera unavailable. Upload an existing photo instead.');
     var media=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080}}});
     if(!isCurrent(ticket)){media.getTracks().forEach(function(t){t.stop();});return;}
-    stream=media;preview.hidden=false;video.srcObject=media;await video.play();if(!isCurrent(ticket))return;
+    stream=media;preview.hidden=false;video.srcObject=media;syncIOSVideo();await video.play();syncIOSVideo();if(!isCurrent(ticket))return;
     var t=track(),c=caps(t);if(c.focusMode&&c.focusMode.includes('continuous')){try{await t.applyConstraints({advanced:[{focusMode:'continuous'}]});}catch(e){}}
     if(!isCurrent(ticket))return;
     torch.hidden=!c.torch;cameraTools.hidden=false;capture.disabled=false;say('Center the model number in the frame, then tap Capture.');
@@ -309,7 +333,7 @@ async function liveScan(){
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('Live camera unavailable. Upload an existing barcode image instead.');
     var media=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
     if(!isCurrent(ticket)){media.getTracks().forEach(function(t){t.stop();});return;}
-    stream=media;preview.hidden=false;video.srcObject=media;await video.play();
+    stream=media;preview.hidden=false;video.srcObject=media;syncIOSVideo();await video.play();syncIOSVideo();
     if(!isCurrent(ticket))return;
     say('Get the barcode inside the guide…');
     // Let the viewfinder settle before accepting an automatic scan.
