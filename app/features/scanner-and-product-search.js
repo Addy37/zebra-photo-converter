@@ -167,9 +167,14 @@ function syncScannerViewport(){
 function syncIOSVideo(){
   if(!iosScanner||preview.hidden)return;
   var w=preview.clientWidth,h=preview.clientHeight,vw=video.videoWidth,vh=video.videoHeight;
+  // Without metadata, use the responsive CSS dimensions rather than stale pixel sizes.
+  if(!vw||!vh){
+    ['width','height','left','top'].forEach(function(key){video.style.removeProperty(key);});
+    return;
+  }
   if(!w||!h)return;
-  var scale=vw&&vh?Math.max(w/vw,h/vh):0;
-  var width=scale?vw*scale:w,height=scale?vh*scale:h;
+  var scale=Math.max(w/vw,h/vh);
+  var width=vw*scale,height=vh*scale;
   video.style.width=width+'px';video.style.height=height+'px';
   video.style.left=(w-width)/2+'px';video.style.top=(h-height)/2+'px';
 }

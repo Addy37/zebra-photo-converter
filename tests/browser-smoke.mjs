@@ -111,6 +111,9 @@ async function test(browserType, profile, options, path) {
     assert.equal(await page.locator('html').getAttribute('data-layout'),profile==='Desktop'?'desktop':'mobile');
     await page.locator('#nightModeToggle').click();
     assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
+    // Finish initial OCR preparation before the intentional theme-persistence reload.
+    // Reloading mid-WASM fetch can emit a WebKit navigation cancellation error.
+    await page.waitForFunction(()=>document.documentElement.dataset.scannerPreparation==='ready',null,{timeout:90000});
     await page.reload();
     await page.waitForFunction(()=>document.documentElement.dataset.theme==='dark');
     await page.locator('#nightModeToggle').click();
