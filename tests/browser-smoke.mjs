@@ -34,8 +34,37 @@ async function checkScannerGeometry(page, profile){
   assert.ok(bounds.preview.w>0&&bounds.preview.h>0);
   assert.equal(bounds.fit,'cover');assert.equal(bounds.position,'50% 50%');
   assert.equal(bounds.inline,true);
-  if(profile==='iPhone WebKit')assert.equal(bounds.ios,true);
-  else assert.equal(bounds.ios,false);
+  if(profile==='iPhone WebKit'){
+    assert.equal(bounds.ios,true);
+    assert.ok(bounds.preview.w>=bounds.preview.h,'iPhone viewfinder must not become a narrow portrait rectangle');
+    assert.ok(bounds.preview.w>=bounds.dialog.w-36,'iPhone viewfinder fills dialog width');
+    // Exercise the production metadata/resize handler with intrinsic camera dimensions.
+    // This simulates camera proportions, not iOS hardware video compositing.
+    const coverage=await page.evaluate(()=>{
+      const p=document.getElementById('scanPreview'),v=document.getElementById('scanVideo'),g=document.getElementById('scanGuide');
+      p.hidden=false;
+      const results=[];
+      try{
+        for(const [width,height] of [[720,1280],[1280,720],[1080,1920],[1920,1080]]){
+          Object.defineProperty(v,'videoWidth',{configurable:true,value:width});
+          Object.defineProperty(v,'videoHeight',{configurable:true,value:height});
+          v.dispatchEvent(new Event('loadedmetadata'));
+          const r=v.getBoundingClientRect(),f=p.getBoundingClientRect(),guide=g.getBoundingClientRect();
+          results.push({width,height,videoW:r.width,videoH:r.height,frameW:p.clientWidth,frameH:p.clientHeight,dx:r.x+r.width/2-f.x-f.width/2,dy:r.y+r.height/2-f.y-f.height/2,guideX:guide.x+guide.width/2-r.x-r.width/2,guideY:guide.y+guide.height/2-r.y-r.height/2});
+        }
+      }finally{
+        delete v.videoWidth;delete v.videoHeight;v.dispatchEvent(new Event('resize'));p.hidden=true;
+      }
+      return results;
+    });
+    for(const c of coverage){
+      assert.ok(c.videoW>=c.frameW-1&&c.videoH>=c.frameH-1,'Video covers frame');
+      near(c.videoW/c.videoH,c.width/c.height,'Intrinsic aspect ratio retained',.015);
+      near(c.dx,0,'Camera horizontal center');near(c.dy,0,'Camera vertical center');
+      near(c.guideX,0,'Guide horizontal center');near(c.guideY,0,'Guide vertical center');
+    }
+    console.log(profile+' camera cover: '+JSON.stringify(coverage));
+  }else assert.equal(bounds.ios,false);
   console.log(profile+' layout: '+JSON.stringify(bounds));
 }
 async function test(browserType, profile, options, path) {
