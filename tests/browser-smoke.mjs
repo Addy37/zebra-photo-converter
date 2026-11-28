@@ -214,7 +214,7 @@ async function test(browserType, profile, options, path) {
     await page.locator('#rotate').click();
     await wait(page,'saveZpl');
     log(profile,'photo conversion and rotation');
-    if(path==='/beta.html'){
+    {
       const pixels=async()=>page.evaluate(async()=>{
         const img=document.getElementById('printImage');await img.decode();
         const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;
@@ -223,15 +223,15 @@ async function test(browserType, profile, options, path) {
         let gray=0,colored=0;for(let i=0;i<p.length;i+=4){if(p[i]!==p[i+1]||p[i]!==p[i+2])colored++;if(p[i]>0&&p[i]<255)gray++;}
         return {gray,colored,w:c.width,h:c.height};
       });
-      assert.equal((await pixels()).gray,0,'Normal PNG remains binary');
-      await page.locator('#quality').selectOption('android');
-      await wait(page,'saveZpl');
+      assert.equal(await page.locator('#quality').inputValue(),'normal');
       const optimized=await pixels();
       assert.equal(optimized.w,812);assert.equal(optimized.h,609);
-      assert.equal(optimized.colored,0);assert.ok(optimized.gray>10000,'Android PNG retains intermediate gray pixels');
+      assert.equal(optimized.colored,0);assert.ok(optimized.gray>10000,'Default PNG retains intermediate gray pixels');
+      await page.locator('#quality').selectOption('dithered');await wait(page,'saveZpl');
+      assert.equal((await pixels()).gray,0,'Original dithered preset remains binary');
       await page.locator('#quality').selectOption('normal');await wait(page,'saveZpl');
-      assert.equal((await pixels()).gray,0,'Normal mode restored');
-      log(profile,'Android optimized grayscale PNG and legacy preset restoration');
+      assert.ok((await pixels()).gray>10000,'Default grayscale mode restored');
+      log(profile,'Default grayscale PNG and original dithered preset');
     }
     assert.deepEqual(errors,[]);
     log(profile,'no uncaught browser exceptions');

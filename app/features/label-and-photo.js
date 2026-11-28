@@ -701,10 +701,10 @@ async function convert(){
     // Native ZPL requires one-bit dots. Retain the existing normal photo
     // dithering for ZPL export, independent of the grayscale system-print PNG.
     var zplPixels;
-    if(shading==='android'){
+    if(shading==='normal'){
       var scratch=document.createElement('canvas');scratch.width=W;scratch.height=H;
       var scratchCtx=scratch.getContext('2d',{willReadFrequently:true});
-      paintPhoto(scratchCtx,source,degrees,'normal');
+      paintPhoto(scratchCtx,source,degrees,'dithered');
       zplPixels=scratchCtx.getImageData(0,0,W,H).data;
     }
     var blob=await withPrintDpi(await toPngBlob());

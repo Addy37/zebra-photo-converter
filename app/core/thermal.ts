@@ -39,8 +39,8 @@ function paintPhoto(ctx: CanvasRenderingContext2D, source: CanvasImageSource & {
   var x1=Math.min(W,Math.ceil((W+boxW*scale)/2)),y1=Math.min(H,Math.ceil((H+boxH*scale)/2));
   ctx.save();ctx.translate(W/2,H/2);ctx.rotate(degrees*Math.PI/180);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(source,-sw*scale/2,-sh*scale/2,sw*scale,sh*scale);ctx.restore();
   var pixels=ctx.getImageData(0,0,W,H),p=pixels.data,levels=new Float32Array(W*H),mode=shading;
-  // For Android system printing, keep grayscale tones and let the print service halftone.
-  if(mode==='android'){
+  // Default photo output preserves grayscale; the system print service handles halftoning.
+  if(mode==='normal'){
     for(var n=0;n<p.length;n+=4){
       var luminance=Math.round(0.299*p[n]+0.587*p[n+1]+0.114*p[n+2]);
       p[n]=p[n+1]=p[n+2]=luminance;p[n+3]=255;

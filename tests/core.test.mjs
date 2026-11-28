@@ -89,7 +89,7 @@ test('prepared ranker exactly preserves the previous ranking rules', () => {
   }
 });
 
-test('Android photo shading retains grayscale and legacy presets stay binary', () => {
+test('Default photo shading retains grayscale and legacy presets stay binary', () => {
   const original=[255,255,255,255,100,150,200,255,32,32,32,255,0,0,0,255];
   function render(mode){
     const data=new Uint8ClampedArray(original);
@@ -97,8 +97,8 @@ test('Android photo shading retains grayscale and legacy presets stay binary', (
     thermal.paintPhoto(ctx,{width:4,height:1},0,mode,4,1,0,0);
     return [...data];
   }
-  assert.deepEqual(render('android'),[255,255,255,255,141,141,141,255,32,32,32,255,0,0,0,255]);
-  for(const mode of ['normal','light','dark','bold']){
+  assert.deepEqual(render('normal'),[255,255,255,255,141,141,141,255,32,32,32,255,0,0,0,255]);
+  for(const mode of ['dithered','light','dark','bold']){
     const data=render(mode);
     assert.ok(data.every(v=>v===0||v===255),mode);
   }
