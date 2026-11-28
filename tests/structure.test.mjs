@@ -30,3 +30,12 @@ for (const page of ['index.html', 'beta.html']) {
     assert.ok(html.includes('id="addy-splash-script"'));
   });
 }
+
+test('visible footer version matches release metadata', () => {
+  const {version}=JSON.parse(readFileSync('package.json','utf8'));
+  for (const page of ['index.html','beta.html']) {
+    const html=readFileSync(page,'utf8');
+    const channel=page==='beta.html'?' • Beta channel':'';
+    assert.ok(html.includes('id="appVersion">ADDY BUY • v'+version+channel+'</span>'),page);
+  }
+});

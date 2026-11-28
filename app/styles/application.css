@@ -90,6 +90,7 @@ canvas{box-shadow:0 2px 12px #183d6720}
 #upcInput[aria-invalid="true"]{border-color:#c93632}
 footer{color:#53647b;line-height:1.65}
 footer span{font-size:.75rem}
+footer .app-version{display:inline-block;margin-top:4px;font-size:.72rem;font-weight:600;letter-spacing:.02em}
 @media(min-width:761px){body{background:linear-gradient(180deg,var(--bb-blue) 0,var(--bb-blue) 180px,#eef2f7 180px)}.hero{margin:0;padding:28px 26px 30px}}
 @media(max-width:440px){body{padding-top:0}.hero{margin:0 -10px;padding:22px 16px 24px}.brand-row{margin-bottom:19px}}
 @media(prefers-reduced-motion:reduce){button,.action{transition:none}}

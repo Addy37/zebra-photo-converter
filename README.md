@@ -61,3 +61,7 @@ The scanner dialog tracks Safari's visible viewport on iPhone and iPad, includin
 The existing no-build Cloudflare Pages setup can still serve the repository directly during the transition. To enable Vite after beta approval, use build command npm run build and output directory dist, with Node 22. The existing URL and catalog paths do not need to change. Test a branch preview before changing production settings. Do not merge or promote until desktop and Android/iOS scanning, catalog import, label previews and real printer tests pass.
 
 No service worker is added in this migration; existing local catalog behavior is preserved, not new offline guarantees.
+
+## Release version
+
+Update package.json and the visible version in both HTML footers together for each release. Beta shows its channel explicitly. The structure test checks that both match the package version. This works with static hosting and Vite without a separate version request.
